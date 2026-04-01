@@ -207,7 +207,6 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 </div>
 </div>
 <div id="en-game-area" class="hidden">
-<div class="en-monster" id="en-monster">👾</div>
 <div class="en-word" id="en-word">word</div>
 <div class="en-input-panel">
 <input type="text" class="en-input" id="en-answer" placeholder="Напиши українською..." autocomplete="off">
@@ -283,7 +282,6 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 </div>
 
 <div id="math-game-area" class="hidden">
-<div class="math-monster" id="math-monster">👾</div>
 <div class="math-question" id="math-question">5 + 3 = ?</div>
 <div class="math-input-panel">
 <input type="number" class="math-input" id="math-answer" placeholder="?" autocomplete="off" inputmode="numeric">
@@ -513,12 +511,13 @@ saveUser(user);
 updateUI();
 const dog=document.getElementById('dog');
 dog.style.display='block';
+dog.style.left='50%';
+dog.style.transform='translateX(-50%)';
 dog.style.animation='';
 document.getElementById('dog-actions').style.display='flex';
-setTimeout(()=>{
-dog.style.display='none';
-document.getElementById('dog-actions').style.display='none';
-},60000);
+let w=false;
+const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
+setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';document.getElementById('dog-actions').style.display='none';},60000);
 }
 
 function throwBone(){
@@ -583,8 +582,12 @@ setTimeout(()=>{
   dog.style.transform='translateX(-50%)';
   bone.remove();
 },4200);
-
-setTimeout(()=>{dog.style.display='none';},5500);
+// Wag tail for remaining time
+setTimeout(()=>{
+  let w=false;
+  const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
+  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},54000);
+},5000);
 }
 
 function petDog(){
@@ -627,7 +630,12 @@ const pet=setInterval(()=>{
   }
   if(count>=10){
     clearInterval(pet);
-    setTimeout(()=>{hand.remove();dog.style.display='none';},600);
+    setTimeout(()=>{
+      hand.remove();
+      let w=false;
+      const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
+      setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},55000);
+    },600);
   }
 },400);
 }
@@ -680,7 +688,9 @@ setTimeout(()=>{
 
 setTimeout(()=>{
   ball.remove();
-  dog.style.display='none';
+  let w=false;
+  const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
+  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},51000);
 },7600);
 }
 
@@ -786,11 +796,6 @@ const word=englishState.words[idx];
 englishState.currentWord=word;
 englishState.currentIndex=idx;
 
-// Random monster
-const monster=EN_MONSTERS[r(EN_MONSTERS.length)];
-document.getElementById('en-monster').textContent=monster;
-document.getElementById('en-monster').classList.remove('dead');
-
 // Display word and speak
 document.getElementById('en-word').textContent=word.en;
 document.getElementById('en-answer').value='';
@@ -836,10 +841,6 @@ return;
 } else if(isCorrect){
 // Correct!
 inp.classList.add('correct');
-
-// Kill monster animation
-document.getElementById('en-monster').classList.add('dead');
-
 englishState.stars+=200;
 englishState.correctCount++;
 
@@ -1244,12 +1245,6 @@ document.getElementById('math-progress-fill').style.width=(mathState.correctCoun
 function nextMathQuestion(){
 const q=MATH_LEVELS[mathState.level].gen();
 mathState.currentQ=q;
-const el=document.getElementById('math-monster');
-el.textContent=MATH_MONSTERS[r(MATH_MONSTERS.length)];
-el.classList.remove('dead');
-el.style.animation='none';
-void el.offsetWidth;
-el.style.animation='mfloat 2s ease-in-out infinite';
 document.getElementById('math-question').textContent=q.q;
 const inp=document.getElementById('math-answer');
 inp.value='';
@@ -1271,7 +1266,6 @@ if(isCorrect){
   mathState.correctCount++;
   mathState.streak++;
   if(mathState.streak%5===0&&mathState.hearts<10)mathState.hearts++;
-  document.getElementById('math-monster').classList.add('dead');
   spawnStarsBurst();
   showMathFeedback(true,correct);
   updateMathHUD();
