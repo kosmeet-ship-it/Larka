@@ -17,6 +17,7 @@
 
 <!-- ICONS -->
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='96' fill='%23FFD700'/%3E%3Crect y='96' width='192' height='96' fill='%23005BBB'/%3E%3Cpath d='M96 140 C96 140 40 105 40 72 C40 52 55 38 72 38 C83 38 92 44 96 52 C100 44 109 38 120 38 C137 38 152 52 152 72 C152 105 96 140 96 140Z' fill='%23FF69B4' stroke='%23FF1493' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 
@@ -62,13 +63,13 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 @keyframes digAnim{0%,100%{transform:scaleX(1)}50%{transform:scaleX(-1) translateX(-10px)}}
 
 /* English Monster Game */
-#english-game{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e,#16213e);z-index:3000;touch-action:none;flex-direction:column;align-items:stretch}
+#english-game{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e,#16213e);z-index:3000;touch-action:none;flex-direction:column}
 #english-game.is-open{display:flex}
-.en-hud{display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(0,0,0,.8);padding:6px 10px;color:#fff;font-size:.9rem;white-space:nowrap;flex-shrink:0;position:relative;min-height:38px}
-.en-back{position:absolute;left:6px;top:50%;transform:translateY(-50%);background:#e74c3c;color:#fff;border:none;padding:6px 12px;border-radius:16px;cursor:pointer;font-size:.82rem;font-weight:700}
-.en-col{display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;flex:1;padding:8px 10px;min-height:0;width:100%}
-.en-word{background:rgba(0,0,0,.8);padding:10px 24px;border-radius:12px;color:#fff;font-size:2.5rem;font-weight:700;text-align:center;white-space:nowrap;flex-shrink:0}
-.en-input{width:100%;background:rgba(255,255,255,.96);border:3px solid #667eea;border-radius:12px;padding:12px;font-size:2rem;text-align:center;flex-shrink:0}
+.en-hud{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.85);padding:7px 10px;color:#fff;font-size:.88rem;white-space:nowrap;flex:0 0 auto;position:relative}
+.en-back{position:absolute;left:6px;top:50%;transform:translateY(-50%);background:#e74c3c;color:#fff;border:none;padding:6px 12px;border-radius:14px;cursor:pointer;font-size:.8rem;font-weight:700}
+.en-col{display:flex;flex-direction:column;align-items:center;justify-content:space-around;flex:1 1 0;padding:6px 10px;overflow:hidden}
+.en-word{background:rgba(0,0,0,.85);padding:10px 22px;border-radius:12px;color:#fff;font-size:2.4rem;font-weight:700;text-align:center;white-space:nowrap}
+.en-input{width:100%;background:rgba(255,255,255,.96);border:3px solid #667eea;border-radius:12px;padding:11px;font-size:1.9rem;text-align:center}
 .en-input.correct{border-color:#27ae60;background:#d4edda}
 .en-input.wrong{border-color:#e74c3c;background:#f8d7da;animation:shake .5s}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
@@ -97,17 +98,17 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 @keyframes bounce{0%,20%,50%,80%,100%{transform:translateY(0)}40%{transform:translateY(-30px)}60%{transform:translateY(-15px)}}
 
 /* Math Game */
-#math-game{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);z-index:3000;touch-action:none;flex-direction:column;align-items:stretch}
+#math-game{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);z-index:3000;touch-action:none;flex-direction:column}
 #math-game.is-open{display:flex}
-.math-hud{display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(0,0,0,.8);padding:6px 10px;color:#fff;font-size:.9rem;white-space:nowrap;flex-shrink:0;position:relative;min-height:38px}
-.math-back{position:absolute;left:6px;top:50%;transform:translateY(-50%);background:#e74c3c;color:#fff;border:none;padding:6px 12px;border-radius:16px;cursor:pointer;font-size:.82rem;font-weight:700}
-.math-progress-bar{width:90%;height:7px;background:rgba(255,255,255,.2);border-radius:6px;overflow:hidden;flex-shrink:0;align-self:center;margin:2px 0}
-.math-progress-fill{height:100%;background:linear-gradient(90deg,#00ff88,#00b4d8);border-radius:6px;transition:width .4s}
-.math-col{display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;flex:1;padding:8px 10px;min-height:0;width:100%}
+.math-hud{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.85);padding:7px 10px;color:#fff;font-size:.88rem;white-space:nowrap;flex:0 0 auto;position:relative}
+.math-back{position:absolute;left:6px;top:50%;transform:translateY(-50%);background:#e74c3c;color:#fff;border:none;padding:6px 12px;border-radius:14px;cursor:pointer;font-size:.8rem;font-weight:700}
+.math-progress-bar{width:92%;height:6px;background:rgba(255,255,255,.2);border-radius:5px;overflow:hidden;flex:0 0 auto;align-self:center;margin:2px 0}
+.math-progress-fill{height:100%;background:linear-gradient(90deg,#00ff88,#00b4d8);border-radius:5px;transition:width .4s}
+.math-col{display:flex;flex-direction:column;align-items:center;justify-content:space-around;flex:1 1 0;padding:6px 10px;overflow:hidden}
 .math-stars-burst{position:absolute;pointer-events:none;font-size:2rem;animation:burst .8s forwards}
 @keyframes burst{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-90px) scale(1.5)}}
-.math-question{background:rgba(0,0,0,.85);padding:16px 36px;border-radius:16px;color:#fff;font-size:3rem;font-weight:700;text-align:center;white-space:nowrap;border:2px solid rgba(255,255,255,.15);flex-shrink:0}
-.math-input{width:100%;background:rgba(255,255,255,.96);border:3px solid #667eea;border-radius:12px;padding:12px;font-size:2.5rem;text-align:center;font-weight:700;flex-shrink:0}
+.math-question{background:rgba(0,0,0,.85);padding:14px 30px;border-radius:14px;color:#fff;font-size:3rem;font-weight:700;text-align:center;white-space:nowrap;border:2px solid rgba(255,255,255,.15)}
+.math-input{width:100%;background:rgba(255,255,255,.96);border:3px solid #667eea;border-radius:12px;padding:11px;font-size:2.4rem;text-align:center;font-weight:700}
 .math-input.correct{border-color:#27ae60;background:#d4edda}
 .math-input.wrong{border-color:#e74c3c;background:#f8d7da;animation:shake .5s}
 .math-level-select{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:90%;max-width:600px}
