@@ -1307,27 +1307,26 @@ closeMath();
 }
 
 // ═══════════════════════════════════════════════════════════
-// PWA SERVICE WORKER
+// ═══════════════════════════════════════════════════════════
+// PWA — скасовуємо старий сервіс-воркер щоб не роздавав кеш
 // ═══════════════════════════════════════════════════════════
 if('serviceWorker' in navigator){
-window.addEventListener('load',()=>{
-navigator.serviceWorker.register('sw.js')
-.then(reg=>console.log('✅ PWA зареєстровано'))
-.catch(err=>console.error('❌ PWA помилка',err));
-});
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
+  });
+  // Очищаємо всі кеші
+  if('caches' in window){
+    caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)));
+  }
 }
 
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt',e=>{
 e.preventDefault();
 deferredPrompt=e;
-console.log('💡 PWA готова до встановлення');
 });
+window.addEventListener('appinstalled',()=>{deferredPrompt=null;});
 
-window.addEventListener('appinstalled',()=>{
-console.log('✅ PWA встановлено!');
-deferredPrompt=null;
-});
 </script>
 </body>
 </html>
