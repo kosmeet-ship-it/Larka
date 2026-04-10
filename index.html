@@ -43,15 +43,7 @@ html{height:100%}
 body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700 0%,#FFD700 50%,#005BBB 50%,#005BBB 100%);min-height:100%;min-height:100dvh;overflow-x:hidden}
 .hidden{display:none!important}
 
-/* Auth */
-#auth{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.auth-box{background:#fff;padding:28px 24px;border-radius:22px;box-shadow:0 8px 32px rgba(0,0,0,.35);width:100%;max-width:400px;margin:auto}
-.auth-box h1{text-align:center;color:#764ba2;margin-bottom:20px;font-size:2.2rem}
-.auth-box input{width:100%;padding:13px;margin:8px 0;border:2px solid #e0e0e0;border-radius:12px;font-size:1rem}
-.auth-box button{width:100%;padding:14px;margin:10px 0;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:12px;font-size:1.1rem;font-weight:600;cursor:pointer}
-.tab{display:flex;gap:10px;margin-bottom:20px}
-.tab button{flex:1;padding:11px;background:#f5f5f5;border:none;border-radius:12px;cursor:pointer;font-size:1rem}
-.tab button.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+
 
 /* Main */
 #main{display:none;padding:15px;max-width:1200px;margin:0 auto}
@@ -142,35 +134,16 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 </head>
 <body>
 
-<!-- AUTH -->
-<div id="auth">
-<div class="auth-box">
-<h1>💗 Ларіка</h1>
-<div class="tab">
-<button class="active" onclick="switchTab('login')">Вхід</button>
-<button onclick="switchTab('register')">Реєстрація</button>
-</div>
-<div id="login-form">
-<input type="text" id="login-username" placeholder="Ім'я">
-<input type="text" id="login-password" placeholder="Пароль">
-<button onclick="login()">Увійти</button>
-</div>
-<div id="register-form" class="hidden">
-<input type="text" id="reg-username" placeholder="Ім'я">
-<input type="text" id="reg-password" placeholder="Пароль">
-<button onclick="register()">Створити</button>
-</div>
-</div>
-</div>
+
 
 <!-- MAIN -->
 <div id="main">
 <div class="header">
-<div style="font-size:1.3rem;color:#764ba2;font-weight:700">👤 <span id="user-display"></span></div>
+<div style="font-size:1.5rem;color:#764ba2;font-weight:700">💗 Ларіка</div>
 <div class="stars">⭐ <span id="stars-display">0</span></div>
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
-<button class="btn danger" onclick="logout()">Вийти</button>
+
 </div>
 
 <div class="games">
@@ -329,7 +302,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 // DATABASE
 // ═══════════════════════════════════════════════════════════
 const USERS_KEY='larikaV3';
-let currentUser=null;
+let currentUser='гравець';
 let englishState=null;
 
 // English words database - 3 themes × 30 words = 90 words
@@ -370,55 +343,40 @@ function rnd(a){return a[r(a.length)]}
 // ═══════════════════════════════════════════════════════════
 // USER MANAGEMENT
 // ═══════════════════════════════════════════════════════════
-function loadUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'{}')}catch{return{}}}
-function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
-function getUser(){const u=loadUsers();return u[currentUser]||null}
-function saveUser(d){const u=loadUsers();u[currentUser]=d;saveUsers(u)}
+// ═══════════════════════════════════════════════════════════
+// БЕЗ АВТОРИЗАЦІЇ — один спільний профіль
+// ═══════════════════════════════════════════════════════════
+const PROFILE_KEY='larikaProfile';
 
-function switchTab(t){
-document.getElementById('login-form').classList.toggle('hidden',t!=='login');
-document.getElementById('register-form').classList.toggle('hidden',t!=='register');
-document.querySelectorAll('.tab button').forEach((b,i)=>b.classList.toggle('active',i===(t==='login'?0:1)));
+function loadUsers(){
+  try{
+    const d=JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');
+    if(d) return {'гравець':d};
+    return {};
+  }catch{return{}}
 }
-
-function register(){
-const u=document.getElementById('reg-username').value.trim();
-const p=document.getElementById('reg-password').value;
-if(!u||!p)return alert('Заповніть всі поля');
-const users=loadUsers();
-if(users[u])return alert('Користувач існує');
-users[u]={
-password:p,
-stars:0,
-dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
-english:{},
-customWords:[],
-games:{}
-};
-saveUsers(users);
-alert('Акаунт створено!');
-switchTab('login');
+function saveUsers(u){
+  if(u['гравець']) localStorage.setItem(PROFILE_KEY,JSON.stringify(u['гравець']));
 }
-
-function login(){
-const u=document.getElementById('login-username').value.trim();
-const p=document.getElementById('login-password').value;
-const users=loadUsers();
-if(!users[u])return alert('Користувач не знайдений');
-if(users[u].password!==p)return alert('Невірний пароль');
-currentUser=u;
-showMain();
+function getUser(){
+  try{
+    const d=JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');
+    if(d) return d;
+  }catch{}
+  // Створюємо новий профіль якщо немає
+  const newProfile={
+    stars:0,
+    dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
+    english:{},
+    customWords:[],
+    games:{}
+  };
+  localStorage.setItem(PROFILE_KEY,JSON.stringify(newProfile));
+  return newProfile;
 }
-
-function logout(){
-if(confirm('Вийти?')){
-currentUser=null;
-location.reload();
-}
-}
+function saveUser(d){localStorage.setItem(PROFILE_KEY,JSON.stringify(d));}
 
 function showMain(){
-document.getElementById('auth').style.display='none';
 document.getElementById('main').style.display='block';
 updateUI();
 updateDog();
@@ -426,7 +384,6 @@ updateDog();
 
 function updateUI(){
 const user=getUser();
-document.getElementById('user-display').textContent=currentUser;
 document.getElementById('stars-display').textContent=user.stars;
 }
 
@@ -986,6 +943,7 @@ else{closeEnglish();}
 
 // Enter key + prevent swipe
 document.addEventListener('DOMContentLoaded',()=>{
+showMain();
 const inp=document.getElementById('en-answer');
 if(inp){
 inp.addEventListener('keypress',e=>{
