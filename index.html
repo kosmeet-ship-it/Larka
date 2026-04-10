@@ -52,9 +52,9 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 
 /* Dog */
 .dog-area{background:rgba(255,255,255,.98);padding:20px;border-radius:18px;position:relative;min-height:350px;overflow:hidden}
-.dog-house{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);width:130px;height:110px;background:linear-gradient(135deg,#8B4513,#A0522D);border-radius:15px 15px 0 0;cursor:pointer}
-.dog-house::before{content:'🏠';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3.5rem}
-.dog{position:absolute;bottom:25px;font-size:5rem;display:none;transition:left .6s ease,transform .3s}
+.dog-house{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:150px;height:140px;cursor:pointer;user-select:none}
+.dog-house svg{width:100%;height:100%}
+.dog{position:absolute;bottom:20px;font-size:5rem;display:none;transition:left .6s ease,transform .3s}
 .dog-hearts{position:absolute;top:15px;left:15px;font-size:1.3rem;background:rgba(255,255,255,.9);padding:8px 12px;border-radius:10px}
 .dog-actions{position:absolute;top:15px;right:15px;display:none;flex-direction:column;gap:8px}
 .dog-prop{position:absolute;font-size:3rem;pointer-events:none}
@@ -177,7 +177,34 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 </div>
 <div class="dog-hearts" id="dog-hearts"></div>
 <div class="dog-house" onclick="tapDogHouse()">
-<div id="dog-name-label" style="position:absolute;top:15px;left:50%;transform:translateX(-50%);background:rgba(139,69,19,0.95);color:#fff;padding:6px 18px;border-radius:12px;font-weight:700;font-size:1.2rem;text-shadow:2px 2px 4px rgba(0,0,0,0.6);border:2px solid rgba(255,255,255,0.3)">Рекс</div>
+<svg viewBox="0 0 150 140" xmlns="http://www.w3.org/2000/svg">
+  <!-- Трава -->
+  <ellipse cx="75" cy="135" rx="72" ry="8" fill="#7EC850" opacity=".6"/>
+  <!-- Стіни -->
+  <rect x="15" y="65" width="120" height="72" rx="4" fill="#D0D0D0" stroke="#B0B0B0" stroke-width="2"/>
+  <!-- Дах — основа -->
+  <polygon points="5,68 75,10 145,68" fill="#C0392B"/>
+  <!-- Дах — тінь -->
+  <polygon points="5,68 75,10 145,68" fill="none" stroke="#922B21" stroke-width="2.5"/>
+  <!-- Дах — деталь (друга лінія) -->
+  <polygon points="15,68 75,18 135,68" fill="#E74C3C"/>
+  <!-- Вентиляційний отвір на даху -->
+  <circle cx="75" cy="42" r="7" fill="#922B21" stroke="#7B241C" stroke-width="1.5"/>
+  <circle cx="75" cy="42" r="3.5" fill="#1a0a00"/>
+  <!-- Дошки стін (горизонтальні лінії) -->
+  <line x1="15" y1="85" x2="135" y2="85" stroke="#B8B8B8" stroke-width="1"/>
+  <line x1="15" y1="103" x2="135" y2="103" stroke="#B8B8B8" stroke-width="1"/>
+  <line x1="15" y1="121" x2="135" y2="121" stroke="#B8B8B8" stroke-width="1"/>
+  <!-- Табличка з іменем над входом -->
+  <rect x="38" y="67" width="74" height="18" rx="4" fill="#8B4513" stroke="#5D2E0C" stroke-width="1.5"/>
+  <text id="dog-name-label" x="75" y="80" text-anchor="middle" fill="#FFE082" font-size="10" font-weight="bold" font-family="Segoe UI,sans-serif">Рекс</text>
+  <!-- Круглий вхід -->
+  <ellipse cx="75" cy="120" rx="28" ry="30" fill="#1a0a00" stroke="#888" stroke-width="2"/>
+  <!-- Рамка входу -->
+  <ellipse cx="75" cy="120" rx="28" ry="30" fill="none" stroke="#A0522D" stroke-width="3"/>
+  <!-- Трава перед будкою -->
+  <rect x="10" y="132" width="130" height="10" rx="3" fill="#5D8A3C" opacity=".7"/>
+</svg>
 </div>
 <div class="dog" id="dog" style="left:50%;transform:translateX(-50%)">🐕</div>
 <div class="dog-actions" id="dog-actions">
