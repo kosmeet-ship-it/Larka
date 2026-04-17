@@ -3,7 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-<title>🌟 Ларіка v3 - English</title>
+<title>💗 Ларіка</title>
+
+<!-- KILL OLD SERVICE WORKER AND CACHE IMMEDIATELY -->
+<script>
+(function(){
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+      regs.forEach(function(r){r.unregister();});
+    });
+  }
+  if('caches' in window){
+    caches.keys().then(function(keys){
+      keys.forEach(function(k){caches.delete(k);});
+    });
+  }
+})();
+</script>
 
 <!-- PWA META TAGS -->
 <meta name="theme-color" content="#764ba2">
@@ -11,29 +27,27 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ларіка">
 <meta name="description" content="Освітня платформа: математика, англійська">
+<!-- NO CACHE -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 
 <!-- PWA MANIFEST -->
 <link rel="manifest" href="manifest.json">
 
 <!-- ICONS -->
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='96' fill='%23FFD700'/%3E%3Crect y='96' width='192' height='96' fill='%23005BBB'/%3E%3Cpath d='M96 140 C96 140 40 105 40 72 C40 52 55 38 72 38 C83 38 92 44 96 52 C100 44 109 38 120 38 C137 38 152 52 152 72 C152 105 96 140 96 140Z' fill='%23FF69B4' stroke='%23FF1493' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;overflow-x:hidden}
+html{height:100%}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700 0%,#FFD700 50%,#005BBB 50%,#005BBB 100%);min-height:100%;min-height:100dvh;overflow-x:hidden}
 .hidden{display:none!important}
 
-/* Auth */
-#auth{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
-.auth-box{background:rgba(255,255,255,.98);padding:35px;border-radius:25px;box-shadow:0 10px 40px rgba(0,0,0,.4);max-width:420px;width:100%}
-.auth-box h1{text-align:center;color:#764ba2;margin-bottom:25px;font-size:2.8rem}
-.auth-box input{width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:12px;font-size:1.05rem}
-.auth-box button{width:100%;padding:15px;margin:12px 0;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:12px;font-size:1.15rem;font-weight:600;cursor:pointer}
-.tab{display:flex;gap:10px;margin-bottom:25px}
-.tab button{flex:1;padding:12px;background:#f5f5f5;border:none;border-radius:12px;cursor:pointer}
-.tab button.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+
 
 /* Main */
 #main{display:none;padding:15px;max-width:1200px;margin:0 auto}
@@ -50,9 +64,9 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 
 /* Dog */
 .dog-area{background:rgba(255,255,255,.98);padding:20px;border-radius:18px;position:relative;min-height:350px;overflow:hidden}
-.dog-house{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);width:130px;height:110px;background:linear-gradient(135deg,#8B4513,#A0522D);border-radius:15px 15px 0 0;cursor:pointer}
-.dog-house::before{content:'🏠';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3.5rem}
-.dog{position:absolute;bottom:25px;font-size:5rem;display:none;transition:left .6s ease,transform .3s}
+.dog-house{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:150px;height:140px;cursor:pointer;user-select:none}
+.dog-house svg{width:100%;height:100%}
+.dog{position:absolute;bottom:20px;font-size:5rem;display:none;transition:left .6s ease,transform .3s}
 .dog-hearts{position:absolute;top:15px;left:15px;font-size:1.3rem;background:rgba(255,255,255,.9);padding:8px 12px;border-radius:10px}
 .dog-actions{position:absolute;top:15px;right:15px;display:none;flex-direction:column;gap:8px}
 .dog-prop{position:absolute;font-size:3rem;pointer-events:none}
@@ -62,20 +76,19 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 @keyframes digAnim{0%,100%{transform:scaleX(1)}50%{transform:scaleX(-1) translateX(-10px)}}
 
 /* English Monster Game */
-#english-game{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e,#16213e);z-index:3000;overflow:hidden;touch-action:none}
-.en-back{position:absolute;top:10px;left:10px;z-index:100;background:#e74c3c;color:#fff;border:none;padding:10px 18px;border-radius:28px;cursor:pointer;font-size:1rem}
-.en-hud{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);padding:8px 16px;border-radius:15px;color:#fff;display:flex;gap:14px;align-items:center;font-size:1rem;white-space:nowrap;z-index:10}
-.en-monster{position:absolute;top:12%;left:50%;transform:translateX(-50%);text-align:center;font-size:5rem;animation:float 2s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-15px)}}
-.en-word{position:absolute;top:38%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);padding:14px 32px;border-radius:15px;color:#fff;font-size:2.5rem;text-align:center;white-space:nowrap}
-.en-input-panel{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);width:92%;max-width:600px}
-.en-input{width:100%;background:rgba(255,255,255,.95);border:3px solid #667eea;border-radius:15px;padding:14px;font-size:2rem;text-align:center}
+#english-game{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e,#16213e);z-index:3000;touch-action:none}
+#english-game.is-open{display:block}
+.en-hud{position:absolute;top:0;left:0;right:0;height:40px;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.9);color:#fff;font-size:.82rem;white-space:nowrap;z-index:10}
+.en-back{position:absolute;left:5px;top:50%;transform:translateY(-50%);background:#e74c3c;color:#fff;border:none;padding:4px 10px;border-radius:12px;cursor:pointer;font-size:.76rem;font-weight:700}
+.en-word{position:absolute;top:48px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.9);padding:8px 20px;border-radius:10px;color:#fff;font-size:2.2rem;font-weight:700;text-align:center;white-space:nowrap;z-index:2}
+.en-btn-row{position:absolute;top:calc(48px + 68px);left:4%;width:92%;display:flex;gap:8px;z-index:2}
+.en-input{position:absolute;top:calc(48px + 68px + 56px + 10px);left:4%;width:92%;background:rgba(255,255,255,.96);border:3px solid #667eea;border-radius:12px;padding:10px;font-size:1.8rem;text-align:center;z-index:2}
 .en-input.correct{border-color:#27ae60;background:#d4edda}
 .en-input.wrong{border-color:#e74c3c;background:#f8d7da;animation:shake .5s}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-12px)}75%{transform:translateX(12px)}}
-.en-feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.95);padding:30px 50px;border-radius:25px;color:#fff;text-align:center;z-index:9000;display:none}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.en-feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.95);padding:28px 44px;border-radius:22px;color:#fff;text-align:center;z-index:9000;display:none}
 .en-feedback.show{display:block;animation:fadeIn .3s}
-.en-feedback h2{font-size:3rem;margin-bottom:15px}
+.en-feedback h2{font-size:2.5rem;margin-bottom:12px}
 .en-feedback.correct h2{color:#00ff88}
 .en-feedback.wrong h2{color:#ff4444}
 @keyframes fadeIn{from{opacity:0;transform:translate(-50%,-50%) scale(.8)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
@@ -98,64 +111,43 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 @keyframes bounce{0%,20%,50%,80%,100%{transform:translateY(0)}40%{transform:translateY(-30px)}60%{transform:translateY(-15px)}}
 
 /* Math Game */
-#math-game{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);z-index:3000;overflow:hidden;touch-action:none}
-.math-back{position:absolute;top:10px;left:10px;z-index:100;background:#e74c3c;color:#fff;border:none;padding:10px 18px;border-radius:28px;cursor:pointer;font-size:1rem;font-weight:700}
-.math-hud{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);padding:8px 16px;border-radius:15px;color:#fff;display:flex;gap:12px;align-items:center;font-size:1rem;white-space:nowrap;z-index:10}
-.math-progress-bar{position:absolute;top:52px;left:50%;transform:translateX(-50%);width:80%;max-width:500px;height:10px;background:rgba(255,255,255,.2);border-radius:10px;overflow:hidden}
-.math-progress-fill{height:100%;background:linear-gradient(90deg,#00ff88,#00b4d8);border-radius:10px;transition:width .4s}
-.math-monster{position:absolute;top:10%;left:50%;transform:translateX(-50%);text-align:center;font-size:5.5rem;transition:all .4s;animation:mfloat 2s ease-in-out infinite}
-@keyframes mfloat{0%,100%{transform:translateX(-50%) translateY(0) rotate(0deg)}50%{transform:translateX(-50%) translateY(-14px) rotate(3deg)}}
-.math-monster.dead{animation:mdie .6s forwards!important}
-@keyframes mdie{0%{transform:translateX(-50%) translateY(0) scale(1) rotate(0deg);opacity:1}30%{transform:translateX(-50%) translateY(-40px) scale(1.3) rotate(20deg);opacity:.9}100%{transform:translateX(-50%) translateY(80px) scale(0) rotate(180deg);opacity:0}}
-.math-stars-burst{position:absolute;pointer-events:none;font-size:2.5rem;animation:burst .8s forwards}
-@keyframes burst{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-120px) scale(1.5)}}
-.math-question{position:absolute;top:44%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);padding:18px 40px;border-radius:18px;color:#fff;font-size:3rem;font-weight:700;text-align:center;white-space:nowrap;border:2px solid rgba(255,255,255,.15)}
-.math-input-panel{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:92%;max-width:500px;text-align:center}
-.math-input{width:100%;background:rgba(255,255,255,.96);border:3px solid #667eea;border-radius:15px;padding:14px;font-size:2.5rem;text-align:center;font-weight:700}
+#math-game{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);z-index:3000;touch-action:none}
+#math-game.is-open{display:block}
+.math-hud{position:absolute;top:0;left:0;right:0;height:40px;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.9);color:#fff;font-size:.82rem;white-space:nowrap;z-index:10}
+.math-back{position:absolute;left:5px;top:50%;transform:translateY(-50%);background:#e74c3c;color:#fff;border:none;padding:4px 10px;border-radius:12px;cursor:pointer;font-size:.76rem;font-weight:700}
+.math-progress-bar{position:absolute;top:40px;left:4%;width:92%;height:5px;background:rgba(255,255,255,.2);border-radius:4px;overflow:hidden;z-index:2}
+.math-progress-fill{height:100%;background:linear-gradient(90deg,#00ff88,#00b4d8);border-radius:4px;transition:width .4s}
+.math-question{position:absolute;top:52px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.9);padding:12px 28px;border-radius:12px;color:#fff;font-size:2.8rem;font-weight:700;text-align:center;white-space:nowrap;border:2px solid rgba(255,255,255,.15);z-index:2}
+.math-answer-btn{position:absolute;top:calc(52px + 74px + 12px);left:4%;width:92%;padding:11px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1.15rem;font-weight:700;cursor:pointer;z-index:2}
+.math-input{position:absolute;top:calc(52px + 74px + 12px + 52px + 10px);left:4%;width:92%;background:rgba(255,255,255,.96);border:3px solid #667eea;border-radius:12px;padding:10px;font-size:2.2rem;text-align:center;font-weight:700;z-index:2}
 .math-input.correct{border-color:#27ae60;background:#d4edda}
-.math-input.wrong{border-color:#e74c3c;background:#f8d7da;animation:shake .5s}
+.math-input.wrong{border-color:#e74c3c;background:#f8d7da;animation:mshake .5s}
+@keyframes mshake{0%,100%{transform:none}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.math-stars-burst{position:absolute;pointer-events:none;font-size:2rem;animation:burst .8s forwards}
+@keyframes burst{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-90px) scale(1.5)}}
 .math-level-select{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:90%;max-width:600px}
-.math-level-btn{display:flex;justify-content:space-between;align-items:center;width:100%;padding:16px 22px;margin:8px 0;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);border-radius:16px;color:#fff;font-size:1.2rem;font-weight:700;cursor:pointer;transition:.2s;backdrop-filter:blur(6px)}
+.math-level-btn{display:flex;justify-content:space-between;align-items:center;width:100%;padding:14px 20px;margin:7px 0;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);border-radius:14px;color:#fff;font-size:1.15rem;font-weight:700;cursor:pointer;transition:.2s;backdrop-filter:blur(6px)}
 .math-level-btn:hover{background:rgba(255,255,255,.22);transform:scale(1.02)}
-.math-level-badge{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;padding:4px 12px;border-radius:20px;font-size:.95rem;font-weight:700}
-.math-feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.96);padding:30px 50px;border-radius:25px;color:#fff;text-align:center;z-index:9000;display:none}
+.math-level-badge{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;padding:3px 10px;border-radius:16px;font-size:.9rem;font-weight:700}
+.math-feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.96);padding:28px 44px;border-radius:22px;color:#fff;text-align:center;z-index:9000;display:none}
 .math-feedback.show{display:block;animation:fadeIn .3s}
-.math-feedback h2{font-size:3rem;margin-bottom:12px}
+.math-feedback h2{font-size:2.8rem;margin-bottom:10px}
 .math-feedback.correct h2{color:#00ff88}
 .math-feedback.wrong h2{color:#ff4444}
 </style>
 </head>
 <body>
 
-<!-- AUTH -->
-<div id="auth">
-<div class="auth-box">
-<h1>🌟 Ларіка</h1>
-<div class="tab">
-<button class="active" onclick="switchTab('login')">Вхід</button>
-<button onclick="switchTab('register')">Реєстрація</button>
-</div>
-<div id="login-form">
-<input type="text" id="login-username" placeholder="Ім'я">
-<input type="text" id="login-password" placeholder="Пароль">
-<button onclick="login()">Увійти</button>
-</div>
-<div id="register-form" class="hidden">
-<input type="text" id="reg-username" placeholder="Ім'я">
-<input type="text" id="reg-password" placeholder="Пароль">
-<button onclick="register()">Створити</button>
-</div>
-</div>
-</div>
+
 
 <!-- MAIN -->
 <div id="main">
 <div class="header">
-<div style="font-size:1.3rem;color:#764ba2;font-weight:700">👤 <span id="user-display"></span></div>
+<div style="font-size:1.5rem;color:#764ba2;font-weight:700">💗 Ларіка</div>
 <div class="stars">⭐ <span id="stars-display">0</span></div>
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
-<button class="btn danger" onclick="logout()">Вийти</button>
+
 </div>
 
 <div class="games">
@@ -178,30 +170,32 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 </div>
 <div class="dog-hearts" id="dog-hearts"></div>
 <div class="dog-house" onclick="tapDogHouse()">
-<svg viewBox="0 0 150 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+<svg viewBox="0 0 150 140" xmlns="http://www.w3.org/2000/svg">
+  <!-- Трава -->
   <ellipse cx="75" cy="135" rx="72" ry="8" fill="#7EC850" opacity=".6"/>
+  <!-- Стіни -->
   <rect x="15" y="65" width="120" height="72" rx="4" fill="#D0D0D0" stroke="#B0B0B0" stroke-width="2"/>
-  <polygon points="5,68 75,10 145,68" fill="#E74C3C"/>
-  <polygon points="15,68 75,18 135,68" fill="#C0392B"/>
+  <!-- Дах — основа -->
+  <polygon points="5,68 75,10 145,68" fill="#C0392B"/>
+  <!-- Дах — тінь -->
+  <polygon points="5,68 75,10 145,68" fill="none" stroke="#922B21" stroke-width="2.5"/>
+  <!-- Дах — деталь (друга лінія) -->
+  <polygon points="15,68 75,18 135,68" fill="#E74C3C"/>
+  <!-- Вентиляційний отвір на даху -->
   <circle cx="75" cy="42" r="7" fill="#922B21" stroke="#7B241C" stroke-width="1.5"/>
   <circle cx="75" cy="42" r="3.5" fill="#1a0a00"/>
+  <!-- Дошки стін (горизонтальні лінії) -->
   <line x1="15" y1="85" x2="135" y2="85" stroke="#B8B8B8" stroke-width="1"/>
   <line x1="15" y1="103" x2="135" y2="103" stroke="#B8B8B8" stroke-width="1"/>
   <line x1="15" y1="121" x2="135" y2="121" stroke="#B8B8B8" stroke-width="1"/>
+  <!-- Табличка з іменем над входом -->
   <rect x="38" y="67" width="74" height="18" rx="4" fill="#8B4513" stroke="#5D2E0C" stroke-width="1.5"/>
   <text id="dog-name-label" x="75" y="80" text-anchor="middle" fill="#FFE082" font-size="10" font-weight="bold" font-family="Segoe UI,sans-serif">Рекс</text>
-  <ellipse cx="75" cy="118" rx="28" ry="30" fill="#1a0a00" stroke="#A0522D" stroke-width="3"/>
-  <!-- Blinking eyes -->
-  <g id="dog-house-eyes">
-    <circle cx="66" cy="108" r="4" fill="white"/>
-    <circle cx="84" cy="108" r="4" fill="white"/>
-    <circle cx="67" cy="109" r="2" fill="#333"/>
-    <circle cx="85" cy="109" r="2" fill="#333"/>
-  </g>
-  <g id="dog-house-eyelids" style="display:none">
-    <rect x="62" y="104" width="8" height="8" rx="2" fill="#1a0a00"/>
-    <rect x="80" y="104" width="8" height="8" rx="2" fill="#1a0a00"/>
-  </g>
+  <!-- Круглий вхід -->
+  <ellipse cx="75" cy="120" rx="28" ry="30" fill="#1a0a00" stroke="#888" stroke-width="2"/>
+  <!-- Рамка входу -->
+  <ellipse cx="75" cy="120" rx="28" ry="30" fill="none" stroke="#A0522D" stroke-width="3"/>
+  <!-- Трава перед будкою -->
   <rect x="10" y="132" width="130" height="10" rx="3" fill="#5D8A3C" opacity=".7"/>
 </svg>
 </div>
@@ -217,35 +211,31 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 
 <!-- ENGLISH GAME -->
 <div id="english-game">
-<button class="en-back" onclick="closeEnglish()">← Назад</button>
 <div class="en-hud">
-<div id="en-hearts">❤️❤️❤️❤️❤️❤️❤️❤️</div>
-<div>⭐ <span id="en-stars">0</span></div>
-<div id="en-timer">60s</div>
+  <button class="en-back" onclick="closeEnglish()">← Назад</button>
+  <div id="en-hearts">❤️❤️❤️❤️❤️❤️❤️❤️</div>
+  <div>⭐<span id="en-stars">0</span></div>
+  <div id="en-timer" style="color:#00b4d8">⏱60s</div>
 </div>
-<div id="en-theme-select" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:90%;max-width:500px;max-height:80vh;overflow-y:auto">
+<div id="en-theme-select" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:90%;z-index:5">
 <h1 style="color:#fff;font-size:2.4rem;margin-bottom:18px">Обери тему</h1>
-<div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+<div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('verbs')">🏃 Дієслова</button>
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('home')">🏠 Дім</button>
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('nature')">🌳 Природа</button>
-<div id="en-custom-themes" style="display:contents"></div>
 </div>
 </div>
 <div id="en-game-area" class="hidden">
-<div class="en-monster" id="en-monster">👾</div>
-<div class="en-word" id="en-word">word</div>
-<div class="en-input-panel">
-<input type="text" class="en-input" id="en-answer" placeholder="Напиши українською..." autocomplete="off">
-<div style="display:flex;gap:10px;margin-top:12px">
-<button id="en-replay-btn" onclick="replayCurrentWord()" style="flex:1;padding:14px;background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.5);border-radius:12px;font-size:1.1rem;font-weight:600;cursor:pointer;backdrop-filter:blur(4px)">🔊 Слухати</button>
-<button onclick="checkEnglishAnswer()" style="flex:2;padding:14px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1.2rem;font-weight:700;cursor:pointer">✅ Відповідь</button>
-</div>
-</div>
+  <div class="en-word" id="en-word">word</div>
+  <div class="en-btn-row">
+    <button onclick="replayCurrentWord()" style="flex:1;padding:11px;background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.4);border-radius:11px;font-size:.9rem;font-weight:600;cursor:pointer">🔊</button>
+    <button onclick="checkEnglishAnswer()" style="flex:4;padding:11px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:11px;font-size:1rem;font-weight:700;cursor:pointer">✅ Відповідь</button>
+  </div>
+  <input type="text" class="en-input" id="en-answer" placeholder="Напиши українською..." autocomplete="off">
 </div>
 <div class="en-feedback" id="en-feedback">
-<h2 id="fb-title">✅ Правильно!</h2>
-<div id="fb-words" style="font-size:2rem;margin:20px 0"></div>
+  <h2 id="fb-title">✅ Правильно!</h2>
+  <div id="fb-words" style="font-size:1.8rem;margin:12px 0"></div>
 </div>
 </div>
 
@@ -261,16 +251,14 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 <button class="theme-btn" onclick="filterDictionary('home')">Дім</button>
 <button class="theme-btn" onclick="filterDictionary('nature')">Природа</button>
 </div>
-<div style="margin:20px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-<input type="text" placeholder="English" id="dict-en" style="padding:10px;border-radius:8px;border:2px solid #ddd;width:160px">
-<input type="text" placeholder="Переклад (через кому)" id="dict-uk" style="padding:10px;border-radius:8px;border:2px solid #ddd;width:200px">
-<select id="dict-theme" style="padding:10px;border-radius:8px;border:2px solid #ddd" onchange="toggleCustomTheme(this)">
+<div style="margin:20px 0">
+<input type="text" placeholder="English" id="dict-en" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px;width:200px">
+<input type="text" placeholder="Переклад (через кому)" id="dict-uk" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px;width:220px">
+<select id="dict-theme" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px">
 <option value="verbs">Дієслова</option>
 <option value="home">Дім</option>
 <option value="nature">Природа</option>
-<option value="_custom">+ Нова тема...</option>
 </select>
-<input type="text" placeholder="Назва теми" id="dict-custom-theme" style="padding:10px;border-radius:8px;border:2px solid #ddd;width:140px;display:none">
 <button class="btn success" onclick="addWord()">➕ Додати</button>
 </div>
 <div id="dict-list"></div>
@@ -278,50 +266,29 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 
 <!-- MATH GAME -->
 <div id="math-game">
-<button class="math-back" onclick="closeMath()">← Назад</button>
 <div class="math-hud">
-<div id="math-hearts">❤️❤️❤️❤️❤️❤️❤️❤️</div>
-<div>⭐ <span id="math-stars">0</span></div>
-<div id="math-correct-count">0/20</div>
+  <button class="math-back" onclick="closeMath()">← Назад</button>
+  <div id="math-hearts">❤️❤️❤️❤️❤️❤️❤️❤️</div>
+  <div>⭐<span id="math-stars">0</span></div>
+  <div id="math-correct-count" style="color:#00ff88">0/20</div>
 </div>
 <div class="math-progress-bar"><div class="math-progress-fill" id="math-progress-fill" style="width:0%"></div></div>
-
 <div id="math-level-select" class="math-level-select">
-<h1 style="color:#fff;font-size:2.5rem;margin-bottom:25px">🔢 Обери рівень</h1>
-<button class="math-level-btn" onclick="startMathLevel('A')">
-  <span>🅰️ Рівень A — два числа 0–9</span>
-  <span class="math-level-badge">+20⭐</span>
-</button>
-<button class="math-level-btn" onclick="startMathLevel('B')">
-  <span>🅱️ Рівень B — три числа 0–9</span>
-  <span class="math-level-badge">+30⭐</span>
-</button>
-<button class="math-level-btn" onclick="startMathLevel('C')">
-  <span>🅲 Рівень C — 0–9 та 10–19</span>
-  <span class="math-level-badge">+50⭐</span>
-</button>
-<button class="math-level-btn" onclick="startMathLevel('D')">
-  <span>🅳 Рівень D — 10–99 та 10–99</span>
-  <span class="math-level-badge">+70⭐</span>
-</button>
-<button class="math-level-btn" onclick="startMathLevel('E')">
-  <span>🅴 Рівень E — 10–19 та 100–199</span>
-  <span class="math-level-badge">+100⭐</span>
-</button>
+<h1 style="color:#fff;font-size:2.2rem;margin-bottom:16px">🔢 Обери рівень</h1>
+<button class="math-level-btn" onclick="startMathLevel('A')"><span>🅰️ Рівень A — два числа 0–9</span><span class="math-level-badge">+20⭐</span></button>
+<button class="math-level-btn" onclick="startMathLevel('B')"><span>🅱️ Рівень B — три числа 0–9</span><span class="math-level-badge">+30⭐</span></button>
+<button class="math-level-btn" onclick="startMathLevel('C')"><span>🅲 Рівень C — 0–9 та 10–19</span><span class="math-level-badge">+50⭐</span></button>
+<button class="math-level-btn" onclick="startMathLevel('D')"><span>🅳 Рівень D — 10–99 та 10–99</span><span class="math-level-badge">+70⭐</span></button>
+<button class="math-level-btn" onclick="startMathLevel('E')"><span>🅴 Рівень E — 10–19 та 100–199</span><span class="math-level-badge">+100⭐</span></button>
 </div>
-
 <div id="math-game-area" class="hidden">
-<div class="math-monster" id="math-monster">👾</div>
-<div class="math-question" id="math-question">5 + 3 = ?</div>
-<div class="math-input-panel">
-<input type="number" class="math-input" id="math-answer" placeholder="?" autocomplete="off" inputmode="numeric">
-<button onclick="checkMathAnswer()" style="margin-top:12px;width:100%;padding:16px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:15px;font-size:1.3rem;font-weight:700;cursor:pointer">✅ Відповідь</button>
+  <div class="math-question" id="math-question">5 + 3 = ?</div>
+  <button class="math-answer-btn" onclick="checkMathAnswer()">✅ Відповідь</button>
+  <input type="number" class="math-input" id="math-answer" placeholder="?" autocomplete="off" inputmode="numeric">
 </div>
-</div>
-
 <div class="math-feedback" id="math-feedback">
-<h2 id="mfb-title">✅ Правильно!</h2>
-<div id="mfb-detail" style="font-size:2rem;margin:15px 0"></div>
+  <h2 id="mfb-title">✅ Правильно!</h2>
+  <div id="mfb-detail" style="font-size:1.8rem;margin:12px 0"></div>
 </div>
 </div>
 
@@ -339,7 +306,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea
 // DATABASE
 // ═══════════════════════════════════════════════════════════
 const USERS_KEY='larikaV3';
-let currentUser=null;
+let currentUser='гравець';
 let englishState=null;
 
 // English words database - 3 themes × 30 words = 90 words
@@ -380,55 +347,40 @@ function rnd(a){return a[r(a.length)]}
 // ═══════════════════════════════════════════════════════════
 // USER MANAGEMENT
 // ═══════════════════════════════════════════════════════════
-function loadUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'{}')}catch{return{}}}
-function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
-function getUser(){const u=loadUsers();return u[currentUser]||null}
-function saveUser(d){const u=loadUsers();u[currentUser]=d;saveUsers(u)}
+// ═══════════════════════════════════════════════════════════
+// БЕЗ АВТОРИЗАЦІЇ — один спільний профіль
+// ═══════════════════════════════════════════════════════════
+const PROFILE_KEY='larikaProfile';
 
-function switchTab(t){
-document.getElementById('login-form').classList.toggle('hidden',t!=='login');
-document.getElementById('register-form').classList.toggle('hidden',t!=='register');
-document.querySelectorAll('.tab button').forEach((b,i)=>b.classList.toggle('active',i===(t==='login'?0:1)));
+function loadUsers(){
+  try{
+    const d=JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');
+    if(d) return {'гравець':d};
+    return {};
+  }catch{return{}}
 }
-
-function register(){
-const u=document.getElementById('reg-username').value.trim();
-const p=document.getElementById('reg-password').value;
-if(!u||!p)return alert('Заповніть всі поля');
-const users=loadUsers();
-if(users[u])return alert('Користувач існує');
-users[u]={
-password:p,
-stars:0,
-dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
-english:{},
-customWords:[],
-games:{}
-};
-saveUsers(users);
-alert('Акаунт створено!');
-switchTab('login');
+function saveUsers(u){
+  if(u['гравець']) localStorage.setItem(PROFILE_KEY,JSON.stringify(u['гравець']));
 }
-
-function login(){
-const u=document.getElementById('login-username').value.trim();
-const p=document.getElementById('login-password').value;
-const users=loadUsers();
-if(!users[u])return alert('Користувач не знайдений');
-if(users[u].password!==p)return alert('Невірний пароль');
-currentUser=u;
-showMain();
+function getUser(){
+  try{
+    const d=JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');
+    if(d) return d;
+  }catch{}
+  // Створюємо новий профіль якщо немає
+  const newProfile={
+    stars:0,
+    dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
+    english:{},
+    customWords:[],
+    games:{}
+  };
+  localStorage.setItem(PROFILE_KEY,JSON.stringify(newProfile));
+  return newProfile;
 }
-
-function logout(){
-if(confirm('Вийти?')){
-currentUser=null;
-location.reload();
-}
-}
+function saveUser(d){localStorage.setItem(PROFILE_KEY,JSON.stringify(d));}
 
 function showMain(){
-document.getElementById('auth').style.display='none';
 document.getElementById('main').style.display='block';
 updateUI();
 updateDog();
@@ -436,7 +388,6 @@ updateDog();
 
 function updateUI(){
 const user=getUser();
-document.getElementById('user-display').textContent=currentUser;
 document.getElementById('stars-display').textContent=user.stars;
 }
 
@@ -485,8 +436,7 @@ container.innerHTML='';
 (user.dog.puddles||[]).forEach((p,i)=>{
 const el=document.createElement('div');
 el.style.cssText=`position:absolute;left:${p.x}%;bottom:${p.y}px;font-size:2rem;cursor:pointer;user-select:none`;
-el.innerHTML='<svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg"><ellipse cx="30" cy="15" rx="28" ry="13" fill="#FFD700" opacity=".85"/></svg>';
-el.style.width='60px';el.style.height='30px';
+el.textContent='💛';
 el.title='Прибрати калюжу -800⭐ +1❤️';
 el.onclick=()=>cleanPuddle(i);
 container.appendChild(el);
@@ -542,12 +492,13 @@ saveUser(user);
 updateUI();
 const dog=document.getElementById('dog');
 dog.style.display='block';
+dog.style.left='50%';
+dog.style.transform='translateX(-50%)';
 dog.style.animation='';
 document.getElementById('dog-actions').style.display='flex';
-setTimeout(()=>{
-dog.style.display='none';
-document.getElementById('dog-actions').style.display='none';
-},60000);
+let w=false;
+const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
+setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';document.getElementById('dog-actions').style.display='none';},60000);
 }
 
 function throwBone(){
@@ -612,8 +563,12 @@ setTimeout(()=>{
   dog.style.transform='translateX(-50%)';
   bone.remove();
 },4200);
-
-setTimeout(()=>{dog.style.display='none';},5500);
+// Wag tail for remaining time
+setTimeout(()=>{
+  let w=false;
+  const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
+  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},54000);
+},5000);
 }
 
 function petDog(){
@@ -656,7 +611,12 @@ const pet=setInterval(()=>{
   }
   if(count>=10){
     clearInterval(pet);
-    setTimeout(()=>{hand.remove();dog.style.display='none';},600);
+    setTimeout(()=>{
+      hand.remove();
+      let w=false;
+      const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
+      setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},55000);
+    },600);
   }
 },400);
 }
@@ -709,7 +669,9 @@ setTimeout(()=>{
 
 setTimeout(()=>{
   ball.remove();
-  dog.style.display='none';
+  let w=false;
+  const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
+  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},51000);
 },7600);
 }
 
@@ -728,32 +690,15 @@ alert('✅ Збережено!');
 // ═══════════════════════════════════════════════════════════
 // ENGLISH GAME
 // ═══════════════════════════════════════════════════════════
-// Blinking eyes in dog house
-setInterval(()=>{
-  const eyes=document.getElementById('dog-house-eyes');
-  const lids=document.getElementById('dog-house-eyelids');
-  if(!eyes||!lids)return;
-  lids.style.display='block';
-  eyes.style.display='none';
-  setTimeout(()=>{lids.style.display='none';eyes.style.display='block';},150);
-},2000);
-
 function startEnglish(){
 document.getElementById('main').style.display='none';
-document.getElementById('english-game').style.display='block';
+document.getElementById('english-game').classList.add('is-open');
 document.getElementById('en-theme-select').classList.remove('hidden');
 document.getElementById('en-game-area').classList.add('hidden');
-// Render custom themes
-const user=getUser();
-const customThemes=[...new Set((user.customWords||[]).map(w=>w.theme).filter(t=>t&&!['verbs','home','nature'].includes(t)))];
-const container=document.getElementById('en-custom-themes');
-if(container){
-  container.innerHTML=customThemes.map(t=>`<button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('${t}')">📝 ${t}</button>`).join('');
-}
 }
 
 function closeEnglish(){
-document.getElementById('english-game').style.display='none';
+document.getElementById('english-game').classList.remove('is-open');
 document.getElementById('main').style.display='block';
 if(englishState&&englishState.stars>0){
 const user=getUser();
@@ -768,30 +713,27 @@ function startEnglishTheme(theme){
 const user=getUser();
 if(!user.english[theme]) user.english[theme]={};
 
-// Get words: built-in + custom for this theme
-const builtIn=(EN_WORDS[theme]||[]);
-const custom=(user.customWords||[]).filter(w=>w.theme===theme);
-const words=builtIn.concat(custom);
-
-if(words.length<1){alert('Немає слів у цій темі!');return;}
-
+// Get words with SRS
+const words=EN_WORDS[theme].concat(user.customWords.filter(w=>w.theme===theme));
 const wordProgress=words.map(w=>({
 ...w,
 correct:user.english[theme][w.en]?.correct||0,
 lastSeen:user.english[theme][w.en]?.lastSeen||0
 }));
 
-// Select up to 10 words
+// Select 10 words for game
 const selected=[];
 const available=wordProgress.filter(w=>w.correct<3);
-const pool=available.length>0?available:wordProgress;
-for(let i=0;i<Math.min(10,pool.length);i++){
-const idx=r(pool.length-i);
-selected.push(pool[idx]);
-pool.splice(idx,1);
+for(let i=0;i<10&&available.length>0;i++){
+const idx=r(available.length);
+selected.push(available[idx]);
+available.splice(idx,1);
 }
 
-if(selected.length<1){alert('Недостатньо слів!');return;}
+if(selected.length<10){
+alert('Недостатньо слів! Додайте більше в словнику.');
+return;
+}
 
 englishState={
 theme,
@@ -834,11 +776,6 @@ const idx=englishState.queue.shift();
 const word=englishState.words[idx];
 englishState.currentWord=word;
 englishState.currentIndex=idx;
-
-// Random monster
-const monster=EN_MONSTERS[r(EN_MONSTERS.length)];
-document.getElementById('en-monster').textContent=monster;
-document.getElementById('en-monster').classList.remove('dead');
 
 // Display word and speak
 document.getElementById('en-word').textContent=word.en;
@@ -885,10 +822,6 @@ return;
 } else if(isCorrect){
 // Correct!
 inp.classList.add('correct');
-
-// Kill monster animation
-document.getElementById('en-monster').classList.add('dead');
-
 englishState.stars+=200;
 englishState.correctCount++;
 
@@ -1014,6 +947,7 @@ else{closeEnglish();}
 
 // Enter key + prevent swipe
 document.addEventListener('DOMContentLoaded',()=>{
+showMain();
 const inp=document.getElementById('en-answer');
 if(inp){
 inp.addEventListener('keypress',e=>{
@@ -1057,11 +991,6 @@ event.target.classList.add('active');
 renderDictionary(theme);
 }
 
-function toggleCustomTheme(sel){
-  const ci=document.getElementById('dict-custom-theme');
-  ci.style.display=sel.value==='_custom'?'inline-block':'none';
-}
-
 function renderDictionary(filterTheme){
 const user=getUser();
 const allWords=[];
@@ -1070,110 +999,54 @@ const allWords=[];
 for(const theme in EN_WORDS){
 EN_WORDS[theme].forEach(w=>{
 const progress=user.english[theme]&&user.english[theme][w.en]?user.english[theme][w.en].correct:0;
-allWords.push({...w,theme,progress,custom:false,builtin:true});
+allWords.push({...w,theme,progress,custom:false});
 });
 }
 
 // Add custom words
-(user.customWords||[]).forEach(w=>{
+user.customWords.forEach(w=>{
 const progress=user.english[w.theme]&&user.english[w.theme][w.en]?user.english[w.theme][w.en].correct:0;
-allWords.push({...w,progress,custom:true,builtin:false});
+allWords.push({...w,progress,custom:true});
 });
 
 // Filter
 const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
 
-// Add custom themes to filter buttons
-const allThemes=[...new Set(allWords.map(w=>w.theme))];
-const filterContainer=document.getElementById('dict-theme-filter');
-if(filterContainer){
-  const existingCustom=filterContainer.querySelectorAll('.custom-theme-btn');
-  existingCustom.forEach(b=>b.remove());
-  allThemes.filter(t=>!['verbs','home','nature'].includes(t)).forEach(t=>{
-    const b=document.createElement('button');
-    b.className='theme-btn custom-theme-btn';
-    b.textContent=t;
-    b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderDictionary(t);};
-    filterContainer.appendChild(b);
-  });
-}
-
-const html=filtered.map((w,i)=>{
-const variants=(w.ukVariants&&w.ukVariants.length>1)?w.ukVariants.join(' / '):w.uk;
-return `
+const html=filtered.map((w,i)=>`
 <div class="dict-word">
-<div style="flex:1">
-<div style="font-size:1.1rem;font-weight:600">${w.en} → ${variants}</div>
-<div style="color:#666;font-size:0.85rem">Тема: ${w.theme}${w.custom?' (власне)':''}</div>
-<div class="dict-progress">${[0,1,2].map(j=>`<div class="dict-dot ${w.progress>j?'done':''}"></div>`).join('')}</div>
+<div>
+<div style="font-size:1.2rem;font-weight:600">${w.en} → ${w.uk}</div>
+<div style="color:#666;font-size:0.9rem">Тема: ${w.theme} ${w.custom?'(власне)':''}</div>
+<div class="dict-progress">
+${[0,1,2].map(i=>`<div class="dict-dot ${w.progress>i?'done':''}"></div>`).join('')}
 </div>
-<div style="display:flex;gap:6px">
-<button class="btn" style="padding:6px 12px;font-size:0.85rem;background:linear-gradient(135deg,#f39c12,#e67e22)" onclick="editWordAll(${i},'${filterTheme}')">✏️</button>
-${w.custom?`<button class="btn danger" style="padding:6px 12px;font-size:0.85rem" onclick="deleteWord(${i},'${filterTheme}')">🗑️</button>`:''}
 </div>
-</div>`;
-}).join('');
+${w.custom?`<button class="btn danger" onclick="deleteWord(${i},'${filterTheme}')">🗑️</button>`:''}
+</div>
+`).join('');
 
 document.getElementById('dict-list').innerHTML=html||'<p style="text-align:center;color:#999">Немає слів</p>';
-}
-
-function editWordAll(displayIdx,filterTheme){
-const user=getUser();
-const allWords=[];
-for(const theme in EN_WORDS){
-  EN_WORDS[theme].forEach(w=>allWords.push({...w,theme,custom:false}));
-}
-(user.customWords||[]).forEach((w,i)=>allWords.push({...w,custom:true,customIdx:i}));
-const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
-const w=filtered[displayIdx];
-if(!w)return;
-
-const newEn=prompt('English слово:',w.en);
-if(!newEn||!newEn.trim())return;
-const allUk=(w.ukVariants||[w.uk]).join(', ');
-const newUk=prompt('Переклад(и) через кому:',allUk);
-if(!newUk||!newUk.trim())return;
-const newTheme=prompt('Тема:',w.theme);
-if(!newTheme||!newTheme.trim())return;
-
-const ukVariants=newUk.split(',').map(s=>s.trim()).filter(Boolean);
-
-if(w.custom){
-  user.customWords[w.customIdx]={...user.customWords[w.customIdx],en:newEn.trim(),uk:ukVariants[0],ukVariants,theme:newTheme.trim()};
-} else {
-  // Convert builtin to custom with edits
-  if(!user.customWords)user.customWords=[];
-  // Remove original from builtin tracking by marking in custom
-  user.customWords.push({en:newEn.trim(),uk:ukVariants[0],ukVariants,theme:newTheme.trim(),_editedFrom:w.en});
-  // Remove original progress
-  if(user.english[w.theme]&&user.english[w.theme][w.en]) delete user.english[w.theme][w.en];
-}
-saveUser(user);
-renderDictionary(filterTheme);
 }
 
 function addWord(){
 const enEl=document.getElementById('dict-en');
 const ukEl=document.getElementById('dict-uk');
-const thSel=document.getElementById('dict-theme');
-const thCustom=document.getElementById('dict-custom-theme');
 const en=(enEl?enEl.value:'').trim();
 const uk=(ukEl?ukEl.value:'').trim();
-let theme=thSel.value==='_custom'?(thCustom?thCustom.value.trim():''):thSel.value;
-if(!theme)theme='verbs';
+const theme=document.getElementById('dict-theme').value;
 
 if(!en||!uk)return alert('Заповніть обидва поля');
 
 const user=getUser();
 if(!user.customWords)user.customWords=[];
 
+// Support multiple translations separated by comma
 const ukVariants=uk.split(',').map(s=>s.trim()).filter(Boolean);
 user.customWords.push({en,uk:ukVariants[0],ukVariants,theme});
 saveUser(user);
 
 enEl.value='';
 ukEl.value='';
-if(thCustom)thCustom.value='';
 
 renderDictionary(document.querySelector('.theme-btn.active')?.dataset?.theme||'all');
 alert('✅ Слово додано!');
@@ -1317,14 +1190,14 @@ let mathState=null;
 function selectGame(type){
 if(type==='math'){
   document.getElementById('main').style.display='none';
-  document.getElementById('math-game').style.display='block';
+  document.getElementById('math-game').classList.add('is-open');
   document.getElementById('math-level-select').classList.remove('hidden');
   document.getElementById('math-game-area').classList.add('hidden');
 }
 }
 
 function closeMath(){
-document.getElementById('math-game').style.display='none';
+document.getElementById('math-game').classList.remove('is-open');
 document.getElementById('main').style.display='block';
 if(mathState&&mathState.stars>0){
 const user=getUser();
@@ -1354,12 +1227,6 @@ document.getElementById('math-progress-fill').style.width=(mathState.correctCoun
 function nextMathQuestion(){
 const q=MATH_LEVELS[mathState.level].gen();
 mathState.currentQ=q;
-const el=document.getElementById('math-monster');
-el.textContent=MATH_MONSTERS[r(MATH_MONSTERS.length)];
-el.classList.remove('dead');
-el.style.animation='none';
-void el.offsetWidth;
-el.style.animation='mfloat 2s ease-in-out infinite';
 document.getElementById('math-question').textContent=q.q;
 const inp=document.getElementById('math-answer');
 inp.value='';
@@ -1381,7 +1248,6 @@ if(isCorrect){
   mathState.correctCount++;
   mathState.streak++;
   if(mathState.streak%5===0&&mathState.hearts<10)mathState.hearts++;
-  document.getElementById('math-monster').classList.add('dead');
   spawnStarsBurst();
   showMathFeedback(true,correct);
   updateMathHUD();
@@ -1446,27 +1312,26 @@ closeMath();
 }
 
 // ═══════════════════════════════════════════════════════════
-// PWA SERVICE WORKER
+// ═══════════════════════════════════════════════════════════
+// PWA — скасовуємо старий сервіс-воркер щоб не роздавав кеш
 // ═══════════════════════════════════════════════════════════
 if('serviceWorker' in navigator){
-window.addEventListener('load',()=>{
-navigator.serviceWorker.register('sw.js')
-.then(reg=>console.log('✅ PWA зареєстровано'))
-.catch(err=>console.error('❌ PWA помилка',err));
-});
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
+  });
+  // Очищаємо всі кеші
+  if('caches' in window){
+    caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)));
+  }
 }
 
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt',e=>{
 e.preventDefault();
 deferredPrompt=e;
-console.log('💡 PWA готова до встановлення');
 });
+window.addEventListener('appinstalled',()=>{deferredPrompt=null;});
 
-window.addEventListener('appinstalled',()=>{
-console.log('✅ PWA встановлено!');
-deferredPrompt=null;
-});
 </script>
 </body>
 </html>
