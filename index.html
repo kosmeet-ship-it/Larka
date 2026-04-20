@@ -195,6 +195,17 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <ellipse cx="75" cy="120" rx="28" ry="30" fill="#1a0a00" stroke="#888" stroke-width="2"/>
   <!-- Рамка входу -->
   <ellipse cx="75" cy="120" rx="28" ry="30" fill="none" stroke="#A0522D" stroke-width="3"/>
+  <!-- Очі в темряві будки -->
+  <g id="dog-house-eyes">
+    <circle cx="66" cy="112" r="4.5" fill="white"/>
+    <circle cx="84" cy="112" r="4.5" fill="white"/>
+    <circle cx="67" cy="113" r="2.2" fill="#222"/>
+    <circle cx="85" cy="113" r="2.2" fill="#222"/>
+  </g>
+  <g id="dog-house-eyelids" style="display:none">
+    <rect x="62" y="108" width="9" height="9" rx="2" fill="#1a0a00"/>
+    <rect x="80" y="108" width="9" height="9" rx="2" fill="#1a0a00"/>
+  </g>
   <!-- Трава перед будкою -->
   <rect x="10" y="132" width="130" height="10" rx="3" fill="#5D8A3C" opacity=".7"/>
 </svg>
@@ -217,12 +228,13 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <div>⭐<span id="en-stars">0</span></div>
   <div id="en-timer" style="color:#00b4d8">⏱60s</div>
 </div>
-<div id="en-theme-select" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:90%;z-index:5">
+<div id="en-theme-select" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:90%;max-width:500px;max-height:80vh;overflow-y:auto;z-index:5">
 <h1 style="color:#fff;font-size:2.4rem;margin-bottom:18px">Обери тему</h1>
 <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('verbs')">🏃 Дієслова</button>
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('home')">🏠 Дім</button>
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('nature')">🌳 Природа</button>
+<div id="en-custom-themes" style="display:contents"></div>
 </div>
 </div>
 <div id="en-game-area" class="hidden">
@@ -251,14 +263,16 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="theme-btn" onclick="filterDictionary('home')">Дім</button>
 <button class="theme-btn" onclick="filterDictionary('nature')">Природа</button>
 </div>
-<div style="margin:20px 0">
-<input type="text" placeholder="English" id="dict-en" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px;width:200px">
-<input type="text" placeholder="Переклад (через кому)" id="dict-uk" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px;width:220px">
-<select id="dict-theme" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px">
+<div style="margin:20px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+<input type="text" placeholder="English" id="dict-en" style="padding:10px;border-radius:8px;border:2px solid #ddd;width:160px">
+<input type="text" placeholder="Переклад (через кому)" id="dict-uk" style="padding:10px;border-radius:8px;border:2px solid #ddd;width:200px">
+<select id="dict-theme" style="padding:10px;border-radius:8px;border:2px solid #ddd" onchange="toggleCustomTheme(this)">
 <option value="verbs">Дієслова</option>
 <option value="home">Дім</option>
 <option value="nature">Природа</option>
+<option value="_custom">+ Нова тема...</option>
 </select>
+<input type="text" id="dict-custom-theme" placeholder="Назва теми" style="padding:10px;border-radius:8px;border:2px solid #ddd;width:140px;display:none">
 <button class="btn success" onclick="addWord()">➕ Додати</button>
 </div>
 <div id="dict-list"></div>
@@ -430,13 +444,22 @@ saveUser(user);
 renderDogMess(user);
 }
 
+// Blinking eyes in dog house
+setInterval(()=>{
+const eyes=document.getElementById('dog-house-eyes');
+const lids=document.getElementById('dog-house-eyelids');
+if(!eyes||!lids)return;
+lids.style.display='block';eyes.style.display='none';
+setTimeout(()=>{lids.style.display='none';eyes.style.display='block';},150);
+},2000);
+
 function renderDogMess(user){
 const container=document.getElementById('poops-container');
 container.innerHTML='';
 (user.dog.puddles||[]).forEach((p,i)=>{
 const el=document.createElement('div');
-el.style.cssText=`position:absolute;left:${p.x}%;bottom:${p.y}px;font-size:2rem;cursor:pointer;user-select:none`;
-el.textContent='💛';
+el.style.cssText=`position:absolute;left:${p.x}%;bottom:${p.y}px;cursor:pointer;user-select:none;width:60px;height:28px`;
+el.innerHTML='<svg viewBox="0 0 60 28" xmlns="http://www.w3.org/2000/svg"><ellipse cx="30" cy="14" rx="28" ry="12" fill="#FFD700" opacity=".9"/></svg>';
 el.title='Прибрати калюжу -800⭐ +1❤️';
 el.onclick=()=>cleanPuddle(i);
 container.appendChild(el);
@@ -695,6 +718,11 @@ document.getElementById('main').style.display='none';
 document.getElementById('english-game').classList.add('is-open');
 document.getElementById('en-theme-select').classList.remove('hidden');
 document.getElementById('en-game-area').classList.add('hidden');
+// Render custom themes
+const user=getUser();
+const customThemes=[...new Set((user.customWords||[]).map(w=>w.theme).filter(t=>t&&!['verbs','home','nature'].includes(t)))];
+const container=document.getElementById('en-custom-themes');
+if(container) container.innerHTML=customThemes.map(t=>`<button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('${t}')">📝 ${t}</button>`).join('');
 }
 
 function closeEnglish(){
@@ -713,27 +741,27 @@ function startEnglishTheme(theme){
 const user=getUser();
 if(!user.english[theme]) user.english[theme]={};
 
-// Get words with SRS
-const words=EN_WORDS[theme].concat(user.customWords.filter(w=>w.theme===theme));
+const builtIn=(EN_WORDS[theme]||[]);
+const custom=(user.customWords||[]).filter(w=>w.theme===theme);
+const words=builtIn.concat(custom);
+if(words.length<1){alert('Немає слів у цій темі!');return;}
+
 const wordProgress=words.map(w=>({
 ...w,
 correct:user.english[theme][w.en]?.correct||0,
 lastSeen:user.english[theme][w.en]?.lastSeen||0
 }));
 
-// Select 10 words for game
 const selected=[];
-const available=wordProgress.filter(w=>w.correct<3);
-for(let i=0;i<10&&available.length>0;i++){
-const idx=r(available.length);
-selected.push(available[idx]);
-available.splice(idx,1);
+const available=[...wordProgress.filter(w=>w.correct<3)];
+const pool=available.length>0?available:[...wordProgress];
+for(let i=0;i<Math.min(10,pool.length);i++){
+const idx=r(pool.length-i);
+selected.push(pool[idx]);
+pool.splice(idx,1);
 }
 
-if(selected.length<10){
-alert('Недостатньо слів! Додайте більше в словнику.');
-return;
-}
+if(selected.length<1){alert('Недостатньо слів!');return;}
 
 englishState={
 theme,
@@ -991,161 +1019,102 @@ event.target.classList.add('active');
 renderDictionary(theme);
 }
 
-function renderDictionary(filterTheme){
-const user=getUser();
-const allWords=[];
 
-// Add default words
-for(const theme in EN_WORDS){
-EN_WORDS[theme].forEach(w=>{
-const progress=user.english[theme]&&user.english[theme][w.en]?user.english[theme][w.en].correct:0;
-allWords.push({...w,theme,progress,custom:false});
-});
-}
-
-// Add custom words
-user.customWords.forEach(w=>{
-const progress=user.english[w.theme]&&user.english[w.theme][w.en]?user.english[w.theme][w.en].correct:0;
-allWords.push({...w,progress,custom:true});
-});
-
-// Filter
-const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
-
-const html=filtered.map((w,i)=>`
-<div class="dict-word">
-<div>
-<div style="font-size:1.2rem;font-weight:600">${w.en} → ${w.uk}</div>
-<div style="color:#666;font-size:0.9rem">Тема: ${w.theme} ${w.custom?'(власне)':''}</div>
-<div class="dict-progress">
-${[0,1,2].map(i=>`<div class="dict-dot ${w.progress>i?'done':''}"></div>`).join('')}
-</div>
-</div>
-${w.custom?`<button class="btn danger" onclick="deleteWord(${i},'${filterTheme}')">🗑️</button>`:''}
-</div>
-`).join('');
-
-document.getElementById('dict-list').innerHTML=html||'<p style="text-align:center;color:#999">Немає слів</p>';
+function toggleCustomTheme(sel){
+document.getElementById('dict-custom-theme').style.display=sel.value==='_custom'?'inline-block':'none';
 }
 
 function addWord(){
 const enEl=document.getElementById('dict-en');
 const ukEl=document.getElementById('dict-uk');
+const thSel=document.getElementById('dict-theme');
+const thCustom=document.getElementById('dict-custom-theme');
 const en=(enEl?enEl.value:'').trim();
 const uk=(ukEl?ukEl.value:'').trim();
-const theme=document.getElementById('dict-theme').value;
-
+let theme=thSel.value==='_custom'?(thCustom?thCustom.value.trim():''):thSel.value;
+if(!theme)theme='verbs';
 if(!en||!uk)return alert('Заповніть обидва поля');
-
 const user=getUser();
 if(!user.customWords)user.customWords=[];
-
-// Support multiple translations separated by comma
 const ukVariants=uk.split(',').map(s=>s.trim()).filter(Boolean);
 user.customWords.push({en,uk:ukVariants[0],ukVariants,theme});
 saveUser(user);
-
-enEl.value='';
-ukEl.value='';
-
+enEl.value='';ukEl.value='';
+if(thCustom)thCustom.value='';
 renderDictionary(document.querySelector('.theme-btn.active')?.dataset?.theme||'all');
 alert('✅ Слово додано!');
-}
-
-function deleteWord(idx,filterTheme){
-if(!confirm('Видалити це слово?'))return;
-const user=getUser();
-// Find custom word by real index
-const customIdx=getRealCustomIndex(idx,filterTheme);
-if(customIdx===-1)return;
-user.customWords.splice(customIdx,1);
-saveUser(user);
-renderDictionary(filterTheme);
-}
-
-function editWord(idx,filterTheme){
-const user=getUser();
-const customIdx=getRealCustomIndex(idx,filterTheme);
-if(customIdx===-1)return;
-const w=user.customWords[customIdx];
-
-const newEn=prompt('English слово:',w.en);
-if(!newEn||!newEn.trim())return;
-const allUk=(w.ukVariants||[w.uk]).join(', ');
-const newUk=prompt('Переклад(и) українською (через кому):',allUk);
-if(!newUk||!newUk.trim())return;
-
-const ukVariants=newUk.split(',').map(s=>s.trim()).filter(Boolean);
-user.customWords[customIdx]={...w,en:newEn.trim(),uk:ukVariants[0],ukVariants};
-saveUser(user);
-renderDictionary(filterTheme);
-}
-
-function getRealCustomIndex(displayIdx,filterTheme){
-const user=getUser();
-const allWords=[];
-for(const theme in EN_WORDS){
-EN_WORDS[theme].forEach(w=>allWords.push({...w,theme,custom:false}));
-}
-user.customWords.forEach((w,i)=>allWords.push({...w,custom:true,realIdx:i}));
-const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
-const customFiltered=filtered.filter(w=>w.custom);
-// displayIdx is index among ALL filtered words that are custom
-// We need to find which custom item it refers to
-const customDisplayItems=filtered.map((w,i)=>({...w,displayIdx:i})).filter(w=>w.custom);
-const target=customDisplayItems.find(w=>w.displayIdx===displayIdx);
-return target?target.realIdx:-1;
 }
 
 function renderDictionary(filterTheme){
 const user=getUser();
 const allWords=[];
-
-// Add default words
 for(const theme in EN_WORDS){
 EN_WORDS[theme].forEach(w=>{
 const progress=user.english[theme]&&user.english[theme][w.en]?user.english[theme][w.en].correct:0;
 allWords.push({...w,theme,progress,custom:false});
 });
 }
-
-// Add custom words
-user.customWords.forEach((w,realIdx)=>{
+(user.customWords||[]).forEach((w,ci)=>{
 const progress=user.english[w.theme]&&user.english[w.theme][w.en]?user.english[w.theme][w.en].correct:0;
-const variants=w.ukVariants||[w.uk];
-allWords.push({...w,ukVariants:variants,progress,custom:true,realIdx});
+allWords.push({...w,progress,custom:true,customIdx:ci});
 });
-
-// Filter
 const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
 
-// Update active theme button dataset
-document.querySelectorAll('.theme-btn').forEach(b=>{
-const t=b.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
-if(t)b.dataset.theme=t;
+// Add custom theme filter buttons
+const customThemes=[...new Set(allWords.filter(w=>w.custom).map(w=>w.theme).filter(t=>!['verbs','home','nature'].includes(t)))];
+const filterBar=document.getElementById('dict-theme-filter');
+if(filterBar){
+filterBar.querySelectorAll('.custom-theme-btn').forEach(b=>b.remove());
+customThemes.forEach(t=>{
+const b=document.createElement('button');
+b.className='theme-btn custom-theme-btn';b.textContent=t;
+b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderDictionary(t);};
+filterBar.appendChild(b);
 });
+}
 
 const html=filtered.map((w,i)=>{
 const variants=(w.ukVariants&&w.ukVariants.length>1)?w.ukVariants.join(' / '):w.uk;
-return `
-<div class="dict-word">
+return `<div class="dict-word">
 <div style="flex:1">
-<div style="font-size:1.2rem;font-weight:600">${w.en} → ${variants}</div>
-<div style="color:#666;font-size:0.9rem">Тема: ${w.theme} ${w.custom?'(власне)':''}</div>
-<div class="dict-progress">
-${[0,1,2].map(j=>`<div class="dict-dot ${w.progress>j?'done':''}"></div>`).join('')}
+<div style="font-size:1.1rem;font-weight:600">${w.en} → ${variants}</div>
+<div style="color:#666;font-size:0.85rem">Тема: ${w.theme}${w.custom?' (власне)':''}</div>
+<div class="dict-progress">${[0,1,2].map(j=>`<div class="dict-dot ${w.progress>j?'done':''}"></div>`).join('')}</div>
 </div>
+<div style="display:flex;gap:6px">
+<button class="btn" style="padding:6px 12px;font-size:.85rem;background:linear-gradient(135deg,#f39c12,#e67e22)" onclick="editWordAll(${i},'${filterTheme}')">✏️</button>
+${w.custom?`<button class="btn danger" style="padding:6px 12px;font-size:.85rem" onclick="deleteWord(${i},'${filterTheme}')">🗑️</button>`:''}
 </div>
-${w.custom?`
-<div style="display:flex;gap:8px">
-<button class="btn" style="padding:8px 14px;font-size:0.9rem;background:linear-gradient(135deg,#f39c12,#e67e22)" onclick="editWord(${i},'${filterTheme}')">✏️</button>
-<button class="btn danger" style="padding:8px 14px;font-size:0.9rem" onclick="deleteWord(${i},'${filterTheme}')">🗑️</button>
-</div>`:''}
-</div>
-`;
+</div>`;
 }).join('');
-
 document.getElementById('dict-list').innerHTML=html||'<p style="text-align:center;color:#999">Немає слів</p>';
+}
+
+function editWordAll(displayIdx,filterTheme){
+const user=getUser();
+const allWords=[];
+for(const theme in EN_WORDS) EN_WORDS[theme].forEach(w=>allWords.push({...w,theme,custom:false}));
+(user.customWords||[]).forEach((w,i)=>allWords.push({...w,custom:true,customIdx:i}));
+const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
+const w=filtered[displayIdx];
+if(!w)return;
+const newEn=prompt('English слово:',w.en);
+if(!newEn||!newEn.trim())return;
+const allUk=(w.ukVariants||[w.uk]).join(', ');
+const newUk=prompt('Переклад(и) через кому:',allUk);
+if(!newUk||!newUk.trim())return;
+const newTheme=prompt('Тема:',w.theme);
+if(newTheme===null)return;
+const theme=newTheme.trim()||w.theme;
+const ukVariants=newUk.split(',').map(s=>s.trim()).filter(Boolean);
+if(w.custom){
+user.customWords[w.customIdx]={...user.customWords[w.customIdx],en:newEn.trim(),uk:ukVariants[0],ukVariants,theme};
+} else {
+if(!user.customWords)user.customWords=[];
+user.customWords.push({en:newEn.trim(),uk:ukVariants[0],ukVariants,theme,_editedFrom:w.en});
+}
+saveUser(user);
+renderDictionary(filterTheme);
 }
 // ═══════════════════════════════════════════════════════════
 // MATH GAME
