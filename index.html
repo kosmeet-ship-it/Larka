@@ -507,12 +507,26 @@ alert(`✅ Собаку перейменовано на "${user.dog.name}"!`);
 }
 }
 
+function hideEyes(){
+const eyes=document.getElementById('dog-house-eyes');
+const lids=document.getElementById('dog-house-eyelids');
+if(eyes) eyes.style.display='none';
+if(lids) lids.style.display='none';
+}
+function showEyes(){
+const eyes=document.getElementById('dog-house-eyes');
+const lids=document.getElementById('dog-house-eyelids');
+if(eyes) eyes.style.display='block';
+if(lids) lids.style.display='none';
+}
+
 function tapDogHouse(){
 const user=getUser();
 if(user.stars<200)return alert('Потрібно 200⭐');
 user.stars-=200;
 saveUser(user);
 updateUI();
+hideEyes();
 const dog=document.getElementById('dog');
 dog.style.display='block';
 dog.style.left='50%';
@@ -521,7 +535,7 @@ dog.style.animation='';
 document.getElementById('dog-actions').style.display='flex';
 let w=false;
 const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';document.getElementById('dog-actions').style.display='none';},60000);
+setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';document.getElementById('dog-actions').style.display='none';showEyes();},60000);
 }
 
 function throwBone(){
@@ -552,6 +566,7 @@ setTimeout(()=>{
 // Dog runs right to pick it up
 const dog=document.getElementById('dog');
 dog.style.display='block';
+hideEyes();
 setTimeout(()=>{
   dog.style.left='72%';
   dog.style.transform='translateX(0)';
@@ -590,7 +605,7 @@ setTimeout(()=>{
 setTimeout(()=>{
   let w=false;
   const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},54000);
+  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},54000);
 },5000);
 }
 
@@ -608,8 +623,7 @@ const dog=document.getElementById('dog');
 dog.style.display='block';
 dog.style.left='50%';
 dog.style.transform='translateX(-50%)';
-
-// Create hand above dog
+hideEyes();
 const hand=document.createElement('div');
 hand.className='dog-prop';
 hand.textContent='✋';
@@ -638,7 +652,7 @@ const pet=setInterval(()=>{
       hand.remove();
       let w=false;
       const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-      setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},55000);
+      setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},55000);
     },600);
   }
 },400);
@@ -669,8 +683,7 @@ setTimeout(()=>{
 
 const dog=document.getElementById('dog');
 dog.style.display='block';
-
-// Dog runs left
+hideEyes();
 setTimeout(()=>{
   dog.style.left='15%';
   dog.style.transform='scaleX(-1)';
@@ -694,7 +707,7 @@ setTimeout(()=>{
   ball.remove();
   let w=false;
   const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},51000);
+  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},51000);
 },7600);
 }
 
