@@ -444,13 +444,18 @@ saveUser(user);
 renderDogMess(user);
 }
 
-// Blinking eyes in dog house
+// Blinking eyes in dog house — кліпають тільки коли видимі
 setInterval(()=>{
 const eyes=document.getElementById('dog-house-eyes');
 const lids=document.getElementById('dog-house-eyelids');
-if(!eyes||!lids)return;
-lids.style.display='block';eyes.style.display='none';
-setTimeout(()=>{lids.style.display='none';eyes.style.display='block';},150);
+if(!eyes||!lids||eyes.style.display==='none')return;
+lids.style.display='block';
+eyes.style.display='none';
+setTimeout(()=>{
+  const e=document.getElementById('dog-house-eyes');
+  const l=document.getElementById('dog-house-eyelids');
+  if(e&&l&&l.style.display==='block'){l.style.display='none';e.style.display='block';}
+},150);
 },2000);
 
 function renderDogMess(user){
@@ -1042,13 +1047,23 @@ const enEl=document.getElementById('dict-en');
 const ukEl=document.getElementById('dict-uk');
 const thSel=document.getElementById('dict-theme');
 const thCustom=document.getElementById('dict-custom-theme');
-const en=(enEl?enEl.value:'').trim();
+const en=(enEl?enEl.value:'').trim().toLowerCase();
 const uk=(ukEl?ukEl.value:'').trim();
 let theme=thSel.value==='_custom'?(thCustom?thCustom.value.trim():''):thSel.value;
 if(!theme)theme='verbs';
 if(!en||!uk)return alert('Заповніть обидва поля');
+
 const user=getUser();
 if(!user.customWords)user.customWords=[];
+
+// Перевірка на дубль — серед вбудованих і кастомних
+const allExisting=[];
+for(const t in EN_WORDS) EN_WORDS[t].forEach(w=>allExisting.push(w.en.toLowerCase()));
+(user.customWords||[]).forEach(w=>allExisting.push(w.en.toLowerCase()));
+if(allExisting.includes(en)){
+  return alert(`⚠️ Слово "${en}" вже є в словнику!`);
+}
+
 const ukVariants=uk.split(',').map(s=>s.trim()).filter(Boolean);
 user.customWords.push({en,uk:ukVariants[0],ukVariants,theme});
 saveUser(user);
@@ -1129,8 +1144,22 @@ user.customWords.push({en:newEn.trim(),uk:ukVariants[0],ukVariants,theme,_edited
 saveUser(user);
 renderDictionary(filterTheme);
 }
-// ═══════════════════════════════════════════════════════════
-// MATH GAME
+
+function deleteWord(displayIdx,filterTheme){
+if(!confirm('Видалити це слово?'))return;
+const user=getUser();
+const allWords=[];
+for(const theme in EN_WORDS) EN_WORDS[theme].forEach(w=>allWords.push({...w,theme,custom:false}));
+(user.customWords||[]).forEach((w,i)=>allWords.push({...w,custom:true,customIdx:i}));
+const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
+const w=filtered[displayIdx];
+if(!w||!w.custom)return;
+user.customWords.splice(w.customIdx,1);
+saveUser(user);
+renderDictionary(filterTheme);
+}
+
+
 // ═══════════════════════════════════════════════════════════
 const MATH_MONSTERS=['👾','👹','👺','🤖','👻','💀','🎃','👿','😈','🧟'];
 
