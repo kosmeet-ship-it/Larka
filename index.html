@@ -145,9 +145,9 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div class="header">
 <div style="font-size:1.5rem;color:#764ba2;font-weight:700">💗 Ларіка</div>
 <div class="stars">⭐ <span id="stars-display">0</span></div>
+<div style="font-size:1rem;color:#2e7d32;font-weight:700">🌱 <span id="seed-count">0</span></div>
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
-
 </div>
 
 <div class="games">
@@ -164,9 +164,9 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 </div>
 
 <div class="dog-area">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
 <h3 style="color:#764ba2;margin:0">🐕 Моя собака</h3>
-<button class="btn" onclick="renameDog()" style="padding:8px 16px;font-size:0.95rem">✏️ Змінити ім'я</button>
+<button class="btn" onclick="renameDog()" style="padding:8px 16px;font-size:0.95rem">✏️ Ім'я</button>
 </div>
 <div class="dog-hearts" id="dog-hearts"></div>
 <div class="dog-house" onclick="tapDogHouse()">
@@ -217,6 +217,19 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn success" onclick="throwBall()">⚽ М'ячик -800⭐</button>
 </div>
 <div id="poops-container"></div>
+<div id="tree-container" style="position:absolute;left:5px;bottom:25px;width:140px;height:280px">
+  <svg id="tree-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+  </svg>
+</div>
+<div id="plant-btn-container" style="position:absolute;left:10px;bottom:5px;display:none">
+  <button class="btn success" onclick="plantTree()" style="padding:6px 12px;font-size:.85rem">🌱 Посадити</button>
+</div>
+<div id="water-btn-container" style="position:absolute;left:10px;bottom:5px;display:none">
+  <button class="btn" onclick="waterTree()" style="padding:6px 12px;font-size:.85rem;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none">💧 Полив -800⭐</button>
+</div>
+<div id="bloom-btn-container" style="position:absolute;left:10px;bottom:30px;display:none">
+  <button class="btn" onclick="bloomTree()" style="padding:6px 12px;font-size:.85rem;background:linear-gradient(135deg,#e91e8c,#c2185b);color:#fff;border:none">🌸 Квітнути -1🌱</button>
+</div>
 </div>
 </div>
 
@@ -227,6 +240,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <div id="en-hearts">❤️❤️❤️❤️❤️❤️❤️❤️</div>
   <div>⭐<span id="en-stars">0</span></div>
   <div id="en-timer" style="color:#00b4d8">⏱60s</div>
+  <div id="en-progress-hud" style="color:#00ff88;font-weight:700">0/20</div>
 </div>
 <div id="en-theme-select" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:90%;max-width:500px;max-height:80vh;overflow-y:auto;z-index:5">
 <h1 style="color:#fff;font-size:2.4rem;margin-bottom:18px">Обери тему</h1>
@@ -384,7 +398,9 @@ function getUser(){
   // Створюємо новий профіль якщо немає
   const newProfile={
     stars:0,
+    seeds:0,
     dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
+    tree:null,
     english:{},
     customWords:[],
     games:{}
@@ -403,6 +419,9 @@ updateDog();
 function updateUI(){
 const user=getUser();
 document.getElementById('stars-display').textContent=user.stars;
+const sc=document.getElementById('seed-count');
+if(sc)sc.textContent=user.seeds||0;
+updateTreeUI();
 }
 
 function updateDog(){
@@ -410,38 +429,18 @@ const user=getUser();
 document.getElementById('dog-hearts').textContent='❤️'.repeat(Math.max(0,user.dog.hearts))+'🖤'.repeat(Math.max(0,10-user.dog.hearts));
 const nameLabel=document.getElementById('dog-name-label');
 if(nameLabel) nameLabel.textContent=user.dog.name||'Рекс';
-
-// Init new fields if missing
-if(!user.dog.lastPuddleAdd) user.dog.lastPuddleAdd=Date.now();
-if(!user.dog.puddles) user.dog.puddles=[];
-
-// Decay hearts every 3h
+// Init fields
+if(!user.dog.lastPuddleAdd)user.dog.lastPuddleAdd=Date.now();
+if(!user.dog.puddles)user.dog.puddles=[];
+// Decay hearts
 const hoursSince=(Date.now()-user.dog.lastHeartLoss)/3600000;
-if(hoursSince>=3&&user.dog.hearts>0){
-user.dog.hearts=Math.max(0,user.dog.hearts-Math.floor(hoursSince/3));
-user.dog.lastHeartLoss=Date.now();
-saveUser(user);
-}
-
-// Add puddle every 6h → -1 heart
-const hoursSincePuddle=(Date.now()-user.dog.lastPuddleAdd)/3600000;
-if(hoursSincePuddle>=6){
-user.dog.puddles.push({x:15+r(70),y:35+r(30)});
-user.dog.hearts=Math.max(0,user.dog.hearts-1);
-user.dog.lastPuddleAdd=Date.now();
-saveUser(user);
-}
-
-// Add poop every 12h → -1 heart
-const hoursSincePoop=(Date.now()-user.dog.lastPoopAdd)/3600000;
-if(hoursSincePoop>=12){
-user.dog.poops.push({x:15+r(70),y:35+r(30)});
-user.dog.hearts=Math.max(0,user.dog.hearts-1);
-user.dog.lastPoopAdd=Date.now();
-saveUser(user);
-}
-
+if(hoursSince>=3&&user.dog.hearts>0){user.dog.hearts=Math.max(0,user.dog.hearts-Math.floor(hoursSince/3));user.dog.lastHeartLoss=Date.now();saveUser(user);}
+// Puddle every 6h
+if((Date.now()-(user.dog.lastPuddleAdd||0))/3600000>=6){user.dog.puddles.push({x:15+r(70),y:35+r(30)});user.dog.hearts=Math.max(0,user.dog.hearts-1);user.dog.lastPuddleAdd=Date.now();saveUser(user);}
+// Poop every 12h
+if((Date.now()-(user.dog.lastPoopAdd||0))/3600000>=12){user.dog.poops=user.dog.poops||[];user.dog.poops.push({x:15+r(70),y:35+r(30)});user.dog.hearts=Math.max(0,user.dog.hearts-1);user.dog.lastPoopAdd=Date.now();saveUser(user);}
 renderDogMess(user);
+updateTreeUI();
 }
 
 // Blinking eyes in dog house — кліпають тільки коли видимі
@@ -764,14 +763,17 @@ const custom=(user.customWords||[]).filter(w=>w.theme===theme);
 const words=builtIn.concat(custom);
 if(words.length<1){alert('Немає слів у цій темі!');return;}
 
+const now=Date.now();
 const wordProgress=words.map(w=>({
 ...w,
 correct:user.english[theme][w.en]?.correct||0,
-lastSeen:user.english[theme][w.en]?.lastSeen||0
+lastSeen:user.english[theme][w.en]?.lastSeen||0,
+nextReview:user.english[theme][w.en]?.nextReview||0
 }));
 
 const selected=[];
-const available=[...wordProgress.filter(w=>w.correct<3)];
+// SRS: only include words that are due for review (nextReview <= now) or not yet learned
+const available=[...wordProgress.filter(w=>w.correct<2||(w.correct>=2&&w.nextReview<=now))];
 const pool=available.length>0?available:[...wordProgress];
 for(let i=0;i<Math.min(10,pool.length);i++){
 const idx=r(pool.length-i);
@@ -781,6 +783,10 @@ pool.splice(idx,1);
 
 if(selected.length<1){alert('Недостатньо слів!');return;}
 
+// Global progress counter (across all games)
+const globalProgress=Object.values(user.english[theme]||{}).filter(p=>p&&p.correct>=2).length;
+const totalWords=Object.keys(EN_WORDS).reduce((s,t)=>s+(EN_WORDS[t]||[]).length,0);
+
 englishState={
 theme,
 words:selected,
@@ -788,6 +794,8 @@ current:0,
 stars:0,
 hearts:8,
 correctCount:0,
+globalCorrect:globalProgress,
+totalWords,
 queue:selected.map((w,i)=>i),
 progress:{}
 };
@@ -799,14 +807,16 @@ nextEnglishWord();
 }
 
 function updateEnglishHUD(){
-document.getElementById('en-hearts').textContent='❤️'.repeat(englishState.hearts)+'🖤'.repeat(10-englishState.hearts);
+document.getElementById('en-hearts').textContent='❤️'.repeat(Math.max(0,englishState.hearts))+'🖤'.repeat(Math.max(0,10-englishState.hearts));
 document.getElementById('en-stars').textContent=englishState.stars;
+const ph=document.getElementById('en-progress-hud');
+if(ph)ph.textContent=(englishState.globalCorrect||0)+'/20';
 }
 
 function nextEnglishWord(){
 if(englishState.queue.length===0){
 // Check if all words have 3 correct
-const allDone=Object.values(englishState.progress).every(p=>p>=3);
+const allDone=Object.values(englishState.progress).every(p=>p>=2);
 if(allDone){
 englishVictory();
 return;
@@ -815,7 +825,7 @@ return;
 // Rebuild queue with words that need more practice
 englishState.queue=englishState.words
 .map((w,i)=>i)
-.filter(i=>(englishState.progress[englishState.words[i].en]||0)<3);
+.filter(i=>(englishState.progress[englishState.words[i].en]||0)<2);
 }
 
 const idx=englishState.queue.shift();
@@ -881,22 +891,34 @@ if(englishState.correctCount%5===0&&englishState.hearts<10){
 englishState.hearts++;
 }
 
-// Save to user data
+// Save to user data with SRS
 const user=getUser();
 if(!user.english[englishState.theme]) user.english[englishState.theme]={};
 if(!user.english[englishState.theme][en]) user.english[englishState.theme][en]={correct:0,lastSeen:0};
-user.english[englishState.theme][en].correct++;
+const prevCorrect=user.english[englishState.theme][en].correct||0;
+user.english[englishState.theme][en].correct=prevCorrect+1;
 user.english[englishState.theme][en].lastSeen=Date.now();
+
+// SRS delays after each correct answer (days)
+const srsDelays=[0,1,5,20,60];
+const newC=prevCorrect+1;
+if(newC<srsDelays.length){
+user.english[englishState.theme][en].nextReview=Date.now()+srsDelays[newC]*24*3600000;
+}
+
+// Count globally learned words (2+ answers = learned)
+if(newC===2){
+englishState.globalCorrect=(englishState.globalCorrect||0)+1;
+}
 saveUser(user);
 
 showEnglishFeedback(true);
 
-// If word needs more practice (< 3 correct), add back to queue after 5 words
-if(englishState.progress[en]<3){
+// If word needs more practice (< 2 correct), add back to queue
+if(englishState.progress[en]<2){
 if(englishState.queue.length>=5){
 englishState.queue.push(englishState.currentIndex);
 } else {
-// Less than 5 words left - add to end
 englishState.queue.push(englishState.currentIndex);
 }
 }
@@ -962,19 +984,19 @@ speak(englishState.currentWord.en,'en-US');
 }
 
 function englishVictory(){
-const bonus=10*20*20; // min_reward=10 (A level) * 20
+const bonus=10*20*20;
 const total=englishState.stars+bonus;
 
-document.getElementById('victory-amount').textContent=`+${total}⭐`;
-document.getElementById('victory').style.display='flex';
-
-// Add stars after 3 seconds
-setTimeout(()=>{
 const user=getUser();
 user.stars+=total;
+if(!user.seeds)user.seeds=0;
+user.seeds+=1;
 saveUser(user);
 updateUI();
-},3000);
+updateTreeUI();
+
+document.getElementById('victory-amount').textContent=`+${total}⭐ +1🌱`;
+document.getElementById('victory').style.display='flex';
 }
 
 function englishGameOver(){
@@ -1159,6 +1181,144 @@ saveUser(user);
 renderDictionary(filterTheme);
 }
 
+
+// ═══════════════════════════════════════════════════════════
+// TREE SYSTEM
+// ═══════════════════════════════════════════════════════════
+function updateTreeUI(){
+const user=getUser();
+const sc=document.getElementById('seed-count');
+if(sc)sc.textContent=user.seeds||0;
+const plantBtn=document.getElementById('plant-btn-container');
+const waterBtn=document.getElementById('water-btn-container');
+const bloomBtn=document.getElementById('bloom-btn-container');
+if(!plantBtn||!waterBtn||!bloomBtn)return;
+if(!user.tree){
+  plantBtn.style.display=(user.seeds>0)?'block':'none';
+  waterBtn.style.display='none';
+  bloomBtn.style.display='none';
+} else {
+  plantBtn.style.display='none';
+  waterBtn.style.display='block';
+  const hasBud=(user.tree.branches||[]).some(b=>b.bud&&!b.flower);
+  bloomBtn.style.display=(hasBud&&(user.seeds||0)>0)?'block':'none';
+}
+pruneDeadLeaves(user);
+renderTree(user);
+}
+
+function plantTree(){
+const user=getUser();
+if(!user.seeds||user.seeds<1)return alert('Потрібно 1🌱 насіння');
+user.seeds--;
+user.tree={planted:Date.now(),branches:[{side:'right',leaves:1,bud:false,flower:null}],fallenLeaves:[],lastLeafDrop:Date.now()};
+saveUser(user);
+updateUI();
+updateTreeUI();
+}
+
+function waterTree(){
+const user=getUser();
+if(user.stars<800)return alert('Потрібно 800⭐');
+if(!user.tree)return;
+user.stars-=800;
+const branches=user.tree.branches||[];
+const growing=branches.find(b=>b.leaves<10&&!b.bud);
+if(growing){
+  growing.leaves++;
+  if(growing.leaves>=10)growing.bud=true;
+} else if(branches.length<10){
+  const lastSide=branches.length>0?branches[branches.length-1].side:'right';
+  branches.push({side:lastSide==='right'?'left':'right',leaves:1,bud:false,flower:null});
+  user.tree.branches=branches;
+} else {
+  return alert('Дерево вже повністю виросло! 🌳');
+}
+saveUser(user);
+updateUI();
+updateTreeUI();
+}
+
+function bloomTree(){
+const user=getUser();
+if(!user.seeds||user.seeds<1)return alert('Потрібно 1🌱 насіння');
+if(!user.tree)return;
+const branch=user.tree.branches.find(b=>b.bud&&!b.flower);
+if(!branch)return;
+user.seeds--;
+const colors=['#FF69B4','#FF1493','#FF6347','#9370DB','#FFD700','#FF4500','#DA70D6'];
+const centers=['#FFD700','#FFA500','#FFFF00','#FFF8DC'];
+branch.flower={color:colors[Math.floor(Math.random()*colors.length)],center:centers[Math.floor(Math.random()*centers.length)],bloomTime:Date.now(),fallen:false,fallenTime:null};
+saveUser(user);
+updateUI();
+updateTreeUI();
+}
+
+function pruneDeadLeaves(user){
+if(!user||!user.tree)return;
+const now=Date.now();
+let changed=false;
+// Drop flowers after 72h
+(user.tree.branches||[]).forEach(b=>{
+  if(b.flower&&!b.flower.fallen&&now-b.flower.bloomTime>72*3600000){
+    b.flower.fallen=true;b.flower.fallenTime=now;
+    user.tree.fallenLeaves=user.tree.fallenLeaves||[];
+    user.tree.fallenLeaves.push({type:'flower',color:b.flower.color,time:now,x:20+Math.random()*60});
+    changed=true;
+  }
+});
+// Drop 1 leaf every 5 hours
+const hoursSinceDrop=(now-(user.tree.lastLeafDrop||now))/3600000;
+if(hoursSinceDrop>=5){
+  const eligible=(user.tree.branches||[]).filter(b=>b.leaves>0);
+  if(eligible.length>0){
+    const b=eligible[Math.floor(Math.random()*eligible.length)];
+    b.leaves=Math.max(0,b.leaves-1);
+    if(b.leaves<10)b.bud=false;
+    user.tree.lastLeafDrop=now;
+    user.tree.fallenLeaves=user.tree.fallenLeaves||[];
+    user.tree.fallenLeaves.push({type:'leaf',time:now,x:15+Math.random()*70});
+    changed=true;
+  }
+}
+// Remove fallen after 24h
+user.tree.fallenLeaves=(user.tree.fallenLeaves||[]).filter(l=>now-l.time<24*3600000);
+if(changed)saveUser(user);
+}
+
+function renderTree(user){
+const svg=document.getElementById('tree-svg');
+if(!svg)return;
+if(!user.tree){svg.innerHTML='';return;}
+const branches=user.tree.branches||[];
+const fallen=user.tree.fallenLeaves||[];
+let h='';
+h+=`<line x1="10" y1="270" x2="130" y2="270" stroke="#8B6914" stroke-width="2"/>`;
+h+=`<line x1="70" y1="270" x2="70" y2="120" stroke="#8B4513" stroke-width="5" stroke-linecap="round"/>`;
+branches.forEach((b,bi)=>{
+  const by=120+(bi*14);
+  const dir=b.side==='right'?1:-1;
+  const bx=70+dir*35;
+  h+=`<line x1="70" y1="${by}" x2="${bx}" y2="${by+10}" stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>`;
+  for(let li=0;li<b.leaves;li++){
+    const lx=70+dir*(8+li*4);const ly=by-4+(li%2)*6;
+    h+=`<ellipse cx="${lx}" cy="${ly}" rx="5" ry="3" fill="#4CAF50" transform="rotate(${dir*20},${lx},${ly})"/>`;
+  }
+  if(b.bud&&(!b.flower||b.flower.fallen)){
+    h+=`<circle cx="${bx}" cy="${by+5}" r="5" fill="#FF69B4" opacity=".8"/><circle cx="${bx}" cy="${by+5}" r="3" fill="#C2185B"/>`;
+  }
+  if(b.flower&&!b.flower.fallen){
+    const fx=bx,fy=by+5;
+    [0,60,120,180,240,300].forEach(a=>{const px=fx+Math.cos(a*Math.PI/180)*8,py=fy+Math.sin(a*Math.PI/180)*8;h+=`<circle cx="${px}" cy="${py}" r="4" fill="${b.flower.color}" opacity=".7"/>`;});
+    h+=`<circle cx="${fx}" cy="${fy}" r="5" fill="${b.flower.center}"/>`;
+  }
+});
+fallen.forEach(f=>{
+  h+=f.type==='flower'?`<circle cx="${f.x}" cy="265" r="4" fill="${f.color}" opacity=".6"/>`:
+    `<ellipse cx="${f.x}" cy="267" rx="4" ry="2" fill="#4CAF50" opacity=".5"/>`;
+});
+svg.innerHTML=h;
+}
 
 // ═══════════════════════════════════════════════════════════
 const MATH_MONSTERS=['👾','👹','👺','🤖','👻','💀','🎃','👿','😈','🧟'];
