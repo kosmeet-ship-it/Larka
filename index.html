@@ -810,7 +810,7 @@ function updateEnglishHUD(){
 document.getElementById('en-hearts').textContent='❤️'.repeat(Math.max(0,englishState.hearts))+'🖤'.repeat(Math.max(0,10-englishState.hearts));
 document.getElementById('en-stars').textContent=englishState.stars;
 const ph=document.getElementById('en-progress-hud');
-if(ph)ph.textContent=(englishState.globalCorrect||0)+'/20';
+if(ph)ph.textContent=(englishState.correctCount||0)+'/20';
 }
 
 function nextEnglishWord(){
@@ -911,7 +911,7 @@ if(newC===2){
 englishState.globalCorrect=(englishState.globalCorrect||0)+1;
 }
 saveUser(user);
-
+updateEnglishHUD();
 showEnglishFeedback(true);
 
 // If word needs more practice (< 2 correct), add back to queue
@@ -1293,30 +1293,94 @@ if(!user.tree){svg.innerHTML='';return;}
 const branches=user.tree.branches||[];
 const fallen=user.tree.fallenLeaves||[];
 let h='';
-h+=`<line x1="10" y1="270" x2="130" y2="270" stroke="#8B6914" stroke-width="2"/>`;
-h+=`<line x1="70" y1="270" x2="70" y2="120" stroke="#8B4513" stroke-width="5" stroke-linecap="round"/>`;
+
+// Ground
+h+=`<line x1="5" y1="270" x2="135" y2="270" stroke="#8B6914" stroke-width="2"/>`;
+
+// Trunk — shorter: from y=270 to y=200 (half of previous 150px)
+const trunkTopY=200;
+h+=`<line x1="70" y1="270" x2="70" y2="${trunkTopY}" stroke="#8B4513" stroke-width="6" stroke-linecap="round"/>`;
+
+// Branches — distributed from trunk top upward
+// Each branch grows at angle ~35° upward
+const branchLen=40;
 branches.forEach((b,bi)=>{
-  const by=120+(bi*14);
   const dir=b.side==='right'?1:-1;
-  const bx=70+dir*35;
-  h+=`<line x1="70" y1="${by}" x2="${bx}" y2="${by+10}" stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>`;
-  for(let li=0;li<b.leaves;li++){
-    const lx=70+dir*(8+li*4);const ly=by-4+(li%2)*6;
-    h+=`<ellipse cx="${lx}" cy="${ly}" rx="5" ry="3" fill="#4CAF50" transform="rotate(${dir*20},${lx},${ly})"/>`;
+  // Attach point on trunk — spread branches upward from trunkTop
+  const attachY=trunkTopY+(bi*0 ); // stack at same point or spread
+  // Actually distribute them along trunk
+  const branchAttachY=trunkTopY-(bi*0); // all from top for now — spread differently
+  // Better: alternate left/right, attach points descend from trunkTop
+  const attachYFinal=trunkTopY+(Math.floor(bi/2)*16);
+  // Branch tip: angled up 35°
+  const angle=35; // degrees upward from horizontal
+  const rad=angle*Math.PI/180;
+  const tipX=70+dir*(branchLen*Math.cos(rad));
+  const tipY=attachYFinal-(branchLen*Math.sin(rad));
+
+  // Draw branch line
+  h+=`<line x1="70" y1="${attachYFinal}" x2="${tipX.toFixed(1)}" y2="${tipY.toFixed(1)}" stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>`;
+
+  // Leaves — alternating above and below branch
+  for(let li=0;li<b.leaves&&li<10;li++){
+    // Position along branch (0=base, 1=tip)
+    const t=(li+1)/(10+1);
+    const lx=70+dir*(branchLen*Math.cos(rad)*t);
+    const ly=attachYFinal-(branchLen*Math.sin(rad)*t);
+
+    // Alternate: even=below branch, odd=above branch
+    const above=li%2===1;
+    // Perpendicular to branch direction (rotate 90°)
+    const perpX=Math.sin(rad)*dir*(above?-1:1)*10;
+    const perpY=Math.cos(rad)*(above?-1:1)*10;
+
+    const leafCX=(lx+perpX*0.5).toFixed(1);
+    const leafCY=(ly+perpY*0.5).toFixed(1);
+
+    // Leaf tip points away from branch
+    const leafTipX=(lx+perpX).toFixed(1);
+    const leafTipY=(ly+perpY).toFixed(1);
+
+    // Leaf base is on the branch (lx, ly)
+    // Draw as a small pointed oval rotated along perpendicular
+    const leafAngle=Math.atan2(perpY,perpX)*180/Math.PI;
+    h+=`<ellipse cx="${leafCX}" cy="${leafCY}" rx="7" ry="3.5" fill="#4CAF50" stroke="#388E3C" stroke-width=".5" transform="rotate(${leafAngle.toFixed(1)},${leafCX},${leafCY})"/>`;
   }
+
+  // Bud at branch tip — bottom half green, top half pink
   if(b.bud&&(!b.flower||b.flower.fallen)){
-    h+=`<circle cx="${bx}" cy="${by+5}" r="5" fill="#FF69B4" opacity=".8"/><circle cx="${bx}" cy="${by+5}" r="3" fill="#C2185B"/>`;
+    const bx=tipX.toFixed(1);
+    const by=tipY.toFixed(1);
+    // Bottom half green
+    h+=`<path d="M ${+bx-5},${+by} A 5,7 0 0,0 ${+bx+5},${+by} Z" fill="#4CAF50"/>`;
+    // Top half pink
+    h+=`<path d="M ${+bx-5},${+by} A 5,7 0 0,1 ${+bx+5},${+by} Z" fill="#FF69B4"/>`;
+    // Small stem connecting to branch tip
+    h+=`<line x1="${tipX.toFixed(1)}" y1="${tipY.toFixed(1)}" x2="${tipX.toFixed(1)}" y2="${(+tipY+4).toFixed(1)}" stroke="#8B4513" stroke-width="1.5"/>`;
   }
+
+  // Flower at branch tip
   if(b.flower&&!b.flower.fallen){
-    const fx=bx,fy=by+5;
-    [0,60,120,180,240,300].forEach(a=>{const px=fx+Math.cos(a*Math.PI/180)*8,py=fy+Math.sin(a*Math.PI/180)*8;h+=`<circle cx="${px}" cy="${py}" r="4" fill="${b.flower.color}" opacity=".7"/>`;});
-    h+=`<circle cx="${fx}" cy="${fy}" r="5" fill="${b.flower.center}"/>`;
+    const fx=+tipX,fy=+tipY;
+    const fc=b.flower.color,mc=b.flower.center;
+    [0,60,120,180,240,300].forEach(a=>{
+      const px=(fx+Math.cos(a*Math.PI/180)*8).toFixed(1);
+      const py=(fy+Math.sin(a*Math.PI/180)*8).toFixed(1);
+      h+=`<circle cx="${px}" cy="${py}" r="4.5" fill="${fc}" opacity=".85"/>`;
+    });
+    h+=`<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="5" fill="${mc}"/>`;
   }
 });
+
+// Fallen items on ground
 fallen.forEach(f=>{
-  h+=f.type==='flower'?`<circle cx="${f.x}" cy="265" r="4" fill="${f.color}" opacity=".6"/>`:
-    `<ellipse cx="${f.x}" cy="267" rx="4" ry="2" fill="#4CAF50" opacity=".5"/>`;
+  if(f.type==='flower'){
+    h+=`<circle cx="${(+f.x).toFixed(0)}" cy="264" r="4" fill="${f.color}" opacity=".55"/>`;
+  } else {
+    h+=`<ellipse cx="${(+f.x).toFixed(0)}" cy="267" rx="5" ry="2.5" fill="#66BB6A" opacity=".5"/>`;
+  }
 });
+
 svg.innerHTML=h;
 }
 
