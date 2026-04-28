@@ -771,19 +771,25 @@ lastSeen:user.english[theme][w.en]?.lastSeen||0,
 nextReview:user.english[theme][w.en]?.nextReview||0
 }));
 
+// SRS: only include words that are due for review or not yet learned
+const available=wordProgress.filter(w=>w.correct<2||(w.correct>=2&&w.nextReview<=now));
+
+// Check minimum 10 words available
+if(available.length<10){
+const need=10-available.length;
+alert(`⏳ Потрібно ще ${need} слів для гри.\nДодайте нові слова або зачекайте поки слова знову стануть доступними.`);
+return;
+}
+
+const pool=[...available];
 const selected=[];
-// SRS: only include words that are due for review (nextReview <= now) or not yet learned
-const available=[...wordProgress.filter(w=>w.correct<2||(w.correct>=2&&w.nextReview<=now))];
-const pool=available.length>0?available:[...wordProgress];
-for(let i=0;i<Math.min(10,pool.length);i++){
+for(let i=0;i<10;i++){
 const idx=r(pool.length-i);
 selected.push(pool[idx]);
 pool.splice(idx,1);
 }
 
-if(selected.length<1){alert('Недостатньо слів!');return;}
-
-// Global progress counter (across all games)
+// Global progress counter
 const globalProgress=Object.values(user.english[theme]||{}).filter(p=>p&&p.correct>=2).length;
 const totalWords=Object.keys(EN_WORDS).reduce((s,t)=>s+(EN_WORDS[t]||[]).length,0);
 
@@ -1097,16 +1103,21 @@ alert('✅ Слово додано!');
 
 function renderDictionary(filterTheme){
 const user=getUser();
+const now=Date.now();
 const allWords=[];
 for(const theme in EN_WORDS){
 EN_WORDS[theme].forEach(w=>{
-const progress=user.english[theme]&&user.english[theme][w.en]?user.english[theme][w.en].correct:0;
-allWords.push({...w,theme,progress,custom:false});
+const wdata=user.english[theme]&&user.english[theme][w.en]?user.english[theme][w.en]:{};
+const progress=wdata.correct||0;
+const nextReview=wdata.nextReview||0;
+allWords.push({...w,theme,progress,nextReview,custom:false});
 });
 }
 (user.customWords||[]).forEach((w,ci)=>{
-const progress=user.english[w.theme]&&user.english[w.theme][w.en]?user.english[w.theme][w.en].correct:0;
-allWords.push({...w,progress,custom:true,customIdx:ci});
+const wdata=user.english[w.theme]&&user.english[w.theme][w.en]?user.english[w.theme][w.en]:{};
+const progress=wdata.correct||0;
+const nextReview=wdata.nextReview||0;
+allWords.push({...w,progress,nextReview,custom:true,customIdx:ci});
 });
 const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
 
@@ -1125,10 +1136,23 @@ filterBar.appendChild(b);
 
 const html=filtered.map((w,i)=>{
 const variants=(w.ukVariants&&w.ukVariants.length>1)?w.ukVariants.join(' / '):w.uk;
+
+// Next review label
+let reviewLabel='';
+if(w.progress>=2&&w.nextReview>now){
+const daysLeft=Math.ceil((w.nextReview-now)/86400000);
+reviewLabel=`<div style="color:#e67e22;font-size:0.78rem;margin-top:2px">⏳ через ${daysLeft} ${daysLeft===1?'день':daysLeft<5?'дні':'днів'}</div>`;
+} else if(w.progress>0){
+reviewLabel=`<div style="color:#27ae60;font-size:0.78rem;margin-top:2px">✅ доступно зараз</div>`;
+} else {
+reviewLabel=`<div style="color:#3498db;font-size:0.78rem;margin-top:2px">🆕 нове слово</div>`;
+}
+
 return `<div class="dict-word">
 <div style="flex:1">
 <div style="font-size:1.1rem;font-weight:600">${w.en} → ${variants}</div>
 <div style="color:#666;font-size:0.85rem">Тема: ${w.theme}${w.custom?' (власне)':''}</div>
+${reviewLabel}
 <div class="dict-progress">${[0,1,2].map(j=>`<div class="dict-dot ${w.progress>j?'done':''}"></div>`).join('')}</div>
 </div>
 <div style="display:flex;gap:6px">
