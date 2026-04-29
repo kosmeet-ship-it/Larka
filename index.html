@@ -257,7 +257,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
     <button onclick="replayCurrentWord()" style="flex:1;padding:11px;background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.4);border-radius:11px;font-size:.9rem;font-weight:600;cursor:pointer">🔊</button>
     <button onclick="checkEnglishAnswer()" style="flex:4;padding:11px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:11px;font-size:1rem;font-weight:700;cursor:pointer">✅ Відповідь</button>
   </div>
-  <input type="text" class="en-input" id="en-answer" placeholder="Напиши українською..." autocomplete="off">
+  <input type="text" class="en-input" id="en-answer" placeholder="Напиши українською..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 </div>
 <div class="en-feedback" id="en-feedback">
   <h2 id="fb-title">✅ Правильно!</h2>
@@ -974,12 +974,27 @@ setTimeout(nextEnglishWord,500);
 }
 
 function speak(text,lang){
-if('speechSynthesis' in window){
+if(!('speechSynthesis' in window))return;
+speechSynthesis.cancel();
 const utterance=new SpeechSynthesisUtterance(text);
 utterance.lang=lang;
-utterance.rate=0.9;
-speechSynthesis.speak(utterance);
+utterance.rate=0.85;
+utterance.pitch=1;
+
+// Try to find the best quality voice for English
+if(lang==='en-US'||lang==='en-GB'){
+const voices=speechSynthesis.getVoices();
+const preferred=['Google US English','Google UK English Female','Microsoft Zira','en-US','en-GB'];
+let best=null;
+for(const name of preferred){
+const v=voices.find(v=>v.name.includes(name)||v.lang===name);
+if(v){best=v;break;}
 }
+if(!best) best=voices.find(v=>v.lang.startsWith('en')&&!v.localService);
+if(!best) best=voices.find(v=>v.lang.startsWith('en'));
+if(best) utterance.voice=best;
+}
+speechSynthesis.speak(utterance);
 }
 
 function replayCurrentWord(){
