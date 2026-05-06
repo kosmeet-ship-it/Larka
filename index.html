@@ -134,6 +134,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 .math-feedback h2{font-size:2.8rem;margin-bottom:10px}
 .math-feedback.correct h2{color:#00ff88}
 .math-feedback.wrong h2{color:#ff4444}
+#boss-game-area:not(.hidden){display:flex!important;flex-direction:column;position:absolute;inset:0}
 </style>
 </head>
 <body>
@@ -207,6 +208,20 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn success" onclick="throwBall()">⚽ М'ячик -800⭐</button>
 </div>
 <div id="poops-container"></div>
+<!-- Tree -->
+<div id="tree-container" style="position:absolute;left:4px;bottom:20px;width:130px;height:260px;pointer-events:none">
+  <svg id="tree-svg" viewBox="0 0 130 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%"></svg>
+</div>
+<!-- Tree buttons -->
+<div id="plant-btn-wrap" style="position:absolute;left:6px;bottom:4px;display:none">
+  <button class="btn success" onclick="plantTree()" style="padding:5px 10px;font-size:.8rem">🌱 Посадити</button>
+</div>
+<div id="water-btn-wrap" style="position:absolute;left:6px;bottom:4px;display:none">
+  <button class="btn" onclick="waterTree()" style="padding:5px 10px;font-size:.8rem;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none">💧 Полив -800⭐</button>
+</div>
+<div id="bloom-btn-wrap" style="position:absolute;left:6px;bottom:28px;display:none">
+  <button class="btn" onclick="bloomTree()" style="padding:5px 10px;font-size:.8rem;background:linear-gradient(135deg,#e91e8c,#c2185b);color:#fff;border:none">🌸 Квітнути -1🌱</button>
+</div>
 </div>
 </div>
 
@@ -307,20 +322,24 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 </div>
 
 <!-- BOSS GAME AREA -->
-<div id="boss-game-area" class="hidden" style="position:absolute;inset:0">
-  <div style="position:absolute;top:52px;left:4%;width:92%;z-index:5">
-    <div style="display:flex;justify-content:space-between;color:#fff;font-size:.88rem;margin-bottom:3px">
-      <span style="color:#ff4444;font-weight:700">💀 BOSS HP</span>
+<div id="boss-game-area" class="hidden" style="position:absolute;inset:0;display:flex;flex-direction:column">
+  <!-- HP bar — compact strip -->
+  <div style="padding:4px 4% 3px;background:rgba(0,0,0,.6);flex-shrink:0">
+    <div style="display:flex;justify-content:space-between;color:#fff;font-size:.8rem;margin-bottom:2px">
+      <span style="color:#ff4444;font-weight:700">💀 BOSS</span>
       <span id="boss-hp-text" style="color:#ff4444;font-weight:700">1500</span>
-      <span id="boss-regen-txt" style="color:#ff9999">+50 через 10с</span>
+      <span id="boss-regen-txt" style="color:#ff9999;font-size:.75rem">+50 через 10с</span>
     </div>
-    <div style="background:rgba(255,255,255,.15);border-radius:8px;height:16px;overflow:hidden;border:2px solid #ff4444">
-      <div id="boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#ff4444,#cc0000);border-radius:6px;transition:width .4s;width:50%"></div>
+    <div style="background:rgba(255,255,255,.15);border-radius:6px;height:12px;overflow:hidden;border:1px solid #ff4444">
+      <div id="boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#ff5252,#b71c1c);border-radius:5px;transition:width .4s;width:50%"></div>
     </div>
   </div>
-  <div class="math-question" id="boss-question" style="position:absolute;top:96px;left:50%;transform:translateX(-50%)">? = ?</div>
-  <button onclick="checkBossAnswer()" style="position:absolute;top:53%;left:4%;width:92%;padding:12px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1.15rem;font-weight:700;cursor:pointer;z-index:2">✅ Відповідь</button>
-  <input type="number" class="math-input" id="boss-answer" placeholder="?" autocomplete="off" inputmode="numeric" style="position:absolute;top:65%;left:4%;width:92%">
+  <!-- Question -->
+  <div class="math-question" id="boss-question" style="position:static;transform:none;margin:8px auto;font-size:2.6rem;padding:12px 24px;flex-shrink:0">? = ?</div>
+  <!-- Answer button -->
+  <button onclick="checkBossAnswer()" style="margin:6px 4%;padding:12px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1.1rem;font-weight:700;cursor:pointer;flex-shrink:0">✅ Відповідь</button>
+  <!-- Input -->
+  <input type="number" class="math-input" id="boss-answer" placeholder="?" autocomplete="off" inputmode="numeric" style="margin:6px 4%;width:92%;font-size:2.2rem;padding:10px;flex-shrink:0">
 </div>
 <div id="math-game-area" class="hidden">
   <div class="math-question" id="math-question">5 + 3 = ?</div>
@@ -435,6 +454,9 @@ function getUser(){
   // Створюємо новий профіль якщо немає
   const newProfile={
     stars:0,
+    seeds:0,
+    bees:0,
+    tree:null,
     dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
     english:{},
     customWords:[],
@@ -458,6 +480,7 @@ const sc=document.getElementById('seed-count');
 if(sc)sc.textContent=user.seeds||0;
 const bc=document.getElementById('bee-count');
 if(bc)bc.textContent=user.bees||0;
+if(typeof updateTreeUI==='function')updateTreeUI();
 }
 
 function updateDog(){
@@ -1228,6 +1251,178 @@ document.getElementById('dict-list').innerHTML=html||'<p style="text-align:cente
 // ═══════════════════════════════════════════════════════════
 // MATH GAME
 // ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// TREE SYSTEM
+// ═══════════════════════════════════════════════════════
+function updateTreeUI(){
+const user=getUser();
+const sc=document.getElementById('seed-count');
+if(sc)sc.textContent=user.seeds||0;
+const bc=document.getElementById('bee-count');
+if(bc)bc.textContent=user.bees||0;
+const plantBtn=document.getElementById('plant-btn-wrap');
+const waterBtn=document.getElementById('water-btn-wrap');
+const bloomBtn=document.getElementById('bloom-btn-wrap');
+if(!plantBtn)return;
+if(!user.tree){
+  plantBtn.style.display=(user.seeds>0)?'block':'none';
+  waterBtn.style.display='none';
+  bloomBtn.style.display='none';
+} else {
+  plantBtn.style.display='none';
+  waterBtn.style.display='block';
+  const hasBud=(user.tree.branches||[]).some(b=>b.bud&&!b.flower);
+  bloomBtn.style.display=(hasBud&&(user.seeds||0)>0)?'block':'none';
+}
+pruneTree(user);
+renderTree(user);
+}
+
+function plantTree(){
+const user=getUser();
+if(!user.seeds||user.seeds<1)return alert('Потрібно 1🌱 насіння');
+user.seeds--;
+user.tree={planted:Date.now(),branches:[{side:'right',leaves:1,bud:false,flower:null}],fallen:[],lastLeafDrop:Date.now()};
+saveUser(user);
+updateUI();
+updateTreeUI();
+}
+
+function waterTree(){
+const user=getUser();
+if(user.stars<800)return alert('Потрібно 800⭐');
+if(!user.tree)return;
+user.stars-=800;
+const branches=user.tree.branches||[];
+const growing=branches.find(b=>b.leaves<10&&!b.bud);
+if(growing){
+  growing.leaves++;
+  if(growing.leaves>=10)growing.bud=true;
+} else if(branches.length<10){
+  const lastSide=branches.length>0?branches[branches.length-1].side:'right';
+  branches.push({side:lastSide==='right'?'left':'right',leaves:1,bud:false,flower:null});
+  user.tree.branches=branches;
+} else {
+  user.stars+=800;saveUser(user);
+  return alert('Дерево вже повністю виросло! 🌳');
+}
+saveUser(user);updateUI();updateTreeUI();
+}
+
+function bloomTree(){
+const user=getUser();
+if(!user.seeds||user.seeds<1)return alert('Потрібно 1🌱 насіння');
+if(!user.tree)return;
+const branch=user.tree.branches.find(b=>b.bud&&!b.flower);
+if(!branch)return;
+user.seeds--;
+const colors=['#FF69B4','#FFD700','#4169E1','#FF0000','#FF8C00','#87CEEB'];
+const centers=['#FFD700','#FF69B4','#fff','#FF8C00'];
+branch.flower={
+  color:colors[Math.floor(Math.random()*colors.length)],
+  center:centers[Math.floor(Math.random()*centers.length)],
+  bloomTime:Date.now(),fallen:false
+};
+saveUser(user);updateUI();updateTreeUI();
+}
+
+function pruneTree(user){
+if(!user||!user.tree)return;
+const now=Date.now();let changed=false;
+// Drop flowers after 72h
+(user.tree.branches||[]).forEach(b=>{
+  if(b.flower&&!b.flower.fallen&&now-b.flower.bloomTime>72*3600000){
+    b.flower.fallen=true;
+    user.tree.fallen=user.tree.fallen||[];
+    user.tree.fallen.push({type:'flower',color:b.flower.color,time:now,x:20+Math.random()*70});
+    changed=true;
+  }
+});
+// Drop 1 leaf every 5h
+if((now-(user.tree.lastLeafDrop||now))/3600000>=5){
+  const eligible=(user.tree.branches||[]).filter(b=>b.leaves>0);
+  if(eligible.length>0){
+    const b=eligible[Math.floor(Math.random()*eligible.length)];
+    b.leaves=Math.max(0,b.leaves-1);
+    if(b.leaves<10)b.bud=false;
+    user.tree.lastLeafDrop=now;
+    user.tree.fallen=user.tree.fallen||[];
+    user.tree.fallen.push({type:'leaf',time:now,x:15+Math.random()*70});
+    changed=true;
+  }
+}
+// Remove fallen after 24h
+user.tree.fallen=(user.tree.fallen||[]).filter(f=>now-f.time<24*3600000);
+if(changed)saveUser(user);
+}
+
+function renderTree(user){
+const svg=document.getElementById('tree-svg');
+if(!svg)return;
+if(!user||!user.tree){svg.innerHTML='';return;}
+const branches=user.tree.branches||[];
+const fallen=user.tree.fallen||[];
+let h='';
+// Ground
+h+=`<line x1="5" y1="252" x2="125" y2="252" stroke="#8B6914" stroke-width="2"/>`;
+// Trunk — short: ground y=252, first branch at y=210 (42px)
+const trunkTopY=210;
+h+=`<line x1="65" y1="252" x2="65" y2="${trunkTopY}" stroke="#8B4513" stroke-width="5" stroke-linecap="round"/>`;
+// Branches
+const branchLen=38;
+const angleRad=35*Math.PI/180;
+branches.forEach((b,bi)=>{
+  const dir=b.side==='right'?1:-1;
+  // Attach points: alternate sides going UP from trunkTop
+  const attachY=trunkTopY-(Math.floor(bi/2)*16);
+  const tipX=65+dir*(branchLen*Math.cos(angleRad));
+  const tipY=attachY-(branchLen*Math.sin(angleRad));
+  // Branch
+  h+=`<line x1="65" y1="${attachY}" x2="${tipX.toFixed(1)}" y2="${tipY.toFixed(1)}" stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>`;
+  // Leaves: alternating above/below
+  for(let li=0;li<Math.min(b.leaves,10);li++){
+    const t=(li+1)/11;
+    const lx=65+dir*branchLen*Math.cos(angleRad)*t;
+    const ly=attachY-branchLen*Math.sin(angleRad)*t;
+    const above=li%2===1;
+    // Perpendicular offset
+    const pDirX=Math.sin(angleRad)*dir*(above?-1:1);
+    const pDirY=Math.cos(angleRad)*(above?-1:1);
+    const lcx=(lx+pDirX*9).toFixed(1);
+    const lcy=(ly+pDirY*9).toFixed(1);
+    const rot=(Math.atan2(pDirY,pDirX)*180/Math.PI).toFixed(1);
+    h+=`<ellipse cx="${lcx}" cy="${lcy}" rx="7" ry="3.5" fill="#4CAF50" stroke="#388E3C" stroke-width=".5" transform="rotate(${rot},${lcx},${lcy})"/>`;
+  }
+  // Bud at tip
+  if(b.bud&&(!b.flower||b.flower.fallen)){
+    const bx=+tipX.toFixed(1),by=+tipY.toFixed(1);
+    // Bottom green half
+    h+=`<path d="M ${bx-4},${by} A 4,6 0 0,0 ${bx+4},${by} Z" fill="#4CAF50"/>`;
+    // Top pink half
+    h+=`<path d="M ${bx-4},${by} A 4,6 0 0,1 ${bx+4},${by} Z" fill="#FF69B4"/>`;
+  }
+  // Flower
+  if(b.flower&&!b.flower.fallen){
+    const fx=+tipX,fy=+tipY;
+    const fc=b.flower.color,mc=b.flower.center;
+    [0,60,120,180,240,300].forEach(a=>{
+      const px=(fx+Math.cos(a*Math.PI/180)*7).toFixed(1);
+      const py=(fy+Math.sin(a*Math.PI/180)*7).toFixed(1);
+      h+=`<circle cx="${px}" cy="${py}" r="4" fill="${fc}" opacity=".85"/>`;
+    });
+    h+=`<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="4" fill="${mc}"/>`;
+  }
+});
+// Fallen
+fallen.forEach(f=>{
+  h+=f.type==='flower'
+    ?`<circle cx="${(+f.x).toFixed(0)}" cy="249" r="3.5" fill="${f.color}" opacity=".6"/>`
+    :`<ellipse cx="${(+f.x).toFixed(0)}" cy="251" rx="4.5" ry="2" fill="#66BB6A" opacity=".5"/>`;
+});
+svg.innerHTML=h;
+}
+// ═══════════════════════════════════════════════════════
+
 // ═══════════════════════════════════════════════════════
 // BOSS GAME
 // ═══════════════════════════════════════════════════════
