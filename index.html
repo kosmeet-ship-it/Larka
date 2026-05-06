@@ -145,7 +145,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div class="header">
 <div style="font-size:1.5rem;color:#764ba2;font-weight:700">💗 Ларіка</div>
 <div class="stars">⭐ <span id="stars-display">0</span></div>
-<div style="font-size:1rem;color:#2e7d32;font-weight:700">🌱 <span id="seed-count">0</span></div>
+<div style="font-size:1rem;color:#2e7d32;font-weight:700">🌱<span id="seed-count">0</span></div>
+<div style="font-size:1rem;color:#f39c12;font-weight:700">🐝<span id="bee-count">0</span></div>
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
 </div>
@@ -164,9 +165,9 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 </div>
 
 <div class="dog-area">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
 <h3 style="color:#764ba2;margin:0">🐕 Моя собака</h3>
-<button class="btn" onclick="renameDog()" style="padding:8px 16px;font-size:0.95rem">✏️ Ім'я</button>
+<button class="btn" onclick="renameDog()" style="padding:8px 16px;font-size:0.95rem">✏️ Змінити ім'я</button>
 </div>
 <div class="dog-hearts" id="dog-hearts"></div>
 <div class="dog-house" onclick="tapDogHouse()">
@@ -195,17 +196,6 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <ellipse cx="75" cy="120" rx="28" ry="30" fill="#1a0a00" stroke="#888" stroke-width="2"/>
   <!-- Рамка входу -->
   <ellipse cx="75" cy="120" rx="28" ry="30" fill="none" stroke="#A0522D" stroke-width="3"/>
-  <!-- Очі в темряві будки -->
-  <g id="dog-house-eyes">
-    <circle cx="66" cy="112" r="4.5" fill="white"/>
-    <circle cx="84" cy="112" r="4.5" fill="white"/>
-    <circle cx="67" cy="113" r="2.2" fill="#222"/>
-    <circle cx="85" cy="113" r="2.2" fill="#222"/>
-  </g>
-  <g id="dog-house-eyelids" style="display:none">
-    <rect x="62" y="108" width="9" height="9" rx="2" fill="#1a0a00"/>
-    <rect x="80" y="108" width="9" height="9" rx="2" fill="#1a0a00"/>
-  </g>
   <!-- Трава перед будкою -->
   <rect x="10" y="132" width="130" height="10" rx="3" fill="#5D8A3C" opacity=".7"/>
 </svg>
@@ -217,19 +207,6 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn success" onclick="throwBall()">⚽ М'ячик -800⭐</button>
 </div>
 <div id="poops-container"></div>
-<div id="tree-container" style="position:absolute;left:5px;bottom:25px;width:140px;height:280px">
-  <svg id="tree-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
-  </svg>
-</div>
-<div id="plant-btn-container" style="position:absolute;left:10px;bottom:5px;display:none">
-  <button class="btn success" onclick="plantTree()" style="padding:6px 12px;font-size:.85rem">🌱 Посадити</button>
-</div>
-<div id="water-btn-container" style="position:absolute;left:10px;bottom:5px;display:none">
-  <button class="btn" onclick="waterTree()" style="padding:6px 12px;font-size:.85rem;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none">💧 Полив -800⭐</button>
-</div>
-<div id="bloom-btn-container" style="position:absolute;left:10px;bottom:30px;display:none">
-  <button class="btn" onclick="bloomTree()" style="padding:6px 12px;font-size:.85rem;background:linear-gradient(135deg,#e91e8c,#c2185b);color:#fff;border:none">🌸 Квітнути -1🌱</button>
-</div>
 </div>
 </div>
 
@@ -240,15 +217,15 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <div id="en-hearts">❤️❤️❤️❤️❤️❤️❤️❤️</div>
   <div>⭐<span id="en-stars">0</span></div>
   <div id="en-timer" style="color:#00b4d8">⏱60s</div>
-  <div id="en-progress-hud" style="color:#00ff88;font-weight:700">0/20</div>
 </div>
-<div id="en-theme-select" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:90%;max-width:500px;max-height:80vh;overflow-y:auto;z-index:5">
+<div id="en-theme-select" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:90%;z-index:5">
 <h1 style="color:#fff;font-size:2.4rem;margin-bottom:18px">Обери тему</h1>
 <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('verbs')">🏃 Дієслова</button>
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('home')">🏠 Дім</button>
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('nature')">🌳 Природа</button>
-<div id="en-custom-themes" style="display:contents"></div>
+<button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('pronouns')">👤 Займенники</button>
+<button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('interrogative')">❓ Питальні</button>
 </div>
 </div>
 <div id="en-game-area" class="hidden">
@@ -257,7 +234,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
     <button onclick="replayCurrentWord()" style="flex:1;padding:11px;background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.4);border-radius:11px;font-size:.9rem;font-weight:600;cursor:pointer">🔊</button>
     <button onclick="checkEnglishAnswer()" style="flex:4;padding:11px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:11px;font-size:1rem;font-weight:700;cursor:pointer">✅ Відповідь</button>
   </div>
-  <input type="text" class="en-input" id="en-answer" placeholder="Напиши українською..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <input type="text" class="en-input" id="en-answer" placeholder="Напиши українською..." autocomplete="off">
 </div>
 <div class="en-feedback" id="en-feedback">
   <h2 id="fb-title">✅ Правильно!</h2>
@@ -276,17 +253,19 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="theme-btn" onclick="filterDictionary('verbs')">Дієслова</button>
 <button class="theme-btn" onclick="filterDictionary('home')">Дім</button>
 <button class="theme-btn" onclick="filterDictionary('nature')">Природа</button>
+<button class="theme-btn" onclick="filterDictionary('pronouns')">Займенники</button>
+<button class="theme-btn" onclick="filterDictionary('interrogative')">Питальні</button>
 </div>
-<div style="margin:20px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-<input type="text" placeholder="English" id="dict-en" style="padding:10px;border-radius:8px;border:2px solid #ddd;width:160px">
-<input type="text" placeholder="Переклад (через кому)" id="dict-uk" style="padding:10px;border-radius:8px;border:2px solid #ddd;width:200px">
-<select id="dict-theme" style="padding:10px;border-radius:8px;border:2px solid #ddd" onchange="toggleCustomTheme(this)">
+<div style="margin:20px 0">
+<input type="text" placeholder="English" id="dict-en" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px;width:200px">
+<input type="text" placeholder="Переклад (через кому)" id="dict-uk" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px;width:220px">
+<select id="dict-theme" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px">
 <option value="verbs">Дієслова</option>
 <option value="home">Дім</option>
 <option value="nature">Природа</option>
-<option value="_custom">+ Нова тема...</option>
+<option value="pronouns">Займенники</option>
+<option value="interrogative">Питальні</option>
 </select>
-<input type="text" id="dict-custom-theme" placeholder="Назва теми" style="padding:10px;border-radius:8px;border:2px solid #ddd;width:140px;display:none">
 <button class="btn success" onclick="addWord()">➕ Додати</button>
 </div>
 <div id="dict-list"></div>
@@ -308,6 +287,40 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="math-level-btn" onclick="startMathLevel('C')"><span>🅲 Рівень C — 0–9 та 10–19</span><span class="math-level-badge">+50⭐</span></button>
 <button class="math-level-btn" onclick="startMathLevel('D')"><span>🅳 Рівень D — 10–99 та 10–99</span><span class="math-level-badge">+70⭐</span></button>
 <button class="math-level-btn" onclick="startMathLevel('E')"><span>🅴 Рівень E — 10–19 та 100–199</span><span class="math-level-badge">+100⭐</span></button>
+<button class="math-level-btn" onclick="startMathLevel('F')"><span>🅵 Рівень F — 10–99 та 10–99</span><span class="math-level-badge">+200⭐</span></button>
+<div style="border-top:2px solid rgba(255,255,255,.2);margin:10px 0"></div>
+<button class="math-level-btn" style="background:linear-gradient(135deg,rgba(180,0,0,.35),rgba(80,0,0,.55));border-color:#ff4444" onclick="showBossSelect()">
+  <span>💀 BOSS — всі рівні A–F</span>
+  <span class="math-level-badge" style="background:linear-gradient(135deg,#ff4444,#cc0000);color:#fff">🐝+⭐</span>
+</button>
+</div>
+
+<!-- BOSS LEVEL SELECT -->
+<div id="boss-level-select" class="math-level-select hidden">
+<h1 style="color:#ff4444;font-size:1.9rem;margin-bottom:14px">💀 BOSS — оберіть рівень</h1>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(1)"><span>💀 Рівень 1 — +50 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+1🐝+1000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(2)"><span>💀💀 Рівень 2 — +100 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+2🐝+2000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(3)"><span>💀💀💀 Рівень 3 — +150 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+3🐝+3000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(4)"><span>💀💀💀💀 Рівень 4 — +200 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+4🐝+4000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(5)"><span>💀💀💀💀💀 Рівень 5 — +250 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+5🐝+5000⭐</span></button>
+<button class="btn danger" style="margin-top:10px;width:100%;padding:12px" onclick="hideBossSelect()">← Назад</button>
+</div>
+
+<!-- BOSS GAME AREA -->
+<div id="boss-game-area" class="hidden" style="position:absolute;inset:0">
+  <div style="position:absolute;top:52px;left:4%;width:92%;z-index:5">
+    <div style="display:flex;justify-content:space-between;color:#fff;font-size:.88rem;margin-bottom:3px">
+      <span style="color:#ff4444;font-weight:700">💀 BOSS HP</span>
+      <span id="boss-hp-text" style="color:#ff4444;font-weight:700">1500</span>
+      <span id="boss-regen-txt" style="color:#ff9999">+50 через 10с</span>
+    </div>
+    <div style="background:rgba(255,255,255,.15);border-radius:8px;height:16px;overflow:hidden;border:2px solid #ff4444">
+      <div id="boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#ff4444,#cc0000);border-radius:6px;transition:width .4s;width:50%"></div>
+    </div>
+  </div>
+  <div class="math-question" id="boss-question" style="position:absolute;top:96px;left:50%;transform:translateX(-50%)">? = ?</div>
+  <button onclick="checkBossAnswer()" style="position:absolute;top:53%;left:4%;width:92%;padding:12px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1.15rem;font-weight:700;cursor:pointer;z-index:2">✅ Відповідь</button>
+  <input type="number" class="math-input" id="boss-answer" placeholder="?" autocomplete="off" inputmode="numeric" style="position:absolute;top:65%;left:4%;width:92%">
 </div>
 <div id="math-game-area" class="hidden">
   <div class="math-question" id="math-question">5 + 3 = ?</div>
@@ -364,6 +377,30 @@ nature:[ // Природа
 {en:'sand',uk:'пісок'},{en:'sky',uk:'небо'},{en:'cloud',uk:'хмара'},{en:'sun',uk:'сонце'},{en:'moon',uk:'місяць'},
 {en:'star',uk:'зірка'},{en:'rain',uk:'дощ'},{en:'snow',uk:'сніг'},{en:'wind',uk:'вітер'},{en:'storm',uk:'буря'},
 {en:'lightning',uk:'блискавка'},{en:'thunder',uk:'грім'},{en:'rainbow',uk:'веселка'},{en:'fog',uk:'туман'},{en:'ice',uk:'лід'}
+],
+pronouns:[ // Займенники
+{en:'I',uk:'я'},{en:'you',uk:'ти, ви'},{en:'he',uk:'він'},{en:'she',uk:'вона'},{en:'it',uk:'воно'},
+{en:'we',uk:'ми'},{en:'they',uk:'вони'},{en:'me',uk:'мене, мені'},{en:'him',uk:'його, йому'},{en:'her',uk:'її, їй'},
+{en:'us',uk:'нас, нам'},{en:'them',uk:'їх, їм'},{en:'my',uk:'мій, моя, моє'},{en:'your',uk:'твій, ваш'},{en:'his',uk:'його'},
+{en:'our',uk:'наш'},{en:'their',uk:'їхній'},{en:'mine',uk:'мій (самостійний)'},{en:'yours',uk:'твій (самостійний)'},{en:'hers',uk:'її (самостійний)'},
+{en:'ours',uk:'наш (самостійний)'},{en:'theirs',uk:'їхній (самостійний)'},{en:'myself',uk:'себе, сам'},{en:'yourself',uk:'себе (ти)'},{en:'himself',uk:'себе (він)'},
+{en:'herself',uk:'себе (вона)'},{en:'itself',uk:'себе (воно)'},{en:'ourselves',uk:'себе (ми)'},{en:'themselves',uk:'себе (вони)'},{en:'this',uk:'цей, ця, це'},
+{en:'that',uk:'той, та, те'},{en:'these',uk:'ці'},{en:'those',uk:'ті'},{en:'who',uk:'хто'},{en:'whom',uk:'кого, кому'},
+{en:'whose',uk:'чий'},{en:'which',uk:'який, яка'},{en:'what',uk:'що, який'},{en:'whoever',uk:'хто б не'},{en:'whatever',uk:'що б не'},
+{en:'someone',uk:'хтось'},{en:'anyone',uk:'хто-небудь'},{en:'everyone',uk:'кожен'},{en:'no one',uk:'ніхто'},{en:'something',uk:'щось'},
+{en:'anything',uk:'будь-що'},{en:'everything',uk:'все'},{en:'nothing',uk:'нічого'},{en:'each',uk:'кожен (з двох)'},{en:'both',uk:'обидва'}
+],
+interrogative:[ // Питальні прислівники
+{en:'where',uk:'де, куди'},{en:'when',uk:'коли'},{en:'why',uk:'чому'},{en:'how',uk:'як'},{en:'how much',uk:'скільки (незлічуване)'},
+{en:'how many',uk:'скільки (злічуване)'},{en:'how long',uk:'як довго'},{en:'how often',uk:'як часто'},{en:'how far',uk:'як далеко'},{en:'how old',uk:'скільки років'},
+{en:'how big',uk:'який розмір'},{en:'how fast',uk:'як швидко'},{en:'how well',uk:'як добре'},{en:'how soon',uk:'як скоро'},{en:'how hard',uk:'як важко'},
+{en:'wherever',uk:'де б не'},{en:'whenever',uk:'коли б не'},{en:'however',uk:'як би не, проте'},{en:'whichever',uk:'який би не'},{en:'whatever',uk:'що б не'},
+{en:'why not',uk:'чому б ні'},{en:'what for',uk:'навіщо'},{en:'what kind',uk:'який вид'},{en:'what time',uk:'о котрій'},{en:'what about',uk:'а як щодо'},
+{en:'since when',uk:'відколи'},{en:'until when',uk:'до якого часу'},{en:'from where',uk:'звідки'},{en:'to where',uk:'куди'},{en:'by when',uk:'до якого часу'},
+{en:'right',uk:'правильно, правий'},{en:'here',uk:'тут, сюди'},{en:'there',uk:'там, туди'},{en:'now',uk:'зараз'},{en:'then',uk:'тоді, потім'},
+{en:'already',uk:'вже'},{en:'still',uk:'ще, все ще'},{en:'again',uk:'знову'},{en:'always',uk:'завжди'},{en:'never',uk:'ніколи'},
+{en:'often',uk:'часто'},{en:'sometimes',uk:'іноді'},{en:'rarely',uk:'рідко'},{en:'soon',uk:'скоро'},{en:'late',uk:'пізно, пізній'},
+{en:'early',uk:'рано, ранній'},{en:'together',uk:'разом'},{en:'alone',uk:'самотньо, один'},{en:'almost',uk:'майже'},{en:'enough',uk:'достатньо'}
 ]
 };
 
@@ -398,9 +435,7 @@ function getUser(){
   // Створюємо новий профіль якщо немає
   const newProfile={
     stars:0,
-    seeds:0,
     dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
-    tree:null,
     english:{},
     customWords:[],
     games:{}
@@ -421,7 +456,8 @@ const user=getUser();
 document.getElementById('stars-display').textContent=user.stars;
 const sc=document.getElementById('seed-count');
 if(sc)sc.textContent=user.seeds||0;
-updateTreeUI();
+const bc=document.getElementById('bee-count');
+if(bc)bc.textContent=user.bees||0;
 }
 
 function updateDog(){
@@ -429,41 +465,47 @@ const user=getUser();
 document.getElementById('dog-hearts').textContent='❤️'.repeat(Math.max(0,user.dog.hearts))+'🖤'.repeat(Math.max(0,10-user.dog.hearts));
 const nameLabel=document.getElementById('dog-name-label');
 if(nameLabel) nameLabel.textContent=user.dog.name||'Рекс';
-// Init fields
-if(!user.dog.lastPuddleAdd)user.dog.lastPuddleAdd=Date.now();
-if(!user.dog.puddles)user.dog.puddles=[];
-// Decay hearts
+
+// Init new fields if missing
+if(!user.dog.lastPuddleAdd) user.dog.lastPuddleAdd=Date.now();
+if(!user.dog.puddles) user.dog.puddles=[];
+
+// Decay hearts every 3h
 const hoursSince=(Date.now()-user.dog.lastHeartLoss)/3600000;
-if(hoursSince>=3&&user.dog.hearts>0){user.dog.hearts=Math.max(0,user.dog.hearts-Math.floor(hoursSince/3));user.dog.lastHeartLoss=Date.now();saveUser(user);}
-// Puddle every 6h
-if((Date.now()-(user.dog.lastPuddleAdd||0))/3600000>=6){user.dog.puddles.push({x:15+r(70),y:35+r(30)});user.dog.hearts=Math.max(0,user.dog.hearts-1);user.dog.lastPuddleAdd=Date.now();saveUser(user);}
-// Poop every 12h
-if((Date.now()-(user.dog.lastPoopAdd||0))/3600000>=12){user.dog.poops=user.dog.poops||[];user.dog.poops.push({x:15+r(70),y:35+r(30)});user.dog.hearts=Math.max(0,user.dog.hearts-1);user.dog.lastPoopAdd=Date.now();saveUser(user);}
-renderDogMess(user);
-updateTreeUI();
+if(hoursSince>=3&&user.dog.hearts>0){
+user.dog.hearts=Math.max(0,user.dog.hearts-Math.floor(hoursSince/3));
+user.dog.lastHeartLoss=Date.now();
+saveUser(user);
 }
 
-// Blinking eyes in dog house — кліпають тільки коли видимі
-setInterval(()=>{
-const eyes=document.getElementById('dog-house-eyes');
-const lids=document.getElementById('dog-house-eyelids');
-if(!eyes||!lids||eyes.style.display==='none')return;
-lids.style.display='block';
-eyes.style.display='none';
-setTimeout(()=>{
-  const e=document.getElementById('dog-house-eyes');
-  const l=document.getElementById('dog-house-eyelids');
-  if(e&&l&&l.style.display==='block'){l.style.display='none';e.style.display='block';}
-},150);
-},2000);
+// Add puddle every 6h → -1 heart
+const hoursSincePuddle=(Date.now()-user.dog.lastPuddleAdd)/3600000;
+if(hoursSincePuddle>=6){
+user.dog.puddles.push({x:15+r(70),y:35+r(30)});
+user.dog.hearts=Math.max(0,user.dog.hearts-1);
+user.dog.lastPuddleAdd=Date.now();
+saveUser(user);
+}
+
+// Add poop every 12h → -1 heart
+const hoursSincePoop=(Date.now()-user.dog.lastPoopAdd)/3600000;
+if(hoursSincePoop>=12){
+user.dog.poops.push({x:15+r(70),y:35+r(30)});
+user.dog.hearts=Math.max(0,user.dog.hearts-1);
+user.dog.lastPoopAdd=Date.now();
+saveUser(user);
+}
+
+renderDogMess(user);
+}
 
 function renderDogMess(user){
 const container=document.getElementById('poops-container');
 container.innerHTML='';
 (user.dog.puddles||[]).forEach((p,i)=>{
 const el=document.createElement('div');
-el.style.cssText=`position:absolute;left:${p.x}%;bottom:${p.y}px;cursor:pointer;user-select:none;width:60px;height:28px`;
-el.innerHTML='<svg viewBox="0 0 60 28" xmlns="http://www.w3.org/2000/svg"><ellipse cx="30" cy="14" rx="28" ry="12" fill="#FFD700" opacity=".9"/></svg>';
+el.style.cssText=`position:absolute;left:${p.x}%;bottom:${p.y}px;font-size:2rem;cursor:pointer;user-select:none`;
+el.textContent='💛';
 el.title='Прибрати калюжу -800⭐ +1❤️';
 el.onclick=()=>cleanPuddle(i);
 container.appendChild(el);
@@ -511,26 +553,12 @@ alert(`✅ Собаку перейменовано на "${user.dog.name}"!`);
 }
 }
 
-function hideEyes(){
-const eyes=document.getElementById('dog-house-eyes');
-const lids=document.getElementById('dog-house-eyelids');
-if(eyes) eyes.style.display='none';
-if(lids) lids.style.display='none';
-}
-function showEyes(){
-const eyes=document.getElementById('dog-house-eyes');
-const lids=document.getElementById('dog-house-eyelids');
-if(eyes) eyes.style.display='block';
-if(lids) lids.style.display='none';
-}
-
 function tapDogHouse(){
 const user=getUser();
 if(user.stars<200)return alert('Потрібно 200⭐');
 user.stars-=200;
 saveUser(user);
 updateUI();
-hideEyes();
 const dog=document.getElementById('dog');
 dog.style.display='block';
 dog.style.left='50%';
@@ -539,7 +567,7 @@ dog.style.animation='';
 document.getElementById('dog-actions').style.display='flex';
 let w=false;
 const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';document.getElementById('dog-actions').style.display='none';showEyes();},60000);
+setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';document.getElementById('dog-actions').style.display='none';},60000);
 }
 
 function throwBone(){
@@ -570,7 +598,6 @@ setTimeout(()=>{
 // Dog runs right to pick it up
 const dog=document.getElementById('dog');
 dog.style.display='block';
-hideEyes();
 setTimeout(()=>{
   dog.style.left='72%';
   dog.style.transform='translateX(0)';
@@ -609,7 +636,7 @@ setTimeout(()=>{
 setTimeout(()=>{
   let w=false;
   const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},54000);
+  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},54000);
 },5000);
 }
 
@@ -627,7 +654,8 @@ const dog=document.getElementById('dog');
 dog.style.display='block';
 dog.style.left='50%';
 dog.style.transform='translateX(-50%)';
-hideEyes();
+
+// Create hand above dog
 const hand=document.createElement('div');
 hand.className='dog-prop';
 hand.textContent='✋';
@@ -656,7 +684,7 @@ const pet=setInterval(()=>{
       hand.remove();
       let w=false;
       const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-      setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},55000);
+      setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},55000);
     },600);
   }
 },400);
@@ -687,7 +715,8 @@ setTimeout(()=>{
 
 const dog=document.getElementById('dog');
 dog.style.display='block';
-hideEyes();
+
+// Dog runs left
 setTimeout(()=>{
   dog.style.left='15%';
   dog.style.transform='scaleX(-1)';
@@ -711,7 +740,7 @@ setTimeout(()=>{
   ball.remove();
   let w=false;
   const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},51000);
+  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},51000);
 },7600);
 }
 
@@ -735,11 +764,6 @@ document.getElementById('main').style.display='none';
 document.getElementById('english-game').classList.add('is-open');
 document.getElementById('en-theme-select').classList.remove('hidden');
 document.getElementById('en-game-area').classList.add('hidden');
-// Render custom themes
-const user=getUser();
-const customThemes=[...new Set((user.customWords||[]).map(w=>w.theme).filter(t=>t&&!['verbs','home','nature'].includes(t)))];
-const container=document.getElementById('en-custom-themes');
-if(container) container.innerHTML=customThemes.map(t=>`<button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('${t}')">📝 ${t}</button>`).join('');
 }
 
 function closeEnglish(){
@@ -758,40 +782,27 @@ function startEnglishTheme(theme){
 const user=getUser();
 if(!user.english[theme]) user.english[theme]={};
 
-const builtIn=(EN_WORDS[theme]||[]);
-const custom=(user.customWords||[]).filter(w=>w.theme===theme);
-const words=builtIn.concat(custom);
-if(words.length<1){alert('Немає слів у цій темі!');return;}
-
-const now=Date.now();
+// Get words with SRS
+const words=EN_WORDS[theme].concat(user.customWords.filter(w=>w.theme===theme));
 const wordProgress=words.map(w=>({
 ...w,
 correct:user.english[theme][w.en]?.correct||0,
-lastSeen:user.english[theme][w.en]?.lastSeen||0,
-nextReview:user.english[theme][w.en]?.nextReview||0
+lastSeen:user.english[theme][w.en]?.lastSeen||0
 }));
 
-// SRS: only include words that are due for review or not yet learned
-const available=wordProgress.filter(w=>w.correct<2||(w.correct>=2&&w.nextReview<=now));
+// Select 10 words for game
+const selected=[];
+const available=wordProgress.filter(w=>w.correct<3);
+for(let i=0;i<10&&available.length>0;i++){
+const idx=r(available.length);
+selected.push(available[idx]);
+available.splice(idx,1);
+}
 
-// Check minimum 10 words available
-if(available.length<10){
-const need=10-available.length;
-alert(`⏳ Потрібно ще ${need} слів для гри.\nДодайте нові слова або зачекайте поки слова знову стануть доступними.`);
+if(selected.length<10){
+alert('Недостатньо слів! Додайте більше в словнику.');
 return;
 }
-
-const pool=[...available];
-const selected=[];
-for(let i=0;i<10;i++){
-const idx=r(pool.length-i);
-selected.push(pool[idx]);
-pool.splice(idx,1);
-}
-
-// Global progress counter
-const globalProgress=Object.values(user.english[theme]||{}).filter(p=>p&&p.correct>=2).length;
-const totalWords=Object.keys(EN_WORDS).reduce((s,t)=>s+(EN_WORDS[t]||[]).length,0);
 
 englishState={
 theme,
@@ -800,8 +811,6 @@ current:0,
 stars:0,
 hearts:8,
 correctCount:0,
-globalCorrect:globalProgress,
-totalWords,
 queue:selected.map((w,i)=>i),
 progress:{}
 };
@@ -813,16 +822,14 @@ nextEnglishWord();
 }
 
 function updateEnglishHUD(){
-document.getElementById('en-hearts').textContent='❤️'.repeat(Math.max(0,englishState.hearts))+'🖤'.repeat(Math.max(0,10-englishState.hearts));
+document.getElementById('en-hearts').textContent='❤️'.repeat(englishState.hearts)+'🖤'.repeat(10-englishState.hearts);
 document.getElementById('en-stars').textContent=englishState.stars;
-const ph=document.getElementById('en-progress-hud');
-if(ph)ph.textContent=(englishState.correctCount||0)+'/20';
 }
 
 function nextEnglishWord(){
 if(englishState.queue.length===0){
 // Check if all words have 3 correct
-const allDone=Object.values(englishState.progress).every(p=>p>=2);
+const allDone=Object.values(englishState.progress).every(p=>p>=3);
 if(allDone){
 englishVictory();
 return;
@@ -831,7 +838,7 @@ return;
 // Rebuild queue with words that need more practice
 englishState.queue=englishState.words
 .map((w,i)=>i)
-.filter(i=>(englishState.progress[englishState.words[i].en]||0)<2);
+.filter(i=>(englishState.progress[englishState.words[i].en]||0)<3);
 }
 
 const idx=englishState.queue.shift();
@@ -897,36 +904,19 @@ if(englishState.correctCount%5===0&&englishState.hearts<10){
 englishState.hearts++;
 }
 
-// Save to user data with SRS
+// Save correct count to user data (but NOT nextReview — applied only on victory)
 const user=getUser();
 if(!user.english[englishState.theme]) user.english[englishState.theme]={};
 if(!user.english[englishState.theme][en]) user.english[englishState.theme][en]={correct:0,lastSeen:0};
-const prevCorrect=user.english[englishState.theme][en].correct||0;
-user.english[englishState.theme][en].correct=prevCorrect+1;
+user.english[englishState.theme][en].correct++;
 user.english[englishState.theme][en].lastSeen=Date.now();
-
-// SRS delays after each correct answer (days)
-const srsDelays=[0,1,5,20,60];
-const newC=prevCorrect+1;
-if(newC<srsDelays.length){
-user.english[englishState.theme][en].nextReview=Date.now()+srsDelays[newC]*24*3600000;
-}
-
-// Count globally learned words (2+ answers = learned)
-if(newC===2){
-englishState.globalCorrect=(englishState.globalCorrect||0)+1;
-}
 saveUser(user);
-updateEnglishHUD();
+
 showEnglishFeedback(true);
 
-// If word needs more practice (< 2 correct), add back to queue
+// If word needs more practice (< 2 correct this game), add back to queue
 if(englishState.progress[en]<2){
-if(englishState.queue.length>=5){
 englishState.queue.push(englishState.currentIndex);
-} else {
-englishState.queue.push(englishState.currentIndex);
-}
 }
 } else {
 // Wrong answer
@@ -974,27 +964,12 @@ setTimeout(nextEnglishWord,500);
 }
 
 function speak(text,lang){
-if(!('speechSynthesis' in window))return;
-speechSynthesis.cancel();
+if('speechSynthesis' in window){
 const utterance=new SpeechSynthesisUtterance(text);
 utterance.lang=lang;
-utterance.rate=0.85;
-utterance.pitch=1;
-
-// Try to find the best quality voice for English
-if(lang==='en-US'||lang==='en-GB'){
-const voices=speechSynthesis.getVoices();
-const preferred=['Google US English','Google UK English Female','Microsoft Zira','en-US','en-GB'];
-let best=null;
-for(const name of preferred){
-const v=voices.find(v=>v.name.includes(name)||v.lang===name);
-if(v){best=v;break;}
-}
-if(!best) best=voices.find(v=>v.lang.startsWith('en')&&!v.localService);
-if(!best) best=voices.find(v=>v.lang.startsWith('en'));
-if(best) utterance.voice=best;
-}
+utterance.rate=0.9;
 speechSynthesis.speak(utterance);
+}
 }
 
 function replayCurrentWord(){
@@ -1008,13 +983,27 @@ function englishVictory(){
 const bonus=10*20*20;
 const total=englishState.stars+bonus;
 
+// Apply SRS nextReview only on VICTORY — delays: 1,3,10,30,60,180 days
+const srsDelays=[0,1,3,10,30,60,180]; // index = total correct answers
 const user=getUser();
+if(!user.english[englishState.theme]) user.english[englishState.theme]={};
+
+// For each word that got 2 correct answers in this game — set nextReview
+Object.entries(englishState.progress||{}).forEach(([en,gameProg])=>{
+if(gameProg>=2){
+if(!user.english[englishState.theme][en]) user.english[englishState.theme][en]={correct:0,lastSeen:0};
+const totalCorrect=user.english[englishState.theme][en].correct||0;
+const delayIdx=Math.min(totalCorrect,srsDelays.length-1);
+const delayDays=srsDelays[delayIdx];
+user.english[englishState.theme][en].nextReview=Date.now()+delayDays*24*3600000;
+}
+});
+
 user.stars+=total;
 if(!user.seeds)user.seeds=0;
 user.seeds+=1;
 saveUser(user);
 updateUI();
-updateTreeUI();
 
 document.getElementById('victory-amount').textContent=`+${total}⭐ +1🌱`;
 document.getElementById('victory').style.display='flex';
@@ -1080,350 +1069,315 @@ event.target.classList.add('active');
 renderDictionary(theme);
 }
 
+function renderDictionary(filterTheme){
+const user=getUser();
+const allWords=[];
 
-function toggleCustomTheme(sel){
-document.getElementById('dict-custom-theme').style.display=sel.value==='_custom'?'inline-block':'none';
+// Add default words
+for(const theme in EN_WORDS){
+EN_WORDS[theme].forEach(w=>{
+const progress=user.english[theme]&&user.english[theme][w.en]?user.english[theme][w.en].correct:0;
+allWords.push({...w,theme,progress,custom:false});
+});
+}
+
+// Add custom words
+user.customWords.forEach(w=>{
+const progress=user.english[w.theme]&&user.english[w.theme][w.en]?user.english[w.theme][w.en].correct:0;
+allWords.push({...w,progress,custom:true});
+});
+
+// Filter
+const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
+
+const html=filtered.map((w,i)=>`
+<div class="dict-word">
+<div>
+<div style="font-size:1.2rem;font-weight:600">${w.en} → ${w.uk}</div>
+<div style="color:#666;font-size:0.9rem">Тема: ${w.theme} ${w.custom?'(власне)':''}</div>
+<div class="dict-progress">
+${[0,1,2].map(i=>`<div class="dict-dot ${w.progress>i?'done':''}"></div>`).join('')}
+</div>
+</div>
+${w.custom?`<button class="btn danger" onclick="deleteWord(${i},'${filterTheme}')">🗑️</button>`:''}
+</div>
+`).join('');
+
+document.getElementById('dict-list').innerHTML=html||'<p style="text-align:center;color:#999">Немає слів</p>';
 }
 
 function addWord(){
 const enEl=document.getElementById('dict-en');
 const ukEl=document.getElementById('dict-uk');
-const thSel=document.getElementById('dict-theme');
-const thCustom=document.getElementById('dict-custom-theme');
-const en=(enEl?enEl.value:'').trim().toLowerCase();
+const en=(enEl?enEl.value:'').trim();
 const uk=(ukEl?ukEl.value:'').trim();
-let theme=thSel.value==='_custom'?(thCustom?thCustom.value.trim():''):thSel.value;
-if(!theme)theme='verbs';
+const theme=document.getElementById('dict-theme').value;
+
 if(!en||!uk)return alert('Заповніть обидва поля');
 
 const user=getUser();
 if(!user.customWords)user.customWords=[];
 
-// Перевірка на дубль — серед вбудованих і кастомних
-const allExisting=[];
-for(const t in EN_WORDS) EN_WORDS[t].forEach(w=>allExisting.push(w.en.toLowerCase()));
-(user.customWords||[]).forEach(w=>allExisting.push(w.en.toLowerCase()));
-if(allExisting.includes(en)){
-  return alert(`⚠️ Слово "${en}" вже є в словнику!`);
-}
-
+// Support multiple translations separated by comma
 const ukVariants=uk.split(',').map(s=>s.trim()).filter(Boolean);
 user.customWords.push({en,uk:ukVariants[0],ukVariants,theme});
 saveUser(user);
-enEl.value='';ukEl.value='';
-if(thCustom)thCustom.value='';
+
+enEl.value='';
+ukEl.value='';
+
 renderDictionary(document.querySelector('.theme-btn.active')?.dataset?.theme||'all');
 alert('✅ Слово додано!');
 }
 
-function renderDictionary(filterTheme){
+function deleteWord(idx,filterTheme){
+if(!confirm('Видалити це слово?'))return;
 const user=getUser();
-const now=Date.now();
-const allWords=[];
-for(const theme in EN_WORDS){
-EN_WORDS[theme].forEach(w=>{
-const wdata=user.english[theme]&&user.english[theme][w.en]?user.english[theme][w.en]:{};
-const progress=wdata.correct||0;
-const nextReview=wdata.nextReview||0;
-allWords.push({...w,theme,progress,nextReview,custom:false});
-});
-}
-(user.customWords||[]).forEach((w,ci)=>{
-const wdata=user.english[w.theme]&&user.english[w.theme][w.en]?user.english[w.theme][w.en]:{};
-const progress=wdata.correct||0;
-const nextReview=wdata.nextReview||0;
-allWords.push({...w,progress,nextReview,custom:true,customIdx:ci});
-});
-const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
-
-// Add custom theme filter buttons
-const customThemes=[...new Set(allWords.filter(w=>w.custom).map(w=>w.theme).filter(t=>!['verbs','home','nature'].includes(t)))];
-const filterBar=document.getElementById('dict-theme-filter');
-if(filterBar){
-filterBar.querySelectorAll('.custom-theme-btn').forEach(b=>b.remove());
-customThemes.forEach(t=>{
-const b=document.createElement('button');
-b.className='theme-btn custom-theme-btn';b.textContent=t;
-b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderDictionary(t);};
-filterBar.appendChild(b);
-});
+// Find custom word by real index
+const customIdx=getRealCustomIndex(idx,filterTheme);
+if(customIdx===-1)return;
+user.customWords.splice(customIdx,1);
+saveUser(user);
+renderDictionary(filterTheme);
 }
 
-const html=filtered.map((w,i)=>{
-const variants=(w.ukVariants&&w.ukVariants.length>1)?w.ukVariants.join(' / '):w.uk;
-
-// Next review label
-let reviewLabel='';
-if(w.progress>=2&&w.nextReview>now){
-const daysLeft=Math.ceil((w.nextReview-now)/86400000);
-reviewLabel=`<div style="color:#e67e22;font-size:0.78rem;margin-top:2px">⏳ через ${daysLeft} ${daysLeft===1?'день':daysLeft<5?'дні':'днів'}</div>`;
-} else if(w.progress>0){
-reviewLabel=`<div style="color:#27ae60;font-size:0.78rem;margin-top:2px">✅ доступно зараз</div>`;
-} else {
-reviewLabel=`<div style="color:#3498db;font-size:0.78rem;margin-top:2px">🆕 нове слово</div>`;
-}
-
-return `<div class="dict-word">
-<div style="flex:1">
-<div style="font-size:1.1rem;font-weight:600">${w.en} → ${variants}</div>
-<div style="color:#666;font-size:0.85rem">Тема: ${w.theme}${w.custom?' (власне)':''}</div>
-${reviewLabel}
-<div class="dict-progress">${[0,1,2].map(j=>`<div class="dict-dot ${w.progress>j?'done':''}"></div>`).join('')}</div>
-</div>
-<div style="display:flex;gap:6px">
-<button class="btn" style="padding:6px 12px;font-size:.85rem;background:linear-gradient(135deg,#f39c12,#e67e22)" onclick="editWordAll(${i},'${filterTheme}')">✏️</button>
-${w.custom?`<button class="btn danger" style="padding:6px 12px;font-size:.85rem" onclick="deleteWord(${i},'${filterTheme}')">🗑️</button>`:''}
-</div>
-</div>`;
-}).join('');
-document.getElementById('dict-list').innerHTML=html||'<p style="text-align:center;color:#999">Немає слів</p>';
-}
-
-function editWordAll(displayIdx,filterTheme){
+function editWord(idx,filterTheme){
 const user=getUser();
-const allWords=[];
-for(const theme in EN_WORDS) EN_WORDS[theme].forEach(w=>allWords.push({...w,theme,custom:false}));
-(user.customWords||[]).forEach((w,i)=>allWords.push({...w,custom:true,customIdx:i}));
-const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
-const w=filtered[displayIdx];
-if(!w)return;
+const customIdx=getRealCustomIndex(idx,filterTheme);
+if(customIdx===-1)return;
+const w=user.customWords[customIdx];
+
 const newEn=prompt('English слово:',w.en);
 if(!newEn||!newEn.trim())return;
 const allUk=(w.ukVariants||[w.uk]).join(', ');
-const newUk=prompt('Переклад(и) через кому:',allUk);
+const newUk=prompt('Переклад(и) українською (через кому):',allUk);
 if(!newUk||!newUk.trim())return;
-const newTheme=prompt('Тема:',w.theme);
-if(newTheme===null)return;
-const theme=newTheme.trim()||w.theme;
+
 const ukVariants=newUk.split(',').map(s=>s.trim()).filter(Boolean);
-if(w.custom){
-user.customWords[w.customIdx]={...user.customWords[w.customIdx],en:newEn.trim(),uk:ukVariants[0],ukVariants,theme};
-} else {
-if(!user.customWords)user.customWords=[];
-user.customWords.push({en:newEn.trim(),uk:ukVariants[0],ukVariants,theme,_editedFrom:w.en});
-}
+user.customWords[customIdx]={...w,en:newEn.trim(),uk:ukVariants[0],ukVariants};
 saveUser(user);
 renderDictionary(filterTheme);
 }
 
-function deleteWord(displayIdx,filterTheme){
-if(!confirm('Видалити це слово?'))return;
+function getRealCustomIndex(displayIdx,filterTheme){
 const user=getUser();
 const allWords=[];
-for(const theme in EN_WORDS) EN_WORDS[theme].forEach(w=>allWords.push({...w,theme,custom:false}));
-(user.customWords||[]).forEach((w,i)=>allWords.push({...w,custom:true,customIdx:i}));
+for(const theme in EN_WORDS){
+EN_WORDS[theme].forEach(w=>allWords.push({...w,theme,custom:false}));
+}
+user.customWords.forEach((w,i)=>allWords.push({...w,custom:true,realIdx:i}));
 const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
-const w=filtered[displayIdx];
-if(!w||!w.custom)return;
-user.customWords.splice(w.customIdx,1);
-saveUser(user);
-renderDictionary(filterTheme);
+const customFiltered=filtered.filter(w=>w.custom);
+// displayIdx is index among ALL filtered words that are custom
+// We need to find which custom item it refers to
+const customDisplayItems=filtered.map((w,i)=>({...w,displayIdx:i})).filter(w=>w.custom);
+const target=customDisplayItems.find(w=>w.displayIdx===displayIdx);
+return target?target.realIdx:-1;
 }
 
-
-// ═══════════════════════════════════════════════════════════
-// TREE SYSTEM
-// ═══════════════════════════════════════════════════════════
-function updateTreeUI(){
+function renderDictionary(filterTheme){
 const user=getUser();
-const sc=document.getElementById('seed-count');
-if(sc)sc.textContent=user.seeds||0;
-const plantBtn=document.getElementById('plant-btn-container');
-const waterBtn=document.getElementById('water-btn-container');
-const bloomBtn=document.getElementById('bloom-btn-container');
-if(!plantBtn||!waterBtn||!bloomBtn)return;
-if(!user.tree){
-  plantBtn.style.display=(user.seeds>0)?'block':'none';
-  waterBtn.style.display='none';
-  bloomBtn.style.display='none';
+const allWords=[];
+
+// Add default words
+for(const theme in EN_WORDS){
+EN_WORDS[theme].forEach(w=>{
+const progress=user.english[theme]&&user.english[theme][w.en]?user.english[theme][w.en].correct:0;
+allWords.push({...w,theme,progress,custom:false});
+});
+}
+
+// Add custom words
+user.customWords.forEach((w,realIdx)=>{
+const progress=user.english[w.theme]&&user.english[w.theme][w.en]?user.english[w.theme][w.en].correct:0;
+const variants=w.ukVariants||[w.uk];
+allWords.push({...w,ukVariants:variants,progress,custom:true,realIdx});
+});
+
+// Filter
+const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
+
+// Update active theme button dataset
+document.querySelectorAll('.theme-btn').forEach(b=>{
+const t=b.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+if(t)b.dataset.theme=t;
+});
+
+const html=filtered.map((w,i)=>{
+const variants=(w.ukVariants&&w.ukVariants.length>1)?w.ukVariants.join(' / '):w.uk;
+return `
+<div class="dict-word">
+<div style="flex:1">
+<div style="font-size:1.2rem;font-weight:600">${w.en} → ${variants}</div>
+<div style="color:#666;font-size:0.9rem">Тема: ${w.theme} ${w.custom?'(власне)':''}</div>
+<div class="dict-progress">
+${[0,1,2].map(j=>`<div class="dict-dot ${w.progress>j?'done':''}"></div>`).join('')}
+</div>
+</div>
+${w.custom?`
+<div style="display:flex;gap:8px">
+<button class="btn" style="padding:8px 14px;font-size:0.9rem;background:linear-gradient(135deg,#f39c12,#e67e22)" onclick="editWord(${i},'${filterTheme}')">✏️</button>
+<button class="btn danger" style="padding:8px 14px;font-size:0.9rem" onclick="deleteWord(${i},'${filterTheme}')">🗑️</button>
+</div>`:''}
+</div>
+`;
+}).join('');
+
+document.getElementById('dict-list').innerHTML=html||'<p style="text-align:center;color:#999">Немає слів</p>';
+}
+// ═══════════════════════════════════════════════════════════
+// MATH GAME
+// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// BOSS GAME
+// ═══════════════════════════════════════════════════════
+window.bossState=null;
+window.bossInterval=null;
+window.bossTimerLeft=10;
+
+const BOSS_REGEN_PER_LEVEL=[0,50,100,150,200,250];
+const BOSS_START_HP=1500;
+const BOSS_DEFEAT_HP=3000;
+
+function showBossSelect(){
+document.getElementById('math-level-select').classList.add('hidden');
+document.getElementById('boss-level-select').classList.remove('hidden');
+}
+function hideBossSelect(){
+document.getElementById('boss-level-select').classList.add('hidden');
+document.getElementById('math-level-select').classList.remove('hidden');
+}
+
+function startBoss(level){
+document.getElementById('boss-level-select').classList.add('hidden');
+document.getElementById('math-game-area').classList.add('hidden');
+document.getElementById('boss-game-area').classList.remove('hidden');
+// Reset math HUD for boss
+document.getElementById('math-hearts').textContent='';
+document.getElementById('math-stars').textContent='';
+document.getElementById('math-correct-count').textContent='💀';
+document.getElementById('math-progress-fill').style.width='50%';
+
+window.bossState={
+  level,
+  hp:BOSS_START_HP,
+  regen:BOSS_REGEN_PER_LEVEL[level],
+  currentQ:null,
+  currentLvl:null
+};
+window.bossTimerLeft=10;
+updateBossUI();
+nextBossQuestion();
+
+// Regen tick every second
+if(window.bossInterval)clearInterval(window.bossInterval);
+window.bossInterval=setInterval(()=>{
+  if(!window.bossState)return;
+  window.bossTimerLeft--;
+  document.getElementById('boss-regen-txt').textContent=
+    `+${window.bossState.regen} через ${window.bossTimerLeft}с`;
+  if(window.bossTimerLeft<=0){
+    window.bossTimerLeft=10;
+    window.bossState.hp+=window.bossState.regen;
+    updateBossUI();
+    if(window.bossState.hp>=BOSS_DEFEAT_HP){
+      bossEndGame(false);
+    }
+  }
+},1000);
+
+document.getElementById('boss-answer').onkeypress=e=>{
+  if(e.key==='Enter')checkBossAnswer();
+};
+}
+
+function updateBossUI(){
+if(!window.bossState)return;
+const hp=window.bossState.hp;
+const pct=Math.max(0,Math.min(100,(hp/BOSS_DEFEAT_HP)*100));
+document.getElementById('boss-hp-bar').style.width=pct+'%';
+document.getElementById('boss-hp-text').textContent=hp;
+// Color: green→yellow→red
+const bar=document.getElementById('boss-hp-bar');
+if(pct<33)bar.style.background='linear-gradient(90deg,#00e676,#00c853)';
+else if(pct<66)bar.style.background='linear-gradient(90deg,#ffca28,#ff8f00)';
+else bar.style.background='linear-gradient(90deg,#ff5252,#b71c1c)';
+}
+
+function nextBossQuestion(){
+if(!window.bossState)return;
+const levels=['A','B','C','D','E','F'];
+const lvl=levels[r(levels.length)];
+const q=MATH_LEVELS[lvl].gen();
+window.bossState.currentQ=q;
+window.bossState.currentLvl=lvl;
+document.getElementById('boss-question').textContent=q.q;
+const inp=document.getElementById('boss-answer');
+inp.value='';
+inp.className='math-input';
+inp.style.borderColor='#667eea';
+inp.style.background='rgba(255,255,255,.96)';
+inp.focus();
+}
+
+function checkBossAnswer(){
+if(!window.bossState)return;
+const inp=document.getElementById('boss-answer');
+const val=inp.value.trim();
+if(!val)return;
+const answer=parseInt(val,10);
+const correct=window.bossState.currentQ.a;
+if(answer===correct){
+  const dmg=MATH_LEVELS[window.bossState.currentLvl].reward;
+  window.bossState.hp=Math.max(0,window.bossState.hp-dmg);
+  inp.style.borderColor='#27ae60';
+  inp.style.background='#d4edda';
+  updateBossUI();
+  if(window.bossState.hp<=0){
+    bossEndGame(true);
+    return;
+  }
+  setTimeout(()=>nextBossQuestion(),350);
 } else {
-  plantBtn.style.display='none';
-  waterBtn.style.display='block';
-  const hasBud=(user.tree.branches||[]).some(b=>b.bud&&!b.flower);
-  bloomBtn.style.display=(hasBud&&(user.seeds||0)>0)?'block':'none';
+  inp.style.borderColor='#e74c3c';
+  inp.style.background='#f8d7da';
+  setTimeout(()=>nextBossQuestion(),400);
 }
-pruneDeadLeaves(user);
-renderTree(user);
 }
 
-function plantTree(){
-const user=getUser();
-if(!user.seeds||user.seeds<1)return alert('Потрібно 1🌱 насіння');
-user.seeds--;
-user.tree={planted:Date.now(),branches:[{side:'right',leaves:1,bud:false,flower:null}],fallenLeaves:[],lastLeafDrop:Date.now()};
-saveUser(user);
-updateUI();
-updateTreeUI();
-}
+function bossEndGame(victory){
+if(window.bossInterval){clearInterval(window.bossInterval);window.bossInterval=null;}
+const lvl=window.bossState?window.bossState.level:1;
+window.bossState=null;
+document.getElementById('boss-game-area').classList.add('hidden');
+document.getElementById('math-level-select').classList.remove('hidden');
+// Reset HUD
+document.getElementById('math-hearts').textContent='❤️❤️❤️❤️❤️❤️❤️❤️';
+document.getElementById('math-stars').textContent='0';
+document.getElementById('math-correct-count').textContent='0/20';
+document.getElementById('math-progress-fill').style.width='0%';
 
-function waterTree(){
-const user=getUser();
-if(user.stars<800)return alert('Потрібно 800⭐');
-if(!user.tree)return;
-user.stars-=800;
-const branches=user.tree.branches||[];
-const growing=branches.find(b=>b.leaves<10&&!b.bud);
-if(growing){
-  growing.leaves++;
-  if(growing.leaves>=10)growing.bud=true;
-} else if(branches.length<10){
-  const lastSide=branches.length>0?branches[branches.length-1].side:'right';
-  branches.push({side:lastSide==='right'?'left':'right',leaves:1,bud:false,flower:null});
-  user.tree.branches=branches;
+if(victory){
+  const bees=lvl;
+  const stars=lvl*1000;
+  const user=getUser();
+  if(!user.bees)user.bees=0;
+  user.bees+=bees;
+  user.stars+=stars;
+  saveUser(user);
+  updateUI();
+  document.getElementById('victory-amount').textContent=`+${bees}🐝 +${stars}⭐`;
+  document.getElementById('victory').style.display='flex';
 } else {
-  return alert('Дерево вже повністю виросло! 🌳');
+  const fb=document.getElementById('math-feedback');
+  document.getElementById('mfb-title').textContent='💀 ПОРАЗКА!';
+  document.getElementById('mfb-detail').textContent='БоСС виживає...';
+  fb.className='math-feedback show wrong';
+  setTimeout(()=>{fb.className='math-feedback';},2500);
 }
-saveUser(user);
-updateUI();
-updateTreeUI();
 }
+// ═══════════════════════════════════════════════════════
 
-function bloomTree(){
-const user=getUser();
-if(!user.seeds||user.seeds<1)return alert('Потрібно 1🌱 насіння');
-if(!user.tree)return;
-const branch=user.tree.branches.find(b=>b.bud&&!b.flower);
-if(!branch)return;
-user.seeds--;
-const colors=['#FF69B4','#FF1493','#FF6347','#9370DB','#FFD700','#FF4500','#DA70D6'];
-const centers=['#FFD700','#FFA500','#FFFF00','#FFF8DC'];
-branch.flower={color:colors[Math.floor(Math.random()*colors.length)],center:centers[Math.floor(Math.random()*centers.length)],bloomTime:Date.now(),fallen:false,fallenTime:null};
-saveUser(user);
-updateUI();
-updateTreeUI();
-}
-
-function pruneDeadLeaves(user){
-if(!user||!user.tree)return;
-const now=Date.now();
-let changed=false;
-// Drop flowers after 72h
-(user.tree.branches||[]).forEach(b=>{
-  if(b.flower&&!b.flower.fallen&&now-b.flower.bloomTime>72*3600000){
-    b.flower.fallen=true;b.flower.fallenTime=now;
-    user.tree.fallenLeaves=user.tree.fallenLeaves||[];
-    user.tree.fallenLeaves.push({type:'flower',color:b.flower.color,time:now,x:20+Math.random()*60});
-    changed=true;
-  }
-});
-// Drop 1 leaf every 5 hours
-const hoursSinceDrop=(now-(user.tree.lastLeafDrop||now))/3600000;
-if(hoursSinceDrop>=5){
-  const eligible=(user.tree.branches||[]).filter(b=>b.leaves>0);
-  if(eligible.length>0){
-    const b=eligible[Math.floor(Math.random()*eligible.length)];
-    b.leaves=Math.max(0,b.leaves-1);
-    if(b.leaves<10)b.bud=false;
-    user.tree.lastLeafDrop=now;
-    user.tree.fallenLeaves=user.tree.fallenLeaves||[];
-    user.tree.fallenLeaves.push({type:'leaf',time:now,x:15+Math.random()*70});
-    changed=true;
-  }
-}
-// Remove fallen after 24h
-user.tree.fallenLeaves=(user.tree.fallenLeaves||[]).filter(l=>now-l.time<24*3600000);
-if(changed)saveUser(user);
-}
-
-function renderTree(user){
-const svg=document.getElementById('tree-svg');
-if(!svg)return;
-if(!user.tree){svg.innerHTML='';return;}
-const branches=user.tree.branches||[];
-const fallen=user.tree.fallenLeaves||[];
-let h='';
-
-// Ground
-h+=`<line x1="5" y1="270" x2="135" y2="270" stroke="#8B6914" stroke-width="2"/>`;
-
-// Trunk — shorter: from y=270 to y=200 (half of previous 150px)
-const trunkTopY=200;
-h+=`<line x1="70" y1="270" x2="70" y2="${trunkTopY}" stroke="#8B4513" stroke-width="6" stroke-linecap="round"/>`;
-
-// Branches — distributed from trunk top upward
-// Each branch grows at angle ~35° upward
-const branchLen=40;
-branches.forEach((b,bi)=>{
-  const dir=b.side==='right'?1:-1;
-  // Attach point on trunk — spread branches upward from trunkTop
-  const attachY=trunkTopY+(bi*0 ); // stack at same point or spread
-  // Actually distribute them along trunk
-  const branchAttachY=trunkTopY-(bi*0); // all from top for now — spread differently
-  // Better: alternate left/right, attach points descend from trunkTop
-  const attachYFinal=trunkTopY+(Math.floor(bi/2)*16);
-  // Branch tip: angled up 35°
-  const angle=35; // degrees upward from horizontal
-  const rad=angle*Math.PI/180;
-  const tipX=70+dir*(branchLen*Math.cos(rad));
-  const tipY=attachYFinal-(branchLen*Math.sin(rad));
-
-  // Draw branch line
-  h+=`<line x1="70" y1="${attachYFinal}" x2="${tipX.toFixed(1)}" y2="${tipY.toFixed(1)}" stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>`;
-
-  // Leaves — alternating above and below branch
-  for(let li=0;li<b.leaves&&li<10;li++){
-    // Position along branch (0=base, 1=tip)
-    const t=(li+1)/(10+1);
-    const lx=70+dir*(branchLen*Math.cos(rad)*t);
-    const ly=attachYFinal-(branchLen*Math.sin(rad)*t);
-
-    // Alternate: even=below branch, odd=above branch
-    const above=li%2===1;
-    // Perpendicular to branch direction (rotate 90°)
-    const perpX=Math.sin(rad)*dir*(above?-1:1)*10;
-    const perpY=Math.cos(rad)*(above?-1:1)*10;
-
-    const leafCX=(lx+perpX*0.5).toFixed(1);
-    const leafCY=(ly+perpY*0.5).toFixed(1);
-
-    // Leaf tip points away from branch
-    const leafTipX=(lx+perpX).toFixed(1);
-    const leafTipY=(ly+perpY).toFixed(1);
-
-    // Leaf base is on the branch (lx, ly)
-    // Draw as a small pointed oval rotated along perpendicular
-    const leafAngle=Math.atan2(perpY,perpX)*180/Math.PI;
-    h+=`<ellipse cx="${leafCX}" cy="${leafCY}" rx="7" ry="3.5" fill="#4CAF50" stroke="#388E3C" stroke-width=".5" transform="rotate(${leafAngle.toFixed(1)},${leafCX},${leafCY})"/>`;
-  }
-
-  // Bud at branch tip — bottom half green, top half pink
-  if(b.bud&&(!b.flower||b.flower.fallen)){
-    const bx=tipX.toFixed(1);
-    const by=tipY.toFixed(1);
-    // Bottom half green
-    h+=`<path d="M ${+bx-5},${+by} A 5,7 0 0,0 ${+bx+5},${+by} Z" fill="#4CAF50"/>`;
-    // Top half pink
-    h+=`<path d="M ${+bx-5},${+by} A 5,7 0 0,1 ${+bx+5},${+by} Z" fill="#FF69B4"/>`;
-    // Small stem connecting to branch tip
-    h+=`<line x1="${tipX.toFixed(1)}" y1="${tipY.toFixed(1)}" x2="${tipX.toFixed(1)}" y2="${(+tipY+4).toFixed(1)}" stroke="#8B4513" stroke-width="1.5"/>`;
-  }
-
-  // Flower at branch tip
-  if(b.flower&&!b.flower.fallen){
-    const fx=+tipX,fy=+tipY;
-    const fc=b.flower.color,mc=b.flower.center;
-    [0,60,120,180,240,300].forEach(a=>{
-      const px=(fx+Math.cos(a*Math.PI/180)*8).toFixed(1);
-      const py=(fy+Math.sin(a*Math.PI/180)*8).toFixed(1);
-      h+=`<circle cx="${px}" cy="${py}" r="4.5" fill="${fc}" opacity=".85"/>`;
-    });
-    h+=`<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="5" fill="${mc}"/>`;
-  }
-});
-
-// Fallen items on ground
-fallen.forEach(f=>{
-  if(f.type==='flower'){
-    h+=`<circle cx="${(+f.x).toFixed(0)}" cy="264" r="4" fill="${f.color}" opacity=".55"/>`;
-  } else {
-    h+=`<ellipse cx="${(+f.x).toFixed(0)}" cy="267" rx="5" ry="2.5" fill="#66BB6A" opacity=".5"/>`;
-  }
-});
-
-svg.innerHTML=h;
-}
-
-// ═══════════════════════════════════════════════════════════
 const MATH_MONSTERS=['👾','👹','👺','🤖','👻','💀','🎃','👿','😈','🧟'];
 
 const MATH_LEVELS={
@@ -1456,6 +1410,11 @@ E:{name:'E',reward:100,gen:()=>{
   const a=r(10)+10,b=r(100)+100,op=rnd(['+','-']);
   if(op==='-'){const big=Math.max(a,b),small=Math.min(a,b);return{q:`${big} − ${small} = ?`,a:big-small};}
   return{q:`${a} + ${b} = ?`,a:a+b};
+}},
+F:{name:'F',reward:200,gen:()=>{
+  const a=r(90)+10,b=r(90)+10,op=rnd(['+','-']);
+  if(op==='-'){const big=Math.max(a,b),small=Math.min(a,b);return{q:`${big} − ${small} = ?`,a:big-small};}
+  return{q:`${a} + ${b} = ?`,a:a+b};
 }}
 };
 
@@ -1471,6 +1430,11 @@ if(type==='math'){
 }
 
 function closeMath(){
+// Stop boss if running
+if(window.bossInterval){clearInterval(window.bossInterval);window.bossInterval=null;}
+window.bossState=null;
+document.getElementById('boss-game-area').classList.add('hidden');
+document.getElementById('boss-level-select').classList.add('hidden');
 document.getElementById('math-game').classList.remove('is-open');
 document.getElementById('main').style.display='block';
 if(mathState&&mathState.stars>0){
