@@ -197,6 +197,17 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <ellipse cx="75" cy="120" rx="28" ry="30" fill="#1a0a00" stroke="#888" stroke-width="2"/>
   <!-- Рамка входу -->
   <ellipse cx="75" cy="120" rx="28" ry="30" fill="none" stroke="#A0522D" stroke-width="3"/>
+  <!-- Очі в будці -->
+  <g id="dog-house-eyes">
+    <circle cx="65" cy="113" r="4.5" fill="white"/>
+    <circle cx="85" cy="113" r="4.5" fill="white"/>
+    <circle cx="66" cy="114" r="2.2" fill="#222"/>
+    <circle cx="86" cy="114" r="2.2" fill="#222"/>
+  </g>
+  <g id="dog-house-eyelids" style="display:none">
+    <rect x="61" y="109" width="9" height="9" rx="2" fill="#1a0a00"/>
+    <rect x="81" y="109" width="9" height="9" rx="2" fill="#1a0a00"/>
+  </g>
   <!-- Трава перед будкою -->
   <rect x="10" y="132" width="130" height="10" rx="3" fill="#5D8A3C" opacity=".7"/>
 </svg>
@@ -323,14 +334,15 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 
 <!-- BOSS GAME AREA -->
 <div id="boss-game-area" class="hidden" style="position:absolute;inset:0;display:flex;flex-direction:column">
-  <!-- HP bar — compact strip -->
-  <div style="padding:4px 4% 3px;background:rgba(0,0,0,.6);flex-shrink:0">
-    <div style="display:flex;justify-content:space-between;color:#fff;font-size:.8rem;margin-bottom:2px">
-      <span style="color:#ff4444;font-weight:700">💀 BOSS</span>
-      <span id="boss-hp-text" style="color:#ff4444;font-weight:700">1500</span>
+  <!-- HP panel -->
+  <div style="padding:5px 4% 4px;background:rgba(0,0,0,.75);flex-shrink:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+      <span style="color:#ff4444;font-weight:700;font-size:.85rem">💀 BOSS</span>
+      <span id="boss-hp-text" style="color:#fff;font-weight:900;font-size:1.4rem;letter-spacing:1px">1500</span>
+      <span id="boss-change-txt" style="font-weight:700;font-size:1rem;min-width:60px;text-align:right"> </span>
       <span id="boss-regen-txt" style="color:#ff9999;font-size:.75rem">+50 через 10с</span>
     </div>
-    <div style="background:rgba(255,255,255,.15);border-radius:6px;height:12px;overflow:hidden;border:1px solid #ff4444">
+    <div style="background:rgba(255,255,255,.15);border-radius:6px;height:14px;overflow:hidden;border:1px solid #ff4444">
       <div id="boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#ff5252,#b71c1c);border-radius:5px;transition:width .4s;width:50%"></div>
     </div>
   </div>
@@ -576,12 +588,43 @@ alert(`✅ Собаку перейменовано на "${user.dog.name}"!`);
 }
 }
 
+// Dog house blinking eyes
+let _blinkInt=null;
+function startBlink(){
+if(_blinkInt)return;
+_blinkInt=setInterval(()=>{
+  const eyes=document.getElementById('dog-house-eyes');
+  const lids=document.getElementById('dog-house-eyelids');
+  if(!eyes||!lids||eyes.style.display==='none')return;
+  lids.style.display='block';eyes.style.display='none';
+  setTimeout(()=>{
+    const e=document.getElementById('dog-house-eyes');
+    const l=document.getElementById('dog-house-eyelids');
+    if(e&&l&&l.style.display==='block'){l.style.display='none';e.style.display='block';}
+  },150);
+},2000);
+}
+function hideEyes(){
+const e=document.getElementById('dog-house-eyes');
+const l=document.getElementById('dog-house-eyelids');
+if(e)e.style.display='none';
+if(l)l.style.display='none';
+}
+function showEyes(){
+const e=document.getElementById('dog-house-eyes');
+const l=document.getElementById('dog-house-eyelids');
+if(e)e.style.display='block';
+if(l)l.style.display='none';
+}
+startBlink();
+
 function tapDogHouse(){
 const user=getUser();
 if(user.stars<200)return alert('Потрібно 200⭐');
 user.stars-=200;
 saveUser(user);
 updateUI();
+hideEyes();
 const dog=document.getElementById('dog');
 dog.style.display='block';
 dog.style.left='50%';
@@ -590,7 +633,7 @@ dog.style.animation='';
 document.getElementById('dog-actions').style.display='flex';
 let w=false;
 const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';document.getElementById('dog-actions').style.display='none';},60000);
+setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';document.getElementById('dog-actions').style.display='none';showEyes();},60000);
 }
 
 function throwBone(){
@@ -619,6 +662,7 @@ setTimeout(()=>{
 },50);
 
 // Dog runs right to pick it up
+hideEyes();
 const dog=document.getElementById('dog');
 dog.style.display='block';
 setTimeout(()=>{
@@ -659,7 +703,7 @@ setTimeout(()=>{
 setTimeout(()=>{
   let w=false;
   const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},54000);
+  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},54000);
 },5000);
 }
 
@@ -674,6 +718,7 @@ updateDog();
 
 const area=document.querySelector('.dog-area');
 const dog=document.getElementById('dog');
+hideEyes();
 dog.style.display='block';
 dog.style.left='50%';
 dog.style.transform='translateX(-50%)';
@@ -707,7 +752,7 @@ const pet=setInterval(()=>{
       hand.remove();
       let w=false;
       const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-      setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},55000);
+      setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},55000);
     },600);
   }
 },400);
@@ -737,6 +782,7 @@ setTimeout(()=>{
 },50);
 
 const dog=document.getElementById('dog');
+hideEyes();
 dog.style.display='block';
 
 // Dog runs left
@@ -763,7 +809,7 @@ setTimeout(()=>{
   ball.remove();
   let w=false;
   const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
-  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';},51000);
+  setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},51000);
 },7600);
 }
 
@@ -1474,7 +1520,7 @@ window.bossInterval=setInterval(()=>{
   if(window.bossTimerLeft<=0){
     window.bossTimerLeft=10;
     window.bossState.hp+=window.bossState.regen;
-    updateBossUI();
+    updateBossUI(window.bossState.regen);
     if(window.bossState.hp>=BOSS_DEFEAT_HP){
       bossEndGame(false);
     }
@@ -1486,17 +1532,26 @@ document.getElementById('boss-answer').onkeypress=e=>{
 };
 }
 
-function updateBossUI(){
+function updateBossUI(change){
 if(!window.bossState)return;
 const hp=window.bossState.hp;
 const pct=Math.max(0,Math.min(100,(hp/BOSS_DEFEAT_HP)*100));
 document.getElementById('boss-hp-bar').style.width=pct+'%';
 document.getElementById('boss-hp-text').textContent=hp;
-// Color: green→yellow→red
 const bar=document.getElementById('boss-hp-bar');
 if(pct<33)bar.style.background='linear-gradient(90deg,#00e676,#00c853)';
 else if(pct<66)bar.style.background='linear-gradient(90deg,#ffca28,#ff8f00)';
 else bar.style.background='linear-gradient(90deg,#ff5252,#b71c1c)';
+// Show change
+if(change!==undefined){
+const el=document.getElementById('boss-change-txt');
+if(el){
+  el.textContent=(change>0?'+':'')+change;
+  el.style.color=change>0?'#ff4444':'#00e676';
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>{el.textContent='';},1200);
+}
+}
 }
 
 function nextBossQuestion(){
@@ -1527,7 +1582,7 @@ if(answer===correct){
   window.bossState.hp=Math.max(0,window.bossState.hp-dmg);
   inp.style.borderColor='#27ae60';
   inp.style.background='#d4edda';
-  updateBossUI();
+  updateBossUI(-dmg);
   if(window.bossState.hp<=0){
     bossEndGame(true);
     return;
