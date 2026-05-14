@@ -49,6 +49,32 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 
 
 
+/* Login Screen */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100dvh;padding:20px}
+.login-box{background:rgba(255,255,255,.97);border-radius:24px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.login-logo{font-size:4rem;margin-bottom:8px}
+.login-title{font-size:2rem;font-weight:800;color:#764ba2;margin-bottom:4px}
+.login-subtitle{color:#888;font-size:.95rem;margin-bottom:28px}
+.login-profiles{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.profile-btn{display:flex;align-items:center;gap:14px;padding:14px 18px;background:linear-gradient(135deg,#f8f0ff,#ede0ff);border:2px solid #c9a8f0;border-radius:14px;cursor:pointer;font-size:1.05rem;font-weight:700;color:#5b2d9e;transition:.2s;text-align:left}
+.profile-btn:hover{background:linear-gradient(135deg,#e8d4ff,#d4b0ff);transform:translateY(-2px);box-shadow:0 4px 14px rgba(118,75,162,.2)}
+.profile-btn .avatar{font-size:2.2rem;flex-shrink:0}
+.profile-btn .pname{font-size:1.1rem}
+.profile-btn .pstars{font-size:.85rem;color:#888;font-weight:500}
+.login-pin-screen{display:none}
+.pin-title{font-size:1.1rem;color:#555;margin-bottom:6px}
+.pin-user{font-size:1.5rem;font-weight:800;color:#764ba2;margin-bottom:18px}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:20px}
+.pin-dot{width:18px;height:18px;border-radius:50%;background:#e0d0ff;border:2px solid #b090e0;transition:.2s}
+.pin-dot.filled{background:#764ba2;border-color:#764ba2}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto 16px}
+.pin-key{padding:14px;background:linear-gradient(135deg,#f0e8ff,#e4d4ff);border:2px solid #c8aef0;border-radius:12px;font-size:1.5rem;font-weight:700;color:#5b2d9e;cursor:pointer;transition:.15s;user-select:none}
+.pin-key:active{transform:scale(.93);background:linear-gradient(135deg,#d4b8ff,#c8a0ff)}
+.pin-del{background:linear-gradient(135deg,#ffe8e8,#ffd4d4);border-color:#f0b0b0;color:#c0392b}
+.pin-error{color:#e74c3c;font-size:.9rem;min-height:1.2em;margin-bottom:8px}
+.pin-back-link{color:#888;font-size:.9rem;cursor:pointer;text-decoration:underline}
+.pin-back-link:hover{color:#764ba2}
+.login-new-btn{width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:8px}
 /* Main */
 #main{display:none;padding:15px;max-width:1200px;margin:0 auto}
 .header{background:rgba(255,255,255,.98);padding:18px;border-radius:18px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
@@ -160,6 +186,79 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 
 
 
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">💗</div>
+    <div class="login-title">Ларіка</div>
+    <div class="login-subtitle">Обери свій профіль</div>
+
+    <!-- Profile list -->
+    <div id="login-profile-view">
+      <div class="login-profiles" id="login-profiles-list"></div>
+      <button class="login-new-btn" onclick="loginShowNewProfile()">➕ Новий профіль</button>
+    </div>
+
+    <!-- PIN entry -->
+    <div class="login-pin-screen" id="login-pin-view">
+      <div class="pin-title">Введи PIN-код для</div>
+      <div class="pin-user" id="pin-username-label"></div>
+      <div class="pin-dots" id="pin-dots">
+        <div class="pin-dot" id="pd0"></div>
+        <div class="pin-dot" id="pd1"></div>
+        <div class="pin-dot" id="pd2"></div>
+        <div class="pin-dot" id="pd3"></div>
+      </div>
+      <div class="pin-error" id="pin-error"></div>
+      <div class="pin-pad">
+        <button class="pin-key" onclick="pinPress('1')">1</button>
+        <button class="pin-key" onclick="pinPress('2')">2</button>
+        <button class="pin-key" onclick="pinPress('3')">3</button>
+        <button class="pin-key" onclick="pinPress('4')">4</button>
+        <button class="pin-key" onclick="pinPress('5')">5</button>
+        <button class="pin-key" onclick="pinPress('6')">6</button>
+        <button class="pin-key" onclick="pinPress('7')">7</button>
+        <button class="pin-key" onclick="pinPress('8')">8</button>
+        <button class="pin-key" onclick="pinPress('9')">9</button>
+        <button class="pin-key pin-del" onclick="pinPress('back')">⌫</button>
+        <button class="pin-key" onclick="pinPress('0')">0</button>
+        <button class="pin-key" onclick="pinPress('ok')" style="background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border-color:#27ae60">✓</button>
+      </div>
+      <div class="pin-back-link" onclick="loginShowProfiles()">← Назад до профілів</div>
+    </div>
+
+    <!-- New profile creation -->
+    <div class="login-pin-screen" id="login-new-view">
+      <div class="pin-title" style="font-size:1.2rem;margin-bottom:16px;color:#764ba2;font-weight:700">Новий профіль</div>
+      <input id="new-profile-name" type="text" placeholder="Ім'я гравця" maxlength="16"
+        style="width:100%;padding:12px;border-radius:10px;border:2px solid #c9a8f0;font-size:1.1rem;text-align:center;margin-bottom:14px;outline:none">
+      <div class="pin-title">Придумай PIN (4 цифри)</div>
+      <div class="pin-dots" id="new-pin-dots" style="margin:12px auto">
+        <div class="pin-dot" id="npd0"></div>
+        <div class="pin-dot" id="npd1"></div>
+        <div class="pin-dot" id="npd2"></div>
+        <div class="pin-dot" id="npd3"></div>
+      </div>
+      <div class="pin-error" id="new-pin-error"></div>
+      <div class="pin-pad">
+        <button class="pin-key" onclick="newPinPress('1')">1</button>
+        <button class="pin-key" onclick="newPinPress('2')">2</button>
+        <button class="pin-key" onclick="newPinPress('3')">3</button>
+        <button class="pin-key" onclick="newPinPress('4')">4</button>
+        <button class="pin-key" onclick="newPinPress('5')">5</button>
+        <button class="pin-key" onclick="newPinPress('6')">6</button>
+        <button class="pin-key" onclick="newPinPress('7')">7</button>
+        <button class="pin-key" onclick="newPinPress('8')">8</button>
+        <button class="pin-key" onclick="newPinPress('9')">9</button>
+        <button class="pin-key pin-del" onclick="newPinPress('back')">⌫</button>
+        <button class="pin-key" onclick="newPinPress('0')">0</button>
+        <button class="pin-key" onclick="createProfile()" style="background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border-color:#27ae60">✓</button>
+      </div>
+      <div class="pin-back-link" onclick="loginShowProfiles()">← Назад до профілів</div>
+    </div>
+  </div>
+</div>
+
 <!-- MAIN -->
 <div id="main">
 <div class="header">
@@ -169,6 +268,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div style="font-size:1rem;color:#f39c12;font-weight:700">🐝<span id="bee-count">0</span></div>
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
+<button class="btn" onclick="logoutUser()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px">🚪</button>
 </div>
 
 <div class="games">
@@ -247,11 +347,13 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div id="plant-btn-wrap" style="position:absolute;left:6px;bottom:4px;display:none">
   <button class="btn success" onclick="plantTree()" style="padding:5px 10px;font-size:.8rem">🌱 Посадити</button>
 </div>
-<div id="water-btn-wrap" style="position:absolute;left:6px;bottom:4px;display:none">
-  <button class="btn" onclick="waterTree()" style="padding:5px 10px;font-size:.8rem;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none">💧 Полив -800⭐</button>
-</div>
-<div id="bloom-btn-wrap" style="position:absolute;left:6px;bottom:34px;display:none">
-  <button class="btn" onclick="bloomTree()" style="padding:5px 10px;font-size:.8rem;background:linear-gradient(135deg,#e91e8c,#c2185b);color:#fff;border:none">🌸 Квітка -1🌱</button>
+<div id="tree-action-wrap" style="position:absolute;left:6px;bottom:4px;display:none;flex-direction:column;gap:6px">
+  <div id="bloom-btn-wrap" style="display:none">
+    <button class="btn" onclick="bloomTree()" style="padding:5px 10px;font-size:.8rem;background:linear-gradient(135deg,#e91e8c,#c2185b);color:#fff;border:none;white-space:nowrap">🌸 Квітка -1🌱</button>
+  </div>
+  <div id="water-btn-wrap">
+    <button class="btn" onclick="waterTree()" style="padding:5px 10px;font-size:.8rem;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;white-space:nowrap">💧 Полив -800⭐</button>
+  </div>
 </div>
 </div>
 </div>
@@ -466,45 +568,201 @@ function r(n){return Math.floor(Math.random()*n)}
 function rnd(a){return a[r(a.length)]}
 
 // ═══════════════════════════════════════════════════════════
-// USER MANAGEMENT
+// USER MANAGEMENT — мульти-профіль з PIN авторизацією
 // ═══════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════
-// БЕЗ АВТОРИЗАЦІЇ — один спільний профіль
-// ═══════════════════════════════════════════════════════════
-const PROFILE_KEY='larikaProfile';
+const PROFILES_KEY='larikaProfiles';
+const ACTIVE_KEY='larikaActiveProfile';
+let _activeProfileId=null;
 
-function loadUsers(){
+const PROFILE_AVATARS=['🦁','🐯','🦊','🐻','🐼','🐨','🦄','🐸','🐺','🦋'];
+
+function loadAllProfiles(){
   try{
-    const d=JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');
-    if(d) return {'гравець':d};
-    return {};
+    // Migrate old single profile
+    const old=localStorage.getItem('larikaProfile');
+    if(old){
+      const d=JSON.parse(old);
+      const profiles=JSON.parse(localStorage.getItem(PROFILES_KEY)||'{}');
+      if(!Object.keys(profiles).length){
+        const id='p_'+Date.now();
+        profiles[id]={id,name:'Ларіка',pin:'',avatar:'💗',data:d};
+        localStorage.setItem(PROFILES_KEY,JSON.stringify(profiles));
+        localStorage.removeItem('larikaProfile');
+      }
+    }
+    return JSON.parse(localStorage.getItem(PROFILES_KEY)||'{}');
   }catch{return{}}
 }
-function saveUsers(u){
-  if(u['гравець']) localStorage.setItem(PROFILE_KEY,JSON.stringify(u['гравець']));
+
+function saveAllProfiles(profiles){
+  localStorage.setItem(PROFILES_KEY,JSON.stringify(profiles));
 }
+
 function getUser(){
-  try{
-    const d=JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');
-    if(d) return d;
-  }catch{}
-  // Створюємо новий профіль якщо немає
-  const newProfile={
-    stars:0,
-    seeds:0,
-    bees:0,
-    tree:null,
+  const profiles=loadAllProfiles();
+  const p=profiles[_activeProfileId];
+  if(p&&p.data) return p.data;
+  const newData={stars:0,seeds:0,bees:0,tree:null,
     dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
-    english:{},
-    customWords:[],
-    games:{}
-  };
-  localStorage.setItem(PROFILE_KEY,JSON.stringify(newProfile));
-  return newProfile;
+    english:{},customWords:[],games:{}};
+  return newData;
 }
-function saveUser(d){localStorage.setItem(PROFILE_KEY,JSON.stringify(d));}
+
+function saveUser(d){
+  const profiles=loadAllProfiles();
+  if(profiles[_activeProfileId]){
+    profiles[_activeProfileId].data=d;
+    saveAllProfiles(profiles);
+  }
+}
+
+function loadUsers(){
+  const profiles=loadAllProfiles();
+  const result={};
+  Object.values(profiles).forEach(p=>{if(p&&p.data)result[p.name]=p.data;});
+  return result;
+}
+
+// ═══ LOGIN UI ═══════════════════════════════════════════════
+let _pinBuffer='';
+let _pinTarget=null; // profile id for login
+let _newPinBuffer='';
+
+function initLogin(){
+  // Check if already logged in this session
+  const sid=sessionStorage.getItem(ACTIVE_KEY);
+  if(sid){
+    const profiles=loadAllProfiles();
+    if(profiles[sid]){
+      _activeProfileId=sid;
+      showMain();
+      return;
+    }
+  }
+  // Show login screen
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('main').style.display='none';
+  loginShowProfiles();
+}
+
+function loginShowProfiles(){
+  const profiles=loadAllProfiles();
+  document.getElementById('login-profile-view').style.display='block';
+  document.getElementById('login-pin-view').style.display='none';
+  document.getElementById('login-new-view').style.display='none';
+  const list=document.getElementById('login-profiles-list');
+  const entries=Object.values(profiles);
+  if(!entries.length){
+    list.innerHTML='<p style="color:#aaa;font-size:.95rem;margin:10px 0">Ще немає профілів</p>';
+  } else {
+    list.innerHTML=entries.map(p=>`
+      <button class="profile-btn" onclick="loginSelectProfile('${p.id}')">
+        <span class="avatar">${p.avatar||'👤'}</span>
+        <div>
+          <div class="pname">${p.name}</div>
+          <div class="pstars">⭐ ${(p.data&&p.data.stars)||0}</div>
+        </div>
+      </button>`).join('');
+  }
+}
+
+function loginSelectProfile(id){
+  const profiles=loadAllProfiles();
+  const p=profiles[id];
+  if(!p)return;
+  if(!p.pin){
+    // No PIN — login immediately
+    _activeProfileId=id;
+    sessionStorage.setItem(ACTIVE_KEY,id);
+    document.getElementById('login-screen').style.display='none';
+    showMain();
+    return;
+  }
+  // Show PIN screen
+  _pinTarget=id;
+  _pinBuffer='';
+  document.getElementById('pin-username-label').textContent=p.name;
+  document.getElementById('login-profile-view').style.display='none';
+  document.getElementById('login-pin-view').style.display='block';
+  document.getElementById('pin-error').textContent='';
+  updatePinDots(_pinBuffer,'pd');
+}
+
+function updatePinDots(buf,prefix){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById(prefix+i);
+    if(d) d.classList.toggle('filled',i<buf.length);
+  }
+}
+
+function pinPress(k){
+  if(k==='back'){_pinBuffer=_pinBuffer.slice(0,-1);}
+  else if(k==='ok'){pinSubmit();return;}
+  else if(_pinBuffer.length<4){_pinBuffer+=k;}
+  updatePinDots(_pinBuffer,'pd');
+  if(_pinBuffer.length===4)setTimeout(pinSubmit,120);
+}
+
+function pinSubmit(){
+  const profiles=loadAllProfiles();
+  const p=profiles[_pinTarget];
+  if(!p)return;
+  if(_pinBuffer===p.pin){
+    _activeProfileId=_pinTarget;
+    sessionStorage.setItem(ACTIVE_KEY,_pinTarget);
+    document.getElementById('login-screen').style.display='none';
+    showMain();
+  } else {
+    document.getElementById('pin-error').textContent='❌ Неправильний PIN';
+    _pinBuffer='';
+    updatePinDots(_pinBuffer,'pd');
+    setTimeout(()=>{document.getElementById('pin-error').textContent='';},1500);
+  }
+}
+
+function loginShowNewProfile(){
+  _newPinBuffer='';
+  document.getElementById('login-profile-view').style.display='none';
+  document.getElementById('login-new-view').style.display='block';
+  document.getElementById('new-profile-name').value='';
+  document.getElementById('new-pin-error').textContent='';
+  updatePinDots(_newPinBuffer,'npd');
+}
+
+function newPinPress(k){
+  if(k==='back'){_newPinBuffer=_newPinBuffer.slice(0,-1);}
+  else if(_newPinBuffer.length<4){_newPinBuffer+=k;}
+  updatePinDots(_newPinBuffer,'npd');
+}
+
+function createProfile(){
+  const nameEl=document.getElementById('new-profile-name');
+  const name=(nameEl?nameEl.value:'').trim();
+  if(!name){document.getElementById('new-pin-error').textContent='Введи ім\'я';return;}
+  if(_newPinBuffer.length>0&&_newPinBuffer.length<4){
+    document.getElementById('new-pin-error').textContent='PIN має бути 4 цифри або порожній';return;
+  }
+  const profiles=loadAllProfiles();
+  const id='p_'+Date.now();
+  const avatarIdx=Object.keys(profiles).length % PROFILE_AVATARS.length;
+  const newData={stars:0,seeds:0,bees:0,tree:null,
+    dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
+    english:{},customWords:[],games:{}};
+  profiles[id]={id,name,pin:_newPinBuffer,avatar:PROFILE_AVATARS[avatarIdx],data:newData};
+  saveAllProfiles(profiles);
+  loginShowProfiles();
+}
+
+function logoutUser(){
+  sessionStorage.removeItem(ACTIVE_KEY);
+  _activeProfileId=null;
+  document.getElementById('main').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  loginShowProfiles();
+}
 
 function showMain(){
+document.getElementById('login-screen').style.display='none';
 document.getElementById('main').style.display='block';
 updateUI();
 updateDog();
@@ -1193,7 +1451,7 @@ else{closeEnglish();}
 
 // Enter key + prevent swipe
 document.addEventListener('DOMContentLoaded',()=>{
-showMain();
+initLogin();
 const inp=document.getElementById('en-answer');
 if(inp){
 inp.addEventListener('keypress',e=>{
@@ -1406,18 +1664,18 @@ if(sc)sc.textContent=user.seeds||0;
 const bc=document.getElementById('bee-count');
 if(bc)bc.textContent=user.bees||0;
 const plantBtn=document.getElementById('plant-btn-wrap');
+const treeActionWrap=document.getElementById('tree-action-wrap');
 const waterBtn=document.getElementById('water-btn-wrap');
 const bloomBtn=document.getElementById('bloom-btn-wrap');
 if(!plantBtn)return;
 if(!user.tree){
   plantBtn.style.display=(user.seeds>0)?'block':'none';
-  waterBtn.style.display='none';
-  bloomBtn.style.display='none';
+  if(treeActionWrap)treeActionWrap.style.display='none';
 } else {
   plantBtn.style.display='none';
-  waterBtn.style.display='block';
+  if(treeActionWrap)treeActionWrap.style.display='flex';
   const hasBud=(user.tree.branches||[]).some(b=>b.bud&&!b.flower);
-  bloomBtn.style.display=(hasBud&&(user.seeds||0)>0)?'block':'none';
+  if(bloomBtn)bloomBtn.style.display=(hasBud&&(user.seeds||0)>0)?'block':'none';
 }
 pruneTree(user);
 renderTree(user);
