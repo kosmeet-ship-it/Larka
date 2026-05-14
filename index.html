@@ -352,27 +352,30 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 </div>
 
 <!-- BOSS GAME AREA -->
-<div id="boss-game-area" class="hidden" style="position:absolute;inset:0;display:flex;flex-direction:column">
+<div id="boss-game-area" class="hidden" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-start">
   <!-- Monster background -->
   <div id="boss-monster-bg"><svg id="boss-monster-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg></div>
-  <!-- HP panel -->
-  <div style="padding:8px 4% 6px;background:rgba(0,0,0,.82);flex-shrink:0;border-bottom:2px solid #ff4444">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <span style="color:#ff4444;font-weight:700;font-size:.9rem">💀 BOSS HP</span>
-      <span id="boss-hp-text" style="color:#fff;font-weight:900;font-size:2rem;letter-spacing:2px;text-shadow:0 0 10px #ff4444">1500</span>
-      <span id="boss-change-txt" style="font-weight:900;font-size:1.4rem;min-width:80px;text-align:right"> </span>
-      <span id="boss-regen-txt" style="color:#ff9999;font-size:.75rem">+50 через 10с</span>
+  <!-- HP panel: компактний, одна строчка -->
+  <div style="padding:6px 3% 5px;background:rgba(0,0,0,.88);flex-shrink:0;border-bottom:2px solid #ff4444">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+      <span style="color:#ff4444;font-weight:700;font-size:.78rem;white-space:nowrap">💀 BOSS</span>
+      <span id="boss-hp-text" style="color:#fff;font-weight:900;font-size:1.5rem;letter-spacing:1px;text-shadow:0 0 8px #ff4444;min-width:52px">1500</span>
+      <span id="boss-change-txt" style="font-weight:900;font-size:1.15rem;min-width:54px;transition:transform .2s"> </span>
+      <span id="boss-regen-txt" style="color:#ff9999;font-size:.72rem;margin-left:auto;white-space:nowrap">+50/10с</span>
     </div>
-    <div style="background:rgba(255,255,255,.15);border-radius:8px;height:18px;overflow:hidden;border:2px solid #ff4444">
-      <div id="boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#ff5252,#b71c1c);border-radius:6px;transition:width .4s;width:50%"></div>
+    <div style="background:rgba(255,255,255,.15);border-radius:6px;height:10px;overflow:hidden;border:1px solid #ff4444">
+      <div id="boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#ff5252,#b71c1c);border-radius:5px;transition:width .4s;width:50%"></div>
     </div>
   </div>
-  <!-- Question -->
-  <div class="math-question" id="boss-question" style="position:static;transform:none;margin:8px auto;font-size:2.6rem;padding:12px 24px;flex-shrink:0">? = ?</div>
-  <!-- Answer button -->
-  <button onclick="checkBossAnswer()" style="margin:6px 4%;padding:12px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1.1rem;font-weight:700;cursor:pointer;flex-shrink:0">✅ Відповідь</button>
-  <!-- Input -->
-  <input type="number" class="math-input" id="boss-answer" placeholder="?" autocomplete="off" inputmode="numeric" style="margin:6px 4%;width:92%;font-size:2.2rem;padding:10px;flex-shrink:0">
+  <!-- Question — компактний -->
+  <div id="boss-question" style="flex-shrink:0;text-align:center;background:rgba(0,0,0,.75);color:#fff;font-size:2.2rem;font-weight:700;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.1);letter-spacing:1px">? = ?</div>
+  <!-- Input + Button row — разом, компактно -->
+  <div style="display:flex;gap:8px;padding:8px 3%;flex-shrink:0;align-items:stretch">
+    <input type="number" id="boss-answer" placeholder="?" autocomplete="off" inputmode="numeric"
+      style="flex:1;font-size:1.9rem;font-weight:700;padding:8px 10px;border-radius:12px;border:3px solid #667eea;background:rgba(255,255,255,.96);text-align:center;min-width:0">
+    <button onclick="checkBossAnswer()"
+      style="flex-shrink:0;padding:8px 14px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;white-space:nowrap">✅ Відповідь</button>
+  </div>
 </div>
 <div id="math-game-area" class="hidden">
   <div class="math-question" id="math-question">5 + 3 = ?</div>
@@ -1025,13 +1028,24 @@ clearInterval(englishState.timerInterval);
 
 const inp=document.getElementById('en-answer');
 const answer=inp.value.trim().toLowerCase();
-const correct=englishState.currentWord.uk.toLowerCase();
-const allVariants=(englishState.currentWord.ukVariants||[englishState.currentWord.uk]).map(v=>v.toLowerCase());
 
-// Normalize: remove apostrophe, ґ->г
-const normalize=s=>s.replace(/['`´']/g,'').replace(/ґ/g,'г');
+// Normalize: remove apostrophe, ґ->г, trim spaces
+const normalize=s=>s.replace(/['`´''']/g,'').replace(/ґ/g,'г').trim();
 
-const isCorrect=allVariants.some(v=>normalize(answer)===normalize(v));
+// Build all valid variants from ukVariants + split each by comma or slash
+const rawVariants=englishState.currentWord.ukVariants||[englishState.currentWord.uk];
+const allVariants=[];
+rawVariants.forEach(v=>{
+  // Add full variant
+  allVariants.push(v.toLowerCase());
+  // Also add each sub-variant split by comma or slash or semicolon
+  v.split(/[,\/;]/).map(s=>s.trim().toLowerCase()).filter(Boolean).forEach(sub=>allVariants.push(sub));
+});
+// Also split the user's answer by comma/slash in case they typed multiple
+const answerVariants=answer.split(/[,\/;]/).map(s=>normalize(s.trim())).filter(Boolean);
+const normVariants=allVariants.map(v=>normalize(v));
+
+const isCorrect=answerVariants.some(av=>normVariants.some(nv=>av===nv));
 
 if(timeout){
 // Timeout - wrong answer
@@ -1719,7 +1733,7 @@ window.bossInterval=setInterval(()=>{
   if(!window.bossState)return;
   window.bossTimerLeft--;
   document.getElementById('boss-regen-txt').textContent=
-    `+${window.bossState.regen} через ${window.bossTimerLeft}с`;
+    `+${window.bossState.regen}/${window.bossTimerLeft}с`;
   if(window.bossTimerLeft<=0){
     window.bossTimerLeft=10;
     window.bossState.hp+=window.bossState.regen;
