@@ -64,16 +64,14 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 .login-pin-screen{display:none}
 .pin-title{font-size:1.1rem;color:#555;margin-bottom:6px}
 .pin-user{font-size:1.5rem;font-weight:800;color:#764ba2;margin-bottom:18px}
-.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:20px}
-.pin-dot{width:18px;height:18px;border-radius:50%;background:#e0d0ff;border:2px solid #b090e0;transition:.2s}
-.pin-dot.filled{background:#764ba2;border-color:#764ba2}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto 16px}
-.pin-key{padding:14px;background:linear-gradient(135deg,#f0e8ff,#e4d4ff);border:2px solid #c8aef0;border-radius:12px;font-size:1.5rem;font-weight:700;color:#5b2d9e;cursor:pointer;transition:.15s;user-select:none}
-.pin-key:active{transform:scale(.93);background:linear-gradient(135deg,#d4b8ff,#c8a0ff)}
-.pin-del{background:linear-gradient(135deg,#ffe8e8,#ffd4d4);border-color:#f0b0b0;color:#c0392b}
+.pin-input-wrap{margin-bottom:16px;position:relative}
+.pin-text-input{width:100%;padding:13px 16px;border-radius:12px;border:2px solid #c9a8f0;font-size:1.2rem;text-align:center;outline:none;font-family:monospace;letter-spacing:2px;color:#5b2d9e;background:#f8f0ff}
+.pin-text-input:focus{border-color:#764ba2;box-shadow:0 0 0 3px rgba(118,75,162,.15)}
 .pin-error{color:#e74c3c;font-size:.9rem;min-height:1.2em;margin-bottom:8px}
 .pin-back-link{color:#888;font-size:.9rem;cursor:pointer;text-decoration:underline}
 .pin-back-link:hover{color:#764ba2}
+.pin-submit-btn{width:100%;padding:13px;background:linear-gradient(135deg,#764ba2,#667eea);color:#fff;border:none;border-radius:12px;font-size:1.1rem;font-weight:700;cursor:pointer;margin-bottom:10px}
+.pin-submit-btn:active{opacity:.85}
 .login-new-btn{width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:8px}
 /* Main */
 #main{display:none;padding:15px;max-width:1200px;margin:0 auto}
@@ -199,31 +197,17 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       <button class="login-new-btn" onclick="loginShowNewProfile()">➕ Новий профіль</button>
     </div>
 
-    <!-- PIN entry -->
+    <!-- Password entry -->
     <div class="login-pin-screen" id="login-pin-view">
-      <div class="pin-title">Введи PIN-код для</div>
+      <div class="pin-title">Введи пароль для</div>
       <div class="pin-user" id="pin-username-label"></div>
-      <div class="pin-dots" id="pin-dots">
-        <div class="pin-dot" id="pd0"></div>
-        <div class="pin-dot" id="pd1"></div>
-        <div class="pin-dot" id="pd2"></div>
-        <div class="pin-dot" id="pd3"></div>
+      <div class="pin-input-wrap">
+        <input class="pin-text-input" id="pin-password-input" type="password" placeholder="Пароль..." autocomplete="current-password"
+          oninput="document.getElementById('pin-error').textContent=''"
+          onkeydown="if(event.key==='Enter')pinSubmit()">
       </div>
       <div class="pin-error" id="pin-error"></div>
-      <div class="pin-pad">
-        <button class="pin-key" onclick="pinPress('1')">1</button>
-        <button class="pin-key" onclick="pinPress('2')">2</button>
-        <button class="pin-key" onclick="pinPress('3')">3</button>
-        <button class="pin-key" onclick="pinPress('4')">4</button>
-        <button class="pin-key" onclick="pinPress('5')">5</button>
-        <button class="pin-key" onclick="pinPress('6')">6</button>
-        <button class="pin-key" onclick="pinPress('7')">7</button>
-        <button class="pin-key" onclick="pinPress('8')">8</button>
-        <button class="pin-key" onclick="pinPress('9')">9</button>
-        <button class="pin-key pin-del" onclick="pinPress('back')">⌫</button>
-        <button class="pin-key" onclick="pinPress('0')">0</button>
-        <button class="pin-key" onclick="pinPress('ok')" style="background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border-color:#27ae60">✓</button>
-      </div>
+      <button class="pin-submit-btn" onclick="pinSubmit()">✓ Увійти</button>
       <div class="pin-back-link" onclick="loginShowProfiles()">← Назад до профілів</div>
     </div>
 
@@ -232,28 +216,14 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       <div class="pin-title" style="font-size:1.2rem;margin-bottom:16px;color:#764ba2;font-weight:700">Новий профіль</div>
       <input id="new-profile-name" type="text" placeholder="Ім'я гравця" maxlength="16"
         style="width:100%;padding:12px;border-radius:10px;border:2px solid #c9a8f0;font-size:1.1rem;text-align:center;margin-bottom:14px;outline:none">
-      <div class="pin-title">Придумай PIN (4 цифри)</div>
-      <div class="pin-dots" id="new-pin-dots" style="margin:12px auto">
-        <div class="pin-dot" id="npd0"></div>
-        <div class="pin-dot" id="npd1"></div>
-        <div class="pin-dot" id="npd2"></div>
-        <div class="pin-dot" id="npd3"></div>
+      <div class="pin-title" style="margin-bottom:8px">Придумай пароль (будь-який)</div>
+      <div class="pin-input-wrap">
+        <input class="pin-text-input" id="new-pin-input" type="password" placeholder="Пароль (необов'язково)..." autocomplete="new-password"
+          oninput="document.getElementById('new-pin-error').textContent=''"
+          onkeydown="if(event.key==='Enter')createProfile()">
       </div>
       <div class="pin-error" id="new-pin-error"></div>
-      <div class="pin-pad">
-        <button class="pin-key" onclick="newPinPress('1')">1</button>
-        <button class="pin-key" onclick="newPinPress('2')">2</button>
-        <button class="pin-key" onclick="newPinPress('3')">3</button>
-        <button class="pin-key" onclick="newPinPress('4')">4</button>
-        <button class="pin-key" onclick="newPinPress('5')">5</button>
-        <button class="pin-key" onclick="newPinPress('6')">6</button>
-        <button class="pin-key" onclick="newPinPress('7')">7</button>
-        <button class="pin-key" onclick="newPinPress('8')">8</button>
-        <button class="pin-key" onclick="newPinPress('9')">9</button>
-        <button class="pin-key pin-del" onclick="newPinPress('back')">⌫</button>
-        <button class="pin-key" onclick="newPinPress('0')">0</button>
-        <button class="pin-key" onclick="createProfile()" style="background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border-color:#27ae60">✓</button>
-      </div>
+      <button class="pin-submit-btn" onclick="createProfile()">✓ Створити профіль</button>
       <div class="pin-back-link" onclick="loginShowProfiles()">← Назад до профілів</div>
     </div>
   </div>
@@ -268,6 +238,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div style="font-size:1rem;color:#f39c12;font-weight:700">🐝<span id="bee-count">0</span></div>
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
+<button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
 <button class="btn" onclick="logoutUser()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px">🚪</button>
 </div>
 
@@ -341,7 +312,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div id="poops-container"></div>
 <!-- Tree -->
 <div id="tree-container" style="position:absolute;left:4px;bottom:20px;width:130px;height:260px;pointer-events:none">
-  <svg id="tree-svg" viewBox="0 0 130 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%"></svg>
+  <svg id="tree-svg" viewBox="0 0 130 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;pointer-events:all"></svg>
 </div>
 <!-- Tree buttons -->
 <div id="plant-btn-wrap" style="position:absolute;left:6px;bottom:4px;display:none">
@@ -585,13 +556,26 @@ function loadAllProfiles(){
       const profiles=JSON.parse(localStorage.getItem(PROFILES_KEY)||'{}');
       if(!Object.keys(profiles).length){
         const id='p_'+Date.now();
-        profiles[id]={id,name:'Ларіка',pin:'',avatar:'💗',data:d};
+        profiles[id]={id,name:'Ларіка',pin:'380939605592',avatar:'💗',data:d};
         localStorage.setItem(PROFILES_KEY,JSON.stringify(profiles));
         localStorage.removeItem('larikaProfile');
       }
     }
     return JSON.parse(localStorage.getItem(PROFILES_KEY)||'{}');
   }catch{return{}}
+}
+
+function ensureLarikaPassword(){
+  // If a Ларіка profile exists without a password, set the default
+  const profiles=loadAllProfiles();
+  let changed=false;
+  Object.values(profiles).forEach(p=>{
+    if(p.name==='Ларіка'&&!p.pin){
+      p.pin='380939605592';
+      changed=true;
+    }
+  });
+  if(changed)saveAllProfiles(profiles);
 }
 
 function saveAllProfiles(profiles){
@@ -624,11 +608,10 @@ function loadUsers(){
 }
 
 // ═══ LOGIN UI ═══════════════════════════════════════════════
-let _pinBuffer='';
 let _pinTarget=null; // profile id for login
-let _newPinBuffer='';
 
 function initLogin(){
+  ensureLarikaPassword();
   // Check if already logged in this session
   const sid=sessionStorage.getItem(ACTIVE_KEY);
   if(sid){
@@ -671,86 +654,75 @@ function loginSelectProfile(id){
   const p=profiles[id];
   if(!p)return;
   if(!p.pin){
-    // No PIN — login immediately
+    // No password — login immediately
     _activeProfileId=id;
     sessionStorage.setItem(ACTIVE_KEY,id);
     document.getElementById('login-screen').style.display='none';
     showMain();
     return;
   }
-  // Show PIN screen
+  // Show password screen
   _pinTarget=id;
-  _pinBuffer='';
   document.getElementById('pin-username-label').textContent=p.name;
   document.getElementById('login-profile-view').style.display='none';
   document.getElementById('login-pin-view').style.display='block';
   document.getElementById('pin-error').textContent='';
-  updatePinDots(_pinBuffer,'pd');
-}
-
-function updatePinDots(buf,prefix){
-  for(let i=0;i<4;i++){
-    const d=document.getElementById(prefix+i);
-    if(d) d.classList.toggle('filled',i<buf.length);
-  }
-}
-
-function pinPress(k){
-  if(k==='back'){_pinBuffer=_pinBuffer.slice(0,-1);}
-  else if(k==='ok'){pinSubmit();return;}
-  else if(_pinBuffer.length<4){_pinBuffer+=k;}
-  updatePinDots(_pinBuffer,'pd');
-  if(_pinBuffer.length===4)setTimeout(pinSubmit,120);
+  const inp=document.getElementById('pin-password-input');
+  if(inp){inp.value='';setTimeout(()=>inp.focus(),100);}
 }
 
 function pinSubmit(){
   const profiles=loadAllProfiles();
   const p=profiles[_pinTarget];
   if(!p)return;
-  if(_pinBuffer===p.pin){
+  const entered=(document.getElementById('pin-password-input').value)||'';
+  if(entered===p.pin){
     _activeProfileId=_pinTarget;
     sessionStorage.setItem(ACTIVE_KEY,_pinTarget);
     document.getElementById('login-screen').style.display='none';
     showMain();
   } else {
-    document.getElementById('pin-error').textContent='❌ Неправильний PIN';
-    _pinBuffer='';
-    updatePinDots(_pinBuffer,'pd');
+    document.getElementById('pin-error').textContent='❌ Неправильний пароль';
+    document.getElementById('pin-password-input').value='';
     setTimeout(()=>{document.getElementById('pin-error').textContent='';},1500);
   }
 }
 
 function loginShowNewProfile(){
-  _newPinBuffer='';
   document.getElementById('login-profile-view').style.display='none';
   document.getElementById('login-new-view').style.display='block';
   document.getElementById('new-profile-name').value='';
   document.getElementById('new-pin-error').textContent='';
-  updatePinDots(_newPinBuffer,'npd');
-}
-
-function newPinPress(k){
-  if(k==='back'){_newPinBuffer=_newPinBuffer.slice(0,-1);}
-  else if(_newPinBuffer.length<4){_newPinBuffer+=k;}
-  updatePinDots(_newPinBuffer,'npd');
+  const inp=document.getElementById('new-pin-input');
+  if(inp){inp.value='';setTimeout(()=>inp.focus(),100);}
 }
 
 function createProfile(){
   const nameEl=document.getElementById('new-profile-name');
   const name=(nameEl?nameEl.value:'').trim();
   if(!name){document.getElementById('new-pin-error').textContent='Введи ім\'я';return;}
-  if(_newPinBuffer.length>0&&_newPinBuffer.length<4){
-    document.getElementById('new-pin-error').textContent='PIN має бути 4 цифри або порожній';return;
-  }
+  const pwdEl=document.getElementById('new-pin-input');
+  const pwd=pwdEl?pwdEl.value:'';
   const profiles=loadAllProfiles();
   const id='p_'+Date.now();
   const avatarIdx=Object.keys(profiles).length % PROFILE_AVATARS.length;
   const newData={stars:0,seeds:0,bees:0,tree:null,
     dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
     english:{},customWords:[],games:{}};
-  profiles[id]={id,name,pin:_newPinBuffer,avatar:PROFILE_AVATARS[avatarIdx],data:newData};
+  profiles[id]={id,name,pin:pwd,avatar:PROFILE_AVATARS[avatarIdx],data:newData};
   saveAllProfiles(profiles);
   loginShowProfiles();
+}
+
+function changePassword(){
+  const profiles=loadAllProfiles();
+  const p=profiles[_activeProfileId];
+  if(!p)return;
+  const newPwd=prompt(`Змінити пароль для "${p.name}"\n\nВведіть новий пароль (залиште порожнім щоб прибрати пароль):`);
+  if(newPwd===null)return; // cancelled
+  p.pin=newPwd;
+  saveAllProfiles(profiles);
+  alert(newPwd?'✅ Пароль змінено!':'✅ Пароль видалено!');
 }
 
 function logoutUser(){
@@ -1784,24 +1756,23 @@ h+=`<line x1="5" y1="252" x2="125" y2="252" stroke="#8B6914" stroke-width="2"/>`
 // Trunk — short: ground y=252, first branch at y=210 (42px)
 const trunkTopY=210;
 h+=`<line x1="65" y1="252" x2="65" y2="${trunkTopY}" stroke="#8B4513" stroke-width="5" stroke-linecap="round"/>`;
-// Branches
+// We render in two passes: first branches+leaves, then flowers/buds on top
+let flowerLayer='';
 const branchLen=38;
 const angleRad=35*Math.PI/180;
 branches.forEach((b,bi)=>{
   const dir=b.side==='right'?1:-1;
-  // Attach points: alternate sides going UP from trunkTop
   const attachY=trunkTopY-(Math.floor(bi/2)*16);
   const tipX=65+dir*(branchLen*Math.cos(angleRad));
   const tipY=attachY-(branchLen*Math.sin(angleRad));
   // Branch
   h+=`<line x1="65" y1="${attachY}" x2="${tipX.toFixed(1)}" y2="${tipY.toFixed(1)}" stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>`;
-  // Leaves: alternating above/below
+  // Leaves
   for(let li=0;li<Math.min(b.leaves,10);li++){
     const t=(li+1)/11;
     const lx=65+dir*branchLen*Math.cos(angleRad)*t;
     const ly=attachY-branchLen*Math.sin(angleRad)*t;
     const above=li%2===1;
-    // Perpendicular offset
     const pDirX=Math.sin(angleRad)*dir*(above?-1:1);
     const pDirY=Math.cos(angleRad)*(above?-1:1);
     const lcx=(lx+pDirX*9).toFixed(1);
@@ -1809,32 +1780,37 @@ branches.forEach((b,bi)=>{
     const rot=(Math.atan2(pDirY,pDirX)*180/Math.PI).toFixed(1);
     h+=`<ellipse cx="${lcx}" cy="${lcy}" rx="7" ry="3.5" fill="#4CAF50" stroke="#388E3C" stroke-width=".5" transform="rotate(${rot},${lcx},${lcy})"/>`;
   }
-  // Bud at tip
+  // Bud and Flower — rendered AFTER leaves (on top)
   if(b.bud&&(!b.flower||b.flower.fallen)){
     const bx=+tipX.toFixed(1),by=+tipY.toFixed(1);
+    const canBloom=(user.seeds||0)>0;
+    const cursor=canBloom?'pointer':'default';
+    const title=canBloom?'Натисни щоб розквітнути (-1🌱)':'Потрібно насіння 🌱';
+    flowerLayer+=`<g class="bud-clickable" onclick="budClick(${bi})" style="cursor:${cursor}" title="${title}">`;
+    flowerLayer+=`<circle cx="${bx}" cy="${by}" r="9" fill="transparent"/>`;
     // Bottom green half
-    h+=`<path d="M ${bx-4},${by} A 4,6 0 0,0 ${bx+4},${by} Z" fill="#4CAF50"/>`;
+    flowerLayer+=`<path d="M ${bx-4},${by} A 4,6 0 0,0 ${bx+4},${by} Z" fill="#4CAF50"/>`;
     // Top pink half
-    h+=`<path d="M ${bx-4},${by} A 4,6 0 0,1 ${bx+4},${by} Z" fill="#FF69B4"/>`;
+    flowerLayer+=`<path d="M ${bx-4},${by} A 4,6 0 0,1 ${bx+4},${by} Z" fill="#FF69B4"/>`;
+    flowerLayer+=`</g>`;
   }
-  // Flower or Apple
+  // Flower or Apple — always on top
   if(b.flower&&!b.flower.fallen){
     const fx=+tipX,fy=+tipY;
     if(b.flower.apple){
-      // Render apple emoji via foreignObject workaround: use text
-      h+=`<text x="${fx.toFixed(1)}" y="${(fy+6).toFixed(1)}" text-anchor="middle" font-size="14">🍎</text>`;
+      flowerLayer+=`<text x="${fx.toFixed(1)}" y="${(fy+6).toFixed(1)}" text-anchor="middle" font-size="14">🍎</text>`;
     } else {
       const fc=b.flower.color,mc=b.flower.center;
       [0,60,120,180,240,300].forEach(a=>{
         const px=(fx+Math.cos(a*Math.PI/180)*7).toFixed(1);
         const py=(fy+Math.sin(a*Math.PI/180)*7).toFixed(1);
-        h+=`<circle cx="${px}" cy="${py}" r="4" fill="${fc}" opacity=".85"/>`;
+        flowerLayer+=`<circle cx="${px}" cy="${py}" r="4" fill="${fc}" opacity=".85"/>`;
       });
-      h+=`<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="4" fill="${mc}"/>`;
+      flowerLayer+=`<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="4" fill="${mc}"/>`;
     }
   }
 });
-// Fallen
+// Fallen items
 fallen.forEach(f=>{
   if(f.type==='apple'){
     h+=`<text x="${(+f.x).toFixed(0)}" y="255" text-anchor="middle" font-size="13">🍎</text>`;
@@ -1844,7 +1820,26 @@ fallen.forEach(f=>{
     h+=`<ellipse cx="${(+f.x).toFixed(0)}" cy="251" rx="4.5" ry="2" fill="#66BB6A" opacity=".5"/>`;
   }
 });
+// Flower/bud layer on top of everything
+h+=flowerLayer;
 svg.innerHTML=h;
+}
+
+function budClick(branchIdx){
+  const user=getUser();
+  if(!user.seeds||user.seeds<1){alert('Потрібно 1🌱 насіння');return;}
+  if(!user.tree)return;
+  const branch=user.tree.branches[branchIdx];
+  if(!branch||!branch.bud||branch.flower)return;
+  user.seeds--;
+  const leafColors=['#FF69B4','#FFD700','#4169E1','#FF0000','#FF8C00','#87CEEB','#FF1493','#7CFC00','#FF6347','#9932CC'];
+  const centerColors=['#FFD700','#FF69B4','#fff','#FF8C00','#FFFF00','#00CED1'];
+  branch.flower={
+    color:leafColors[Math.floor(Math.random()*leafColors.length)],
+    center:centerColors[Math.floor(Math.random()*centerColors.length)],
+    bloomTime:Date.now(),fallen:false
+  };
+  saveUser(user);updateUI();updateTreeUI();
 }
 // ═══════════════════════════════════════════════════════
 
