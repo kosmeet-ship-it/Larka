@@ -135,6 +135,24 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 .math-feedback.correct h2{color:#00ff88}
 .math-feedback.wrong h2{color:#ff4444}
 #boss-game-area:not(.hidden){display:flex!important;flex-direction:column;position:absolute;inset:0}
+
+/* Boss Monster Background */
+#boss-monster-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;overflow:hidden}
+#boss-monster-svg{width:min(340px,80vw);height:min(340px,80vw);opacity:.18;filter:drop-shadow(0 0 30px #ff0000)}
+#boss-game-area > *:not(#boss-monster-bg){position:relative;z-index:1}
+
+/* Boss HP display */
+#boss-hp-text{font-size:2rem!important;letter-spacing:2px;text-shadow:0 0 10px #ff4444}
+#boss-change-txt{font-size:1.4rem!important;font-weight:900!important;min-width:80px!important;text-align:right;text-shadow:0 0 8px currentColor;transition:all .2s}
+.boss-change-pop{animation:bossChangePop .6s ease-out forwards}
+@keyframes bossChangePop{0%{transform:scale(1.8) translateY(-10px);opacity:1}100%{transform:scale(1) translateY(0);opacity:.4}}
+
+/* Bee & Apple animations */
+@keyframes beeApproach{0%{left:110%;top:50%}100%{left:var(--bee-target-x);top:var(--bee-target-y)}}
+@keyframes beeWiggle{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+@keyframes appleFall{0%{top:var(--apple-start-y);opacity:1}80%{opacity:1}100%{top:calc(100% - 40px);opacity:1}}
+.bee-anim{position:absolute;font-size:2rem;pointer-events:none;animation:beeApproach 1.5s cubic-bezier(.4,0,.2,1) forwards,beeWiggle .2s linear infinite}
+.apple-on-ground{position:absolute;font-size:2.2rem;pointer-events:none;bottom:24px;cursor:default}
 </style>
 </head>
 <body>
@@ -217,6 +235,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn success" onclick="throwBone()">🦴 Кісточка -800⭐</button>
 <button class="btn success" onclick="petDog()">✋ Погладити -800⭐</button>
 <button class="btn success" onclick="throwBall()">⚽ М'ячик -800⭐</button>
+<button class="btn" id="apple-action-btn" onclick="doAppleAction()" style="background:linear-gradient(135deg,#e74c3c,#c0392b);display:none">🍎 Яблуко (-10🐝)</button>
 </div>
 <div id="poops-container"></div>
 <!-- Tree -->
@@ -334,16 +353,18 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 
 <!-- BOSS GAME AREA -->
 <div id="boss-game-area" class="hidden" style="position:absolute;inset:0;display:flex;flex-direction:column">
+  <!-- Monster background -->
+  <div id="boss-monster-bg"><svg id="boss-monster-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg></div>
   <!-- HP panel -->
-  <div style="padding:5px 4% 4px;background:rgba(0,0,0,.75);flex-shrink:0">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
-      <span style="color:#ff4444;font-weight:700;font-size:.85rem">💀 BOSS</span>
-      <span id="boss-hp-text" style="color:#fff;font-weight:900;font-size:1.4rem;letter-spacing:1px">1500</span>
-      <span id="boss-change-txt" style="font-weight:700;font-size:1rem;min-width:60px;text-align:right"> </span>
+  <div style="padding:8px 4% 6px;background:rgba(0,0,0,.82);flex-shrink:0;border-bottom:2px solid #ff4444">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span style="color:#ff4444;font-weight:700;font-size:.9rem">💀 BOSS HP</span>
+      <span id="boss-hp-text" style="color:#fff;font-weight:900;font-size:2rem;letter-spacing:2px;text-shadow:0 0 10px #ff4444">1500</span>
+      <span id="boss-change-txt" style="font-weight:900;font-size:1.4rem;min-width:80px;text-align:right"> </span>
       <span id="boss-regen-txt" style="color:#ff9999;font-size:.75rem">+50 через 10с</span>
     </div>
-    <div style="background:rgba(255,255,255,.15);border-radius:6px;height:14px;overflow:hidden;border:1px solid #ff4444">
-      <div id="boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#ff5252,#b71c1c);border-radius:5px;transition:width .4s;width:50%"></div>
+    <div style="background:rgba(255,255,255,.15);border-radius:8px;height:18px;overflow:hidden;border:2px solid #ff4444">
+      <div id="boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#ff5252,#b71c1c);border-radius:6px;transition:width .4s;width:50%"></div>
     </div>
   </div>
   <!-- Question -->
@@ -631,6 +652,12 @@ dog.style.left='50%';
 dog.style.transform='translateX(-50%)';
 dog.style.animation='';
 document.getElementById('dog-actions').style.display='flex';
+// Show apple button only if there's at least 1 flower on the tree
+const appleBtn=document.getElementById('apple-action-btn');
+if(appleBtn){
+  const hasFlower=(user.tree&&user.tree.branches||[]).some(b=>b.flower&&!b.flower.fallen&&!b.flower.apple);
+  appleBtn.style.display=hasFlower?'block':'none';
+}
 let w=false;
 const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
 setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';document.getElementById('dog-actions').style.display='none';showEyes();},60000);
@@ -811,6 +838,63 @@ setTimeout(()=>{
   const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
   setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},51000);
 },7600);
+}
+
+// ═══════════════════════════════════════════════════════
+// APPLE ACTION (🍎 = 10🐝): бджола летить на квітку → яблуко через 3с
+// ═══════════════════════════════════════════════════════
+function doAppleAction(){
+const user=getUser();
+if(!user.bees||user.bees<10)return alert('Потрібно 10🐝');
+// Find a branch with a flower that can become an apple
+const branch=(user.tree&&user.tree.branches||[]).find(b=>b.flower&&!b.flower.fallen&&!b.flower.apple);
+if(!branch)return alert('Немає квіток на дереві! Потрібно хоча б 1 квітка 🌸');
+
+user.bees-=10;
+saveUser(user);
+updateUI();
+
+// Animate bee flying to tree
+const area=document.querySelector('.dog-area');
+const treeEl=document.getElementById('tree-container');
+const treeRect=treeEl?treeEl.getBoundingClientRect():null;
+const areaRect=area?area.getBoundingClientRect():null;
+
+const bee=document.createElement('div');
+bee.textContent='🐝';
+bee.style.cssText='position:absolute;font-size:2rem;pointer-events:none;right:80%;top:40%;transition:all 1.5s cubic-bezier(.4,0,.2,1);z-index:50';
+area.appendChild(bee);
+
+// Target: tree area (~15% from left)
+const targetLeft=areaRect?((treeRect.left-areaRect.left+30)/areaRect.width*100)+'%':'12%';
+const targetTop='30%';
+
+setTimeout(()=>{
+  bee.style.right='auto';
+  bee.style.left=targetLeft;
+  bee.style.top=targetTop;
+},50);
+
+// After 1.5s — bee landed on flower, start 3s countdown
+setTimeout(()=>{
+  bee.textContent='🐝🌸';
+  bee.style.fontSize='1.5rem';
+},1600);
+
+// After 3 more seconds → flower becomes apple
+setTimeout(()=>{
+  bee.remove();
+  // Turn flower into apple
+  const u2=getUser();
+  const br=(u2.tree&&u2.tree.branches||[]).find(b=>b.flower&&!b.flower.fallen&&!b.flower.apple);
+  if(br&&br.flower){
+    br.flower.apple=true;
+    br.flower.appleTime=Date.now();
+  }
+  saveUser(u2);
+  updateUI();
+  updateTreeUI();
+},4700);
 }
 
 function exportData(){
@@ -1375,13 +1459,26 @@ saveUser(user);updateUI();updateTreeUI();
 function pruneTree(user){
 if(!user||!user.tree)return;
 const now=Date.now();let changed=false;
-// Drop flowers after 72h
+// Drop flowers after 72h (or apples fall 72h after apple conversion)
 (user.tree.branches||[]).forEach(b=>{
-  if(b.flower&&!b.flower.fallen&&now-b.flower.bloomTime>72*3600000){
-    b.flower.fallen=true;
-    user.tree.fallen=user.tree.fallen||[];
-    user.tree.fallen.push({type:'flower',color:b.flower.color,time:now,x:20+Math.random()*70});
-    changed=true;
+  if(b.flower&&!b.flower.fallen){
+    // If it's an apple: fall 72h after appleTime
+    if(b.flower.apple){
+      if(now-b.flower.appleTime>72*3600000){
+        b.flower.fallen=true;
+        user.tree.fallen=user.tree.fallen||[];
+        user.tree.fallen.push({type:'apple',time:now,x:20+Math.random()*70});
+        changed=true;
+      }
+    } else {
+      // Normal flower: fall 72h after bloom
+      if(now-b.flower.bloomTime>72*3600000){
+        b.flower.fallen=true;
+        user.tree.fallen=user.tree.fallen||[];
+        user.tree.fallen.push({type:'flower',color:b.flower.color,time:now,x:20+Math.random()*70});
+        changed=true;
+      }
+    }
   }
 });
 // Drop 1 leaf every 5h
@@ -1447,30 +1544,134 @@ branches.forEach((b,bi)=>{
     // Top pink half
     h+=`<path d="M ${bx-4},${by} A 4,6 0 0,1 ${bx+4},${by} Z" fill="#FF69B4"/>`;
   }
-  // Flower
+  // Flower or Apple
   if(b.flower&&!b.flower.fallen){
     const fx=+tipX,fy=+tipY;
-    const fc=b.flower.color,mc=b.flower.center;
-    [0,60,120,180,240,300].forEach(a=>{
-      const px=(fx+Math.cos(a*Math.PI/180)*7).toFixed(1);
-      const py=(fy+Math.sin(a*Math.PI/180)*7).toFixed(1);
-      h+=`<circle cx="${px}" cy="${py}" r="4" fill="${fc}" opacity=".85"/>`;
-    });
-    h+=`<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="4" fill="${mc}"/>`;
+    if(b.flower.apple){
+      // Render apple emoji via foreignObject workaround: use text
+      h+=`<text x="${fx.toFixed(1)}" y="${(fy+6).toFixed(1)}" text-anchor="middle" font-size="14">🍎</text>`;
+    } else {
+      const fc=b.flower.color,mc=b.flower.center;
+      [0,60,120,180,240,300].forEach(a=>{
+        const px=(fx+Math.cos(a*Math.PI/180)*7).toFixed(1);
+        const py=(fy+Math.sin(a*Math.PI/180)*7).toFixed(1);
+        h+=`<circle cx="${px}" cy="${py}" r="4" fill="${fc}" opacity=".85"/>`;
+      });
+      h+=`<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="4" fill="${mc}"/>`;
+    }
   }
 });
 // Fallen
 fallen.forEach(f=>{
-  h+=f.type==='flower'
-    ?`<circle cx="${(+f.x).toFixed(0)}" cy="249" r="3.5" fill="${f.color}" opacity=".6"/>`
-    :`<ellipse cx="${(+f.x).toFixed(0)}" cy="251" rx="4.5" ry="2" fill="#66BB6A" opacity=".5"/>`;
+  if(f.type==='apple'){
+    h+=`<text x="${(+f.x).toFixed(0)}" y="255" text-anchor="middle" font-size="13">🍎</text>`;
+  } else if(f.type==='flower'){
+    h+=`<circle cx="${(+f.x).toFixed(0)}" cy="249" r="3.5" fill="${f.color}" opacity=".6"/>`;
+  } else {
+    h+=`<ellipse cx="${(+f.x).toFixed(0)}" cy="251" rx="4.5" ry="2" fill="#66BB6A" opacity=".5"/>`;
+  }
 });
 svg.innerHTML=h;
 }
 // ═══════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════
-// BOSS GAME
+// BOSS MONSTER BACKGROUNDS (SVG, рівні 1-5)
+// ═══════════════════════════════════════════════════════
+const BOSS_MONSTERS_SVG=[
+  // Level 1 — зелений слиз-монстр
+  `<ellipse cx="100" cy="130" rx="70" ry="55" fill="#2ecc40"/>
+   <ellipse cx="100" cy="90" rx="55" ry="50" fill="#27ae60"/>
+   <circle cx="78" cy="80" r="16" fill="#fff"/><circle cx="122" cy="80" r="16" fill="#fff"/>
+   <circle cx="82" cy="82" r="9" fill="#111"/><circle cx="126" cy="82" r="9" fill="#111"/>
+   <circle cx="85" cy="79" r="3" fill="#fff"/><circle cx="129" cy="79" r="3" fill="#fff"/>
+   <path d="M75,110 Q100,130 125,110" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+   <circle cx="85" cy="117" r="3" fill="#fff"/><circle cx="115" cy="117" r="3" fill="#fff"/>
+   <ellipse cx="65" cy="140" rx="18" ry="12" fill="#27ae60"/>
+   <ellipse cx="135" cy="140" rx="18" ry="12" fill="#27ae60"/>
+   <ellipse cx="100" cy="175" rx="25" ry="12" fill="#27ae60"/>
+   <ellipse cx="60" cy="170" rx="15" ry="9" fill="#27ae60"/>
+   <ellipse cx="140" cy="170" rx="15" ry="9" fill="#27ae60"/>
+   <circle cx="55" cy="60" r="8" fill="#2ecc40" stroke="#fff" stroke-width="1.5"/>
+   <circle cx="145" cy="55" r="10" fill="#2ecc40" stroke="#fff" stroke-width="1.5"/>
+   <circle cx="100" cy="45" r="7" fill="#2ecc40" stroke="#fff" stroke-width="1.5"/>`,
+
+  // Level 2 — синій робот-монстр
+  `<rect x="45" y="70" width="110" height="90" rx="15" fill="#2980b9"/>
+   <rect x="55" y="50" width="90" height="30" rx="10" fill="#1a6ca8"/>
+   <rect x="35" y="85" width="20" height="60" rx="8" fill="#1a6ca8"/>
+   <rect x="145" y="85" width="20" height="60" rx="8" fill="#1a6ca8"/>
+   <rect x="65" y="155" width="25" height="30" rx="6" fill="#1a6ca8"/>
+   <rect x="110" y="155" width="25" height="30" rx="6" fill="#1a6ca8"/>
+   <rect x="68" y="78" width="28" height="22" rx="5" fill="#00eaff"/>
+   <rect x="104" y="78" width="28" height="22" rx="5" fill="#00eaff"/>
+   <circle cx="82" cy="89" r="8" fill="#fff"/><circle cx="118" cy="89" r="8" fill="#fff"/>
+   <circle cx="84" cy="91" r="4" fill="#e74c3c"/><circle cx="120" cy="91" r="4" fill="#e74c3c"/>
+   <rect x="75" y="108" width="50" height="12" rx="5" fill="#1a6ca8"/>
+   <rect x="78" y="111" width="8" height="6" rx="2" fill="#e74c3c"/>
+   <rect x="96" y="111" width="8" height="6" rx="2" fill="#f1c40f"/>
+   <rect x="114" y="111" width="8" height="6" rx="2" fill="#2ecc40"/>
+   <rect x="70" y="55" width="10" height="15" rx="3" fill="#f1c40f"/>
+   <rect x="120" y="52" width="10" height="18" rx="3" fill="#e74c3c"/>`,
+
+  // Level 3 — фіолетовий дракон
+  `<ellipse cx="100" cy="120" rx="65" ry="55" fill="#8e44ad"/>
+   <ellipse cx="100" cy="85" rx="48" ry="45" fill="#9b59b6"/>
+   <polygon points="60,50 45,20 75,45" fill="#8e44ad"/>
+   <polygon points="140,50 155,20 125,45" fill="#8e44ad"/>
+   <circle cx="80" cy="78" r="14" fill="#fff"/><circle cx="120" cy="78" r="14" fill="#fff"/>
+   <circle cx="83" cy="80" r="8" fill="#2c3e50"/><circle cx="123" cy="80" r="8" fill="#2c3e50"/>
+   <circle cx="85" cy="77" r="3" fill="#fff"/><circle cx="125" cy="77" r="3" fill="#fff"/>
+   <path d="M78,105 L85,115 L92,105 L100,118 L108,105 L115,115 L122,105" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+   <path d="M100,165 C80,170 60,185 55,175 C65,165 70,155 100,150 C130,155 135,165 145,175 C140,185 120,170 100,165Z" fill="#8e44ad"/>
+   <ellipse cx="55" cy="130" rx="22" ry="12" fill="#6c3483"/>
+   <ellipse cx="145" cy="130" rx="22" ry="12" fill="#6c3483"/>
+   <path d="M115,95 Q130,80 145,95 Q135,105 115,95Z" fill="#e74c3c" opacity=".7"/>`,
+
+  // Level 4 — чорний скелет-монстр  
+  `<ellipse cx="100" cy="125" rx="55" ry="48" fill="#2c3e50"/>
+   <ellipse cx="100" cy="82" rx="42" ry="40" fill="#34495e"/>
+   <circle cx="78" cy="75" r="15" fill="#ecf0f1"/><circle cx="122" cy="75" r="15" fill="#ecf0f1"/>
+   <circle cx="78" cy="75" r="8" fill="#e74c3c"/><circle cx="122" cy="75" r="8" fill="#e74c3c"/>
+   <circle cx="80" cy="73" r="3" fill="#fff"/><circle cx="124" cy="73" r="3" fill="#fff"/>
+   <path d="M85,100 L90,95 M100,98 L100,92 M115,100 L110,95" stroke="#ecf0f1" stroke-width="3" stroke-linecap="round"/>
+   <rect x="80" y="107" width="40" height="10" rx="4" fill="#2c3e50" stroke="#ecf0f1" stroke-width="1.5"/>
+   <line x1="92" y1="107" x2="92" y2="117" stroke="#ecf0f1" stroke-width="1.5"/>
+   <line x1="100" y1="107" x2="100" y2="117" stroke="#ecf0f1" stroke-width="1.5"/>
+   <line x1="108" y1="107" x2="108" y2="117" stroke="#ecf0f1" stroke-width="1.5"/>
+   <line x1="55" y1="125" x2="45" y2="175" stroke="#ecf0f1" stroke-width="5" stroke-linecap="round"/>
+   <line x1="145" y1="125" x2="155" y2="175" stroke="#ecf0f1" stroke-width="5" stroke-linecap="round"/>
+   <line x1="80" y1="170" x2="80" y2="195" stroke="#ecf0f1" stroke-width="5" stroke-linecap="round"/>
+   <line x1="120" y1="170" x2="120" y2="195" stroke="#ecf0f1" stroke-width="5" stroke-linecap="round"/>
+   <ellipse cx="68" cy="60" rx="7" ry="12" fill="#ecf0f1" transform="rotate(-20,68,60)"/>
+   <ellipse cx="132" cy="60" rx="7" ry="12" fill="#ecf0f1" transform="rotate(20,132,60)"/>`,
+
+  // Level 5 — вогняний демон
+  `<ellipse cx="100" cy="120" rx="62" ry="52" fill="#c0392b"/>
+   <ellipse cx="100" cy="82" rx="46" ry="43" fill="#e74c3c"/>
+   <path d="M70,50 C65,25 80,15 75,5 C88,18 82,30 90,40" fill="#e67e22"/>
+   <path d="M100,45 C95,20 110,10 105,0 C118,15 112,28 115,40" fill="#f39c12"/>
+   <path d="M130,50 C128,25 140,15 132,5 C145,18 138,30 128,40" fill="#e67e22"/>
+   <circle cx="78" cy="78" r="16" fill="#f1c40f"/><circle cx="122" cy="78" r="16" fill="#f1c40f"/>
+   <circle cx="80" cy="80" r="9" fill="#e74c3c"/><circle cx="124" cy="80" r="9" fill="#e74c3c"/>
+   <circle cx="82" cy="77" r="3.5" fill="#fff"/><circle cx="126" cy="77" r="3.5" fill="#fff"/>
+   <path d="M78,108 C88,120 112,120 122,108" stroke="#f39c12" stroke-width="4" fill="none" stroke-linecap="round"/>
+   <polygon points="82,108 86,118 78,118" fill="#f1c40f"/>
+   <polygon points="100,106 104,116 96,116" fill="#f1c40f"/>
+   <polygon points="118,108 122,118 114,118" fill="#f1c40f"/>
+   <path d="M45,100 C30,85 35,60 50,70 C40,55 55,45 60,65 C55,50 70,45 68,65" fill="#e67e22" opacity=".8"/>
+   <path d="M155,100 C170,85 165,60 150,70 C160,55 145,45 140,65 C145,50 130,45 132,65" fill="#e67e22" opacity=".8"/>
+   <ellipse cx="100" cy="162" rx="28" ry="16" fill="#922b21"/>
+   <path d="M80,162 C75,175 70,185 65,180 C72,170 78,160 80,162Z" fill="#c0392b"/>
+   <path d="M120,162 C125,175 130,185 135,180 C128,170 122,160 120,162Z" fill="#c0392b"/>`
+];
+
+function renderBossMonster(level){
+  const svg=document.getElementById('boss-monster-svg');
+  if(!svg)return;
+  svg.innerHTML=BOSS_MONSTERS_SVG[(level-1)%BOSS_MONSTERS_SVG.length]||'';
+}
+
 // ═══════════════════════════════════════════════════════
 window.bossState=null;
 window.bossInterval=null;
@@ -1493,6 +1694,8 @@ function startBoss(level){
 document.getElementById('boss-level-select').classList.add('hidden');
 document.getElementById('math-game-area').classList.add('hidden');
 document.getElementById('boss-game-area').classList.remove('hidden');
+// Render monster background
+renderBossMonster(level);
 // Reset math HUD for boss
 document.getElementById('math-hearts').textContent='';
 document.getElementById('math-stars').textContent='';
@@ -1542,14 +1745,19 @@ const bar=document.getElementById('boss-hp-bar');
 if(pct<33)bar.style.background='linear-gradient(90deg,#00e676,#00c853)';
 else if(pct<66)bar.style.background='linear-gradient(90deg,#ffca28,#ff8f00)';
 else bar.style.background='linear-gradient(90deg,#ff5252,#b71c1c)';
-// Show change
+// Show change with animation
 if(change!==undefined){
 const el=document.getElementById('boss-change-txt');
 if(el){
   el.textContent=(change>0?'+':'')+change;
   el.style.color=change>0?'#ff4444':'#00e676';
+  el.style.textShadow=change>0?'0 0 12px #ff4444':'0 0 12px #00e676';
+  el.style.transform='scale(1.6)';
   clearTimeout(el._t);
-  el._t=setTimeout(()=>{el.textContent='';},1200);
+  el._t=setTimeout(()=>{
+    el.style.transform='scale(1)';
+    setTimeout(()=>{el.textContent=' ';el.style.textShadow='none';},300);
+  },800);
 }
 }
 }
