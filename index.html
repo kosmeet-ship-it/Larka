@@ -264,8 +264,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="renameDog()" style="padding:8px 16px;font-size:0.95rem">✏️ Змінити ім'я</button>
 </div>
 <div class="dog-hearts" id="dog-hearts"></div>
-<div id="bloom-above-btn" style="display:none;margin:10px 0 6px 0">
-  <button onclick="bloomTree()" style="padding:9px 20px;font-size:1rem;font-weight:700;background:linear-gradient(135deg,#e91e8c,#c2185b);color:#fff;border:none;border-radius:12px;cursor:pointer;box-shadow:0 3px 10px rgba(233,30,140,.35);white-space:nowrap">🌸 Квітка −1🌱</button>
+<div id="bloom-above-btn" style="display:none;position:absolute;left:4px;bottom:284px;z-index:10">
+  <button onclick="bloomTree()" style="padding:7px 12px;font-size:.82rem;font-weight:700;background:linear-gradient(135deg,#e91e8c,#c2185b);color:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 10px rgba(233,30,140,.4);white-space:nowrap;touch-action:manipulation">🌸 Квітка −1🌱</button>
 </div>
 <div class="dog-house" onclick="tapDogHouse()">
 <svg viewBox="0 0 150 140" xmlns="http://www.w3.org/2000/svg">
@@ -1728,14 +1728,14 @@ function bloomTree(){
 const user=getUser();
 if(!user.seeds||user.seeds<1)return alert('Потрібно 1🌱 насіння');
 if(!user.tree)return;
-const branch=user.tree.branches.find(b=>b.bud&&!b.flower);
-if(!branch)return;
+const branch=user.tree.branches.find(b=>b.bud&&(!b.flower||b.flower.fallen));
+if(!branch)return alert('Немає бутонів на дереві!');
 user.seeds--;
-const colors=['#FF69B4','#FFD700','#4169E1','#FF0000','#FF8C00','#87CEEB'];
-const centers=['#FFD700','#FF69B4','#fff','#FF8C00'];
+const petalColors=['#FF69B4','#FFD700','#4169E1','#FF4500','#FF8C00','#87CEEB','#FF1493','#7CFC00','#FF6347','#9932CC','#00CED1','#FF007F'];
+const centerColors=['#FFD700','#FF69B4','#fff','#FF8C00','#FFFF00','#00CED1','#FFA500'];
 branch.flower={
-  color:colors[Math.floor(Math.random()*colors.length)],
-  center:centers[Math.floor(Math.random()*centers.length)],
+  color:petalColors[Math.floor(Math.random()*petalColors.length)],
+  center:centerColors[Math.floor(Math.random()*centerColors.length)],
   bloomTime:Date.now(),fallen:false
 };
 saveUser(user);updateUI();updateTreeUI();
@@ -1825,21 +1825,14 @@ branches.forEach((b,bi)=>{
     const bx=+tipX.toFixed(1),by=+tipY.toFixed(1);
     const canBloom=(user.seeds||0)>0;
     const cursor=canBloom?'pointer':'default';
-    const title=canBloom?'Натисни — розквітне (-1🌱)':'Потрібно насіння 🌱';
-    // Draw bud AFTER leaves so it's always on top
-    flowerLayer+=`<g onclick="budClick(${bi})" style="cursor:${cursor}" title="${title}">`;
-    // Transparent hit area
-    flowerLayer+=`<circle cx="${bx}" cy="${by}" r="20" fill="transparent"/>`;
-    // Stem
+    // Use data-budidx for reliable click handling (no inline onclick in innerHTML)
+    flowerLayer+=`<g data-budidx="${bi}" style="cursor:${cursor}">`;
+    flowerLayer+=`<circle cx="${bx}" cy="${by}" r="22" fill="transparent" data-budidx="${bi}"/>`;
     flowerLayer+=`<line x1="${bx}" y1="${by+8}" x2="${bx}" y2="${by+16}" stroke="#388E3C" stroke-width="2.5" stroke-linecap="round"/>`;
-    // Small leaves on stem
     flowerLayer+=`<path d="M ${bx},${by+12} Q ${bx-9},${by+5} ${bx-6},${by-1}" fill="#66BB6A"/>`;
     flowerLayer+=`<path d="M ${bx},${by+12} Q ${bx+9},${by+5} ${bx+6},${by-1}" fill="#66BB6A"/>`;
-    // Bud body — pink oval (closed bud)
-    flowerLayer+=`<ellipse cx="${bx}" cy="${by}" rx="7" ry="10" fill="#FF69B4" stroke="#C2185B" stroke-width="1.5"/>`;
-    // Bud highlight
-    flowerLayer+=`<ellipse cx="${bx-2}" cy="${by-3}" rx="2.5" ry="4" fill="#FFB6C1" opacity=".65"/>`;
-    // Pulsing hint ring if can bloom
+    flowerLayer+=`<ellipse cx="${bx}" cy="${by}" rx="7" ry="10" fill="#FF69B4" stroke="#C2185B" stroke-width="1.5" data-budidx="${bi}"/>`;
+    flowerLayer+=`<ellipse cx="${bx-2}" cy="${by-3}" rx="2.5" ry="4" fill="#FFB6C1" opacity=".65" data-budidx="${bi}"/>`;
     if(canBloom){
       flowerLayer+=`<circle cx="${bx}" cy="${by}" r="13" fill="none" stroke="#e91e8c" stroke-width="1.5" stroke-dasharray="3 3" opacity=".6"/>`;
     }
@@ -1852,16 +1845,13 @@ branches.forEach((b,bi)=>{
       flowerLayer+=`<text x="${fx.toFixed(1)}" y="${(fy+7).toFixed(1)}" text-anchor="middle" font-size="15">🍎</text>`;
     } else {
       const fc=b.flower.color,mc=b.flower.center;
-      // Stem
       flowerLayer+=`<line x1="${fx.toFixed(1)}" y1="${(fy+8).toFixed(1)}" x2="${fx.toFixed(1)}" y2="${(fy+16).toFixed(1)}" stroke="#388E3C" stroke-width="2.5" stroke-linecap="round"/>`;
-      // 6 petals — bigger (r=6), spread further (dist=9)
       flowerLayer+=`<g class="flower-group">`;
       [0,60,120,180,240,300].forEach(a=>{
         const px=(fx+Math.cos(a*Math.PI/180)*9).toFixed(1);
         const py=(fy+Math.sin(a*Math.PI/180)*9).toFixed(1);
         flowerLayer+=`<ellipse cx="${px}" cy="${py}" rx="5.5" ry="5.5" fill="${fc}" opacity=".92"/>`;
       });
-      // Center
       flowerLayer+=`<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="5.5" fill="${mc}" stroke="rgba(0,0,0,.15)" stroke-width="1"/>`;
       flowerLayer+=`</g>`;
     }
@@ -1880,6 +1870,18 @@ fallen.forEach(f=>{
 // Flower/bud layer on top of everything
 h+=flowerLayer;
 svg.innerHTML=h;
+// Attach click via event delegation (works reliably on mobile, unlike onclick in innerHTML)
+svg.onclick=function(e){
+  const t=e.target;
+  const idx=t.getAttribute('data-budidx')||(t.parentElement&&t.parentElement.getAttribute('data-budidx'));
+  if(idx!==null&&idx!==undefined&&idx!=='')budClick(+idx);
+};
+svg.addEventListener('touchend',function(e){
+  const t=document.elementFromPoint(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
+  if(!t)return;
+  const idx=t.getAttribute('data-budidx')||(t.parentElement&&t.parentElement.getAttribute('data-budidx'));
+  if(idx!==null&&idx!==undefined&&idx!==''){e.preventDefault();budClick(+idx);}
+},{passive:false});
 }
 
 function budClick(branchIdx){
