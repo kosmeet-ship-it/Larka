@@ -260,6 +260,9 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <h3 style="color:#764ba2;margin:0">🐕 Моя собака</h3>
 <button class="btn" onclick="renameDog()" style="padding:8px 16px;font-size:0.95rem">✏️ Змінити ім'я</button>
 </div>
+<div id="bloom-above-btn" style="display:none;text-align:center;margin-bottom:10px">
+  <button class="btn" onclick="bloomTree()" style="padding:9px 22px;font-size:1rem;background:linear-gradient(135deg,#e91e8c,#c2185b);color:#fff;border:none;white-space:nowrap">🌸 Квітка -1🌱</button>
+</div>
 <div class="dog-hearts" id="dog-hearts"></div>
 <div class="dog-house" onclick="tapDogHouse()">
 <svg viewBox="0 0 150 140" xmlns="http://www.w3.org/2000/svg">
@@ -319,9 +322,6 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <button class="btn success" onclick="plantTree()" style="padding:5px 10px;font-size:.8rem">🌱 Посадити</button>
 </div>
 <div id="tree-action-wrap" style="position:absolute;left:6px;bottom:4px;display:none;flex-direction:column;gap:6px">
-  <div id="bloom-btn-wrap" style="display:none">
-    <button class="btn" onclick="bloomTree()" style="padding:5px 10px;font-size:.8rem;background:linear-gradient(135deg,#e91e8c,#c2185b);color:#fff;border:none;white-space:nowrap">🌸 Квітка -1🌱</button>
-  </div>
   <div id="water-btn-wrap">
     <button class="btn" onclick="waterTree()" style="padding:5px 10px;font-size:.8rem;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;white-space:nowrap">💧 Полив -800⭐</button>
   </div>
@@ -1638,16 +1638,18 @@ if(bc)bc.textContent=user.bees||0;
 const plantBtn=document.getElementById('plant-btn-wrap');
 const treeActionWrap=document.getElementById('tree-action-wrap');
 const waterBtn=document.getElementById('water-btn-wrap');
-const bloomBtn=document.getElementById('bloom-btn-wrap');
+const bloomAboveBtn=document.getElementById('bloom-above-btn');
 if(!plantBtn)return;
 if(!user.tree){
   plantBtn.style.display=(user.seeds>0)?'block':'none';
   if(treeActionWrap)treeActionWrap.style.display='none';
+  if(bloomAboveBtn)bloomAboveBtn.style.display='none';
 } else {
   plantBtn.style.display='none';
   if(treeActionWrap)treeActionWrap.style.display='flex';
   const hasBud=(user.tree.branches||[]).some(b=>b.bud&&!b.flower);
-  if(bloomBtn)bloomBtn.style.display=(hasBud&&(user.seeds||0)>0)?'block':'none';
+  const canBloom=hasBud&&(user.seeds||0)>0;
+  if(bloomAboveBtn)bloomAboveBtn.style.display=canBloom?'block':'none';
 }
 pruneTree(user);
 renderTree(user);
@@ -1785,13 +1787,14 @@ branches.forEach((b,bi)=>{
     const bx=+tipX.toFixed(1),by=+tipY.toFixed(1);
     const canBloom=(user.seeds||0)>0;
     const cursor=canBloom?'pointer':'default';
-    const title=canBloom?'Натисни щоб розквітнути (-1🌱)':'Потрібно насіння 🌱';
+    const title=canBloom?'Натисни щоб розквітнути (-1\u{1F331})':'Потрібно насіння \u{1F331}';
     flowerLayer+=`<g class="bud-clickable" onclick="budClick(${bi})" style="cursor:${cursor}" title="${title}">`;
-    flowerLayer+=`<circle cx="${bx}" cy="${by}" r="9" fill="transparent"/>`;
-    // Bottom green half
-    flowerLayer+=`<path d="M ${bx-4},${by} A 4,6 0 0,0 ${bx+4},${by} Z" fill="#4CAF50"/>`;
-    // Top pink half
-    flowerLayer+=`<path d="M ${bx-4},${by} A 4,6 0 0,1 ${bx+4},${by} Z" fill="#FF69B4"/>`;
+    flowerLayer+=`<circle cx="${bx}" cy="${by}" r="18" fill="transparent"/>`;
+    flowerLayer+=`<line x1="${bx}" y1="${by+7}" x2="${bx}" y2="${by+13}" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round"/>`;
+    flowerLayer+=`<path d="M ${bx},${by+7} Q ${bx-8},${by+2} ${bx-5},${by-3}" fill="#66BB6A"/>`;
+    flowerLayer+=`<path d="M ${bx},${by+7} Q ${bx+8},${by+2} ${bx+5},${by-3}" fill="#66BB6A"/>`;
+    flowerLayer+=`<ellipse cx="${bx}" cy="${by}" rx="6" ry="8" fill="#FF69B4" stroke="#e91e8c" stroke-width="1"/>`;
+    flowerLayer+=`<ellipse cx="${bx-2}" cy="${by-2}" rx="2" ry="3" fill="#FFB6C1" opacity=".7"/>`;
     flowerLayer+=`</g>`;
   }
   // Flower or Apple — always on top
