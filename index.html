@@ -2827,18 +2827,19 @@ function mpListenRoom(){
       mpStartBossLocal(room.level || 1);
     }
 
-    // sync HP
+    // sync HP (only while actively playing — don't re-trigger end)
     if(room.status === 'playing' && window.bossState){
       mpState.bossHp = room.bossHp;
       window.bossState.hp = room.bossHp;
       updateBossUI();
-      if(room.bossHp <= 0) bossEndGame(true);
-      if(room.bossHp >= MP_BOSS_DEFEAT_HP) bossEndGame(false);
     }
 
-    // victory / defeat signals
-    if(room.status === 'victory' && window.bossState){ bossEndGame(true); }
-    if(room.status === 'defeat'  && window.bossState){ bossEndGame(false); }
+    // victory / defeat signals — single entry point, guard with bossState
+    if((room.status === 'victory' || (room.status === 'playing' && room.bossHp <= 0)) && window.bossState){
+      bossEndGame(true);
+    } else if((room.status === 'defeat' || (room.status === 'playing' && room.bossHp >= MP_BOSS_DEFEAT_HP)) && window.bossState){
+      bossEndGame(false);
+    }
 
     // update live HUD
     if(window.bossState) mpUpdateLiveHud(room.players || {});
@@ -2892,6 +2893,7 @@ async function mpHostStartGame(){
 
 // ── local boss launch in co-op mode ─────────────────────
 function mpStartBossLocal(level){
+  window._bossEndGameRunning = false;
   // Launch math-game screen
   document.getElementById('main').style.display = 'none';
   document.getElementById('math-game').classList.add('is-open');
@@ -3041,6 +3043,10 @@ window.bossEndGame = function(victory){
   const wasMulti = mpState && mpState.roomCode;
   if(window.bossInterval){ clearInterval(window.bossInterval); window.bossInterval = null; }
 
+  // Guard: prevent double execution
+  if(window._bossEndGameRunning) return;
+  window._bossEndGameRunning = true;
+
   if(wasMulti){
     // Show result with player damage breakdown
     mpGet(`rooms/${mpState.roomCode}/players`).then(snap=>{
@@ -3078,9 +3084,11 @@ window.bossEndGame = function(victory){
         setTimeout(()=>{ fb2.className = 'math-feedback'; }, 2500);
       }
       mpLeaveRoom(true);
-    }).catch(()=>{ _origBossEndGame(victory); mpLeaveRoom(true); });
+      window._bossEndGameRunning = false;
+    }).catch(()=>{ _origBossEndGame(victory); mpLeaveRoom(true); window._bossEndGameRunning = false; });
   } else {
     _origBossEndGame(victory);
+    window._bossEndGameRunning = false;
   }
 };
 
