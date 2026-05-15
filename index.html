@@ -35,6 +35,37 @@
 <!-- PWA MANIFEST -->
 <link rel="manifest" href="manifest.json">
 
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, get, update, onValue, off, push, serverTimestamp, remove }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ── Firebase config ───────────────────────────────────────────────────────
+  const firebaseConfig = {
+    apiKey: "AIzaSyDTQnLzcMPpsWrpGqjXg8csH7tK6IaWfNo",
+    authDomain: "larika-boss.firebaseapp.com",
+    databaseURL: "https://larika-boss-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "larika-boss",
+    storageBucket: "larika-boss.firebasestorage.app",
+    messagingSenderId: "519585104019",
+    appId: "1:519585104019:web:ca2df482ddc7d94f59cd66"
+  };
+
+  let app, db;
+  try {
+    app = initializeApp(firebaseConfig);
+    db  = getDatabase(app);
+  } catch(e) {
+    console.warn('Firebase init error (demo mode):', e.message);
+  }
+
+  // Expose helpers to global scope
+  window._fb = { db, ref, set, get, update, onValue, off, push, serverTimestamp, remove };
+  window._fbReady = !!db;
+  document.dispatchEvent(new Event('fbReady'));
+</script>
+
 <!-- ICONS -->
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='96' fill='%23FFD700'/%3E%3Crect y='96' width='192' height='96' fill='%23005BBB'/%3E%3Cpath d='M96 140 C96 140 40 105 40 72 C40 52 55 38 72 38 C83 38 92 44 96 52 C100 44 109 38 120 38 C137 38 152 52 152 72 C152 105 96 140 96 140Z' fill='%23FF69B4' stroke='%23FF1493' stroke-width='3'/%3E%3C/svg%3E">
@@ -160,6 +191,29 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 .math-feedback.wrong h2{color:#ff4444}
 #boss-game-area:not(.hidden){display:flex!important;flex-direction:column;position:absolute;inset:0}
 
+/* ── Multiplayer Boss ───────────────────────────────── */
+#mp-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9500;align-items:center;justify-content:center}
+#mp-modal.show{display:flex}
+.mp-box{background:#1a1a2e;border:2px solid #ff4444;border-radius:22px;padding:26px 22px;max-width:420px;width:94%;color:#fff;max-height:90vh;overflow-y:auto}
+.mp-title{color:#ff4444;font-size:1.6rem;font-weight:900;text-align:center;margin-bottom:18px}
+.mp-btn{width:100%;padding:12px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;color:#fff}
+.mp-btn-create{background:linear-gradient(135deg,#e74c3c,#c0392b)}
+.mp-btn-join{background:linear-gradient(135deg,#8e44ad,#6c3483)}
+.mp-btn-start{background:linear-gradient(135deg,#27ae60,#229954)}
+.mp-btn-leave{background:linear-gradient(135deg,#7f8c8d,#636e72)}
+.mp-input{width:100%;padding:11px;border-radius:10px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1.2rem;text-align:center;letter-spacing:4px;font-weight:700;margin-bottom:10px}
+.mp-input::placeholder{color:#888;letter-spacing:0}
+.mp-code-display{background:rgba(255,255,255,.1);border:2px solid #ffd700;border-radius:12px;padding:14px;text-align:center;margin-bottom:14px}
+.mp-code-val{font-size:2.4rem;font-weight:900;color:#ffd700;letter-spacing:6px}
+.mp-player-list{margin:10px 0;display:flex;flex-direction:column;gap:6px}
+.mp-player-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);padding:8px 12px;border-radius:10px;font-size:.95rem}
+.mp-player-row .mp-dmg{margin-left:auto;color:#00e676;font-weight:700}
+#mp-boss-hud{display:none;position:absolute;top:45px;left:0;right:0;padding:4px 3%;background:rgba(0,0,0,.85);border-bottom:1px solid #ff6666;z-index:5}
+#mp-boss-hud.show{display:block}
+.mp-plist-live{display:flex;gap:6px;flex-wrap:wrap}
+.mp-plive-chip{background:rgba(255,255,255,.1);border-radius:8px;padding:3px 8px;font-size:.78rem;white-space:nowrap}
+.mp-status{text-align:center;color:#aaa;font-size:.9rem;margin:8px 0}
+
 /* Boss Monster Background */
 #boss-monster-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;overflow:hidden}
 #boss-monster-svg{width:min(340px,80vw);height:min(340px,80vw);opacity:.18;filter:drop-shadow(0 0 30px #ff0000)}
@@ -241,6 +295,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
 <button class="btn" onclick="showSyncModal()" style="background:linear-gradient(135deg,#00b4d8,#0096c7)" title="Синхронізація між пристроями">🔄 Синхронізація</button>
+<button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="Кооп БоСС з іншими гравцями">👥 Кооп БоСС</button>
 <button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
 <button class="btn" onclick="logoutUser()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px">🚪</button>
 </div>
@@ -463,6 +518,77 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <h2 id="mfb-title">✅ Правильно!</h2>
   <div id="mfb-detail" style="font-size:1.8rem;margin:12px 0"></div>
 </div>
+</div>
+
+<!-- MULTIPLAYER BOSS MODAL -->
+<div id="mp-modal">
+  <div class="mp-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="mp-title" style="margin:0">💀 Кооп БоСС</div>
+      <button onclick="closeMpModal()" style="background:none;border:none;color:#aaa;font-size:1.8rem;cursor:pointer">✕</button>
+    </div>
+
+    <!-- Step 0: choose action -->
+    <div id="mp-step-choose">
+      <div class="mp-status">Граєте разом проти одного БоСС!<br>Хтось один створює кімнату, решта — приєднуються.</div>
+      <button class="mp-btn mp-btn-create" onclick="mpCreateRoom()">🏰 Створити кімнату</button>
+      <button class="mp-btn mp-btn-join" onclick="mpShowJoin()">🔗 Приєднатись за кодом</button>
+    </div>
+
+    <!-- Step 1a: created room -->
+    <div id="mp-step-created" style="display:none">
+      <div class="mp-status">Поділіться кодом з друзями:</div>
+      <div class="mp-code-display">
+        <div style="color:#aaa;font-size:.8rem;margin-bottom:4px">КОД КІМНАТИ</div>
+        <div class="mp-code-val" id="mp-room-code-display">----</div>
+        <button onclick="mpCopyCode()" style="margin-top:8px;padding:6px 18px;border:none;border-radius:8px;background:#ffd700;color:#000;font-weight:700;cursor:pointer;font-size:.9rem">📋 Скопіювати</button>
+      </div>
+      <div style="color:#aaa;font-size:.85rem;margin-bottom:8px">Гравці в кімнаті:</div>
+      <div class="mp-player-list" id="mp-player-list-created"></div>
+      <div class="mp-status" id="mp-waiting-txt">Очікуємо гравців…</div>
+      <div style="margin-bottom:10px">
+        <label style="color:#aaa;font-size:.85rem">Рівень БоСС:</label>
+        <select id="mp-level-select" style="width:100%;padding:9px;border-radius:9px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;margin-top:5px">
+          <option value="1">💀 Рівень 1</option>
+          <option value="2">💀💀 Рівень 2</option>
+          <option value="3">💀💀💀 Рівень 3</option>
+          <option value="4">💀💀💀💀 Рівень 4</option>
+          <option value="5">💀💀💀💀💀 Рівень 5</option>
+        </select>
+      </div>
+      <button class="mp-btn mp-btn-start" id="mp-start-btn" onclick="mpHostStartGame()">▶️ Почати гру</button>
+      <button class="mp-btn mp-btn-leave" onclick="mpLeaveRoom()">🚪 Вийти з кімнати</button>
+    </div>
+
+    <!-- Step 1b: join room -->
+    <div id="mp-step-join" style="display:none">
+      <div class="mp-status">Введіть код кімнати:</div>
+      <input class="mp-input" id="mp-join-code-input" placeholder="XXXX" maxlength="6"
+        oninput="this.value=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter')mpJoinRoom()">
+      <div class="mp-status" id="mp-join-err" style="color:#e74c3c;display:none"></div>
+      <button class="mp-btn mp-btn-join" onclick="mpJoinRoom()">🔗 Приєднатись</button>
+      <button class="mp-btn mp-btn-leave" onclick="mpShowChoose()">← Назад</button>
+    </div>
+
+    <!-- Step 2: joined as guest -->
+    <div id="mp-step-joined" style="display:none">
+      <div class="mp-status">Ви в кімнаті! Очікуємо початку…</div>
+      <div class="mp-code-display">
+        <div style="color:#aaa;font-size:.8rem;margin-bottom:4px">КОД КІМНАТИ</div>
+        <div class="mp-code-val" id="mp-joined-code-display">----</div>
+      </div>
+      <div style="color:#aaa;font-size:.85rem;margin-bottom:8px">Гравці в кімнаті:</div>
+      <div class="mp-player-list" id="mp-player-list-joined"></div>
+      <button class="mp-btn mp-btn-leave" onclick="mpLeaveRoom()">🚪 Вийти з кімнати</button>
+    </div>
+  </div>
+</div>
+
+<!-- MULTIPLAYER LIVE HUD (inside boss-game-area) -->
+<div id="mp-boss-hud">
+  <div style="color:#ff9999;font-size:.72rem;margin-bottom:2px">👥 КООП — гравці:</div>
+  <div class="mp-plist-live" id="mp-plist-live"></div>
 </div>
 
 <!-- SYNC MODAL -->
@@ -2453,6 +2579,510 @@ e.preventDefault();
 deferredPrompt=e;
 });
 window.addEventListener('appinstalled',()=>{deferredPrompt=null;});
+
+// ═══════════════════════════════════════════════════════════
+// MULTIPLAYER CO-OP BOSS
+// Uses Firebase Realtime Database for real-time sync.
+// Room data structure:
+//   /rooms/{code}/host        — profile name of host
+//   /rooms/{code}/level       — boss level (1-5)
+//   /rooms/{code}/status      — 'waiting' | 'playing' | 'victory' | 'defeat'
+//   /rooms/{code}/bossHp      — current boss HP (number)
+//   /rooms/{code}/players/{id} — { name, avatar, dmg, online }
+//   /rooms/{code}/createdAt   — timestamp
+// ═══════════════════════════════════════════════════════════
+
+const MP_BOSS_START_HP = 1500;
+const MP_BOSS_DEFEAT_HP = 3000;
+const MP_REGEN_PER_LEVEL = [0, 50, 100, 150, 200, 250];
+const MP_ROOM_TTL_MS = 2 * 60 * 60 * 1000; // auto-clean rooms older than 2h (client-side)
+
+let mpState = null;
+/*  mpState = {
+      roomCode, myId, myName, myAvatar,
+      isHost, level,
+      bossHp, regenInterval,
+      fbListeners: []   // { ref, fn } to unsubscribe
+    }
+*/
+
+// ── helpers ──────────────────────────────────────────────
+function mpFb(){ return window._fb || null; }
+
+function mpRef(path){
+  const fb = mpFb();
+  if(!fb) return null;
+  return fb.ref(fb.db, path);
+}
+
+function mpSet(path, val){
+  const fb = mpFb();
+  if(!fb) return Promise.reject('no db');
+  return fb.set(fb.ref(fb.db, path), val);
+}
+
+function mpUpdate(path, val){
+  const fb = mpFb();
+  if(!fb) return Promise.reject('no db');
+  return fb.update(fb.ref(fb.db, path), val);
+}
+
+function mpGet(path){
+  const fb = mpFb();
+  if(!fb) return Promise.reject('no db');
+  return fb.get(fb.ref(fb.db, path));
+}
+
+function mpOn(path, cb){
+  const fb = mpFb();
+  if(!fb) return null;
+  const r = fb.ref(fb.db, path);
+  fb.onValue(r, cb);
+  if(mpState) mpState.fbListeners.push({r, cb});
+  return r;
+}
+
+function mpOff(path){
+  const fb = mpFb();
+  if(!fb || !mpState) return;
+  mpState.fbListeners = mpState.fbListeners.filter(l => {
+    try{ if(fb.ref(fb.db,path) === l.r){ fb.off(l.r, l.cb); return false; } }catch{}
+    return true;
+  });
+}
+
+function mpUnsubAll(){
+  if(!mpState) return;
+  const fb = mpFb();
+  if(fb) mpState.fbListeners.forEach(l=>{ try{ fb.off(l.r, l.cb); }catch{} });
+  mpState.fbListeners = [];
+}
+
+function mpGenCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c = '';
+  for(let i=0;i<5;i++) c += chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+
+function mpMyInfo(){
+  const profiles = loadAllProfiles();
+  const p = profiles[_activeProfileId] || {};
+  return { name: p.name || 'Гравець', avatar: p.avatar || '👤' };
+}
+
+// ── modal navigation ─────────────────────────────────────
+function openMpModal(){
+  document.getElementById('mp-modal').classList.add('show');
+  mpShowChoose();
+}
+function closeMpModal(){
+  document.getElementById('mp-modal').classList.remove('show');
+}
+function mpShowChoose(){
+  ['mp-step-choose','mp-step-created','mp-step-join','mp-step-joined'].forEach(id=>{
+    document.getElementById(id).style.display = id==='mp-step-choose'?'block':'none';
+  });
+}
+function mpShowJoin(){
+  ['mp-step-choose','mp-step-created','mp-step-join','mp-step-joined'].forEach(id=>{
+    document.getElementById(id).style.display = id==='mp-step-join'?'block':'none';
+  });
+  document.getElementById('mp-join-err').style.display='none';
+  document.getElementById('mp-join-code-input').value='';
+  setTimeout(()=>document.getElementById('mp-join-code-input').focus(), 100);
+}
+function mpShowCreated(){
+  ['mp-step-choose','mp-step-created','mp-step-join','mp-step-joined'].forEach(id=>{
+    document.getElementById(id).style.display = id==='mp-step-created'?'block':'none';
+  });
+}
+function mpShowJoined(){
+  ['mp-step-choose','mp-step-created','mp-step-join','mp-step-joined'].forEach(id=>{
+    document.getElementById(id).style.display = id==='mp-step-joined'?'block':'none';
+  });
+}
+
+function mpCopyCode(){
+  const code = mpState ? mpState.roomCode : '';
+  if(!code) return;
+  navigator.clipboard.writeText(code).catch(()=>{});
+  const btn = document.querySelector('#mp-step-created button[onclick="mpCopyCode()"]');
+  if(btn){ const orig=btn.textContent; btn.textContent='✅ Скопійовано!'; setTimeout(()=>btn.textContent=orig, 1500); }
+}
+
+// ── create room ──────────────────────────────────────────
+async function mpCreateRoom(){
+  if(!window._fbReady){
+    alert('❌ Firebase не підключено.\nВстановіть власний Firebase проект (безкоштовний) і замініть firebaseConfig у коді.\n\nДив. інструкцію у коментарях.');
+    return;
+  }
+  const info = mpMyInfo();
+  const code = mpGenCode();
+  const myId = 'p_' + Date.now();
+
+  const roomData = {
+    host: info.name,
+    level: 1,
+    status: 'waiting',
+    bossHp: MP_BOSS_START_HP,
+    createdAt: Date.now(),
+    players: {
+      [myId]: { name: info.name, avatar: info.avatar, dmg: 0, online: true }
+    }
+  };
+
+  try {
+    await mpSet(`rooms/${code}`, roomData);
+  } catch(e) {
+    alert('❌ Помилка з\'єднання: ' + e.message);
+    return;
+  }
+
+  mpState = {
+    roomCode: code,
+    myId,
+    myName: info.name,
+    myAvatar: info.avatar,
+    isHost: true,
+    level: 1,
+    bossHp: MP_BOSS_START_HP,
+    regenInterval: null,
+    fbListeners: []
+  };
+
+  document.getElementById('mp-room-code-display').textContent = code;
+  mpShowCreated();
+  mpListenRoom();
+}
+
+// ── join room ────────────────────────────────────────────
+async function mpJoinRoom(){
+  if(!window._fbReady){
+    alert('❌ Firebase не підключено.');
+    return;
+  }
+  const code = (document.getElementById('mp-join-code-input').value || '').trim().toUpperCase();
+  const errEl = document.getElementById('mp-join-err');
+  errEl.style.display = 'none';
+
+  if(code.length < 4){
+    errEl.textContent = '❌ Введіть правильний код'; errEl.style.display = 'block'; return;
+  }
+
+  let snap;
+  try { snap = await mpGet(`rooms/${code}`); }
+  catch(e){ errEl.textContent = '❌ Помилка з\'єднання'; errEl.style.display='block'; return; }
+
+  if(!snap.exists()){
+    errEl.textContent = '❌ Кімнату не знайдено'; errEl.style.display = 'block'; return;
+  }
+  const room = snap.val();
+  if(room.status === 'playing'){
+    errEl.textContent = '❌ Гра вже йде, не можна приєднатись'; errEl.style.display = 'block'; return;
+  }
+
+  const info = mpMyInfo();
+  const myId = 'p_' + Date.now();
+
+  try {
+    await mpSet(`rooms/${code}/players/${myId}`, { name: info.name, avatar: info.avatar, dmg: 0, online: true });
+  } catch(e) { errEl.textContent = '❌ ' + e.message; errEl.style.display='block'; return; }
+
+  mpState = {
+    roomCode: code,
+    myId,
+    myName: info.name,
+    myAvatar: info.avatar,
+    isHost: false,
+    level: room.level || 1,
+    bossHp: room.bossHp || MP_BOSS_START_HP,
+    regenInterval: null,
+    fbListeners: []
+  };
+
+  document.getElementById('mp-joined-code-display').textContent = code;
+  mpShowJoined();
+  mpListenRoom();
+}
+
+// ── listen to room changes ───────────────────────────────
+function mpListenRoom(){
+  if(!mpState) return;
+  const code = mpState.roomCode;
+
+  mpOn(`rooms/${code}`, snap => {
+    if(!snap.exists()){ mpLeaveRoom(true); return; }
+    const room = snap.val();
+
+    // update player list in modal
+    mpRenderPlayerList(room.players || {});
+
+    // sync level for guests
+    if(!mpState.isHost && room.level) mpState.level = room.level;
+
+    // host started → close modal, launch boss for everyone
+    if(room.status === 'playing' && !window.bossState){
+      closeMpModal();
+      mpStartBossLocal(room.level || 1);
+    }
+
+    // sync HP
+    if(room.status === 'playing' && window.bossState){
+      mpState.bossHp = room.bossHp;
+      window.bossState.hp = room.bossHp;
+      updateBossUI();
+      if(room.bossHp <= 0) bossEndGame(true);
+      if(room.bossHp >= MP_BOSS_DEFEAT_HP) bossEndGame(false);
+    }
+
+    // victory / defeat signals
+    if(room.status === 'victory' && window.bossState){ bossEndGame(true); }
+    if(room.status === 'defeat'  && window.bossState){ bossEndGame(false); }
+
+    // update live HUD
+    if(window.bossState) mpUpdateLiveHud(room.players || {});
+  });
+}
+
+function mpRenderPlayerList(players){
+  ['mp-player-list-created','mp-player-list-joined'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    const rows = Object.values(players).map(p=>`
+      <div class="mp-player-row">
+        <span>${p.avatar||'👤'}</span>
+        <span>${p.name}</span>
+        <span class="mp-dmg">⚔️${p.dmg||0}</span>
+      </div>`).join('');
+    el.innerHTML = rows || '<div style="color:#888">Немає гравців</div>';
+  });
+
+  const count = Object.keys(players).length;
+  const waitTxt = document.getElementById('mp-waiting-txt');
+  if(waitTxt) waitTxt.textContent = count > 1
+    ? `✅ ${count} гравців готово!`
+    : 'Очікуємо гравців…';
+}
+
+function mpUpdateLiveHud(players){
+  const hud = document.getElementById('mp-boss-hud');
+  const list = document.getElementById('mp-plist-live');
+  if(!hud || !list) return;
+  hud.classList.add('show');
+  list.innerHTML = Object.values(players).map(p=>
+    `<span class="mp-plive-chip">${p.avatar||'👤'} ${p.name} ⚔️${p.dmg||0}</span>`
+  ).join('');
+}
+
+// ── host starts game ─────────────────────────────────────
+async function mpHostStartGame(){
+  if(!mpState || !mpState.isHost) return;
+  const lvl = parseInt(document.getElementById('mp-level-select').value) || 1;
+  mpState.level = lvl;
+  try {
+    await mpUpdate(`rooms/${mpState.roomCode}`, {
+      level: lvl,
+      status: 'playing',
+      bossHp: MP_BOSS_START_HP
+    });
+  } catch(e) { alert('❌ ' + e.message); }
+  // room listener will trigger mpStartBossLocal for everyone (including host)
+}
+
+// ── local boss launch in co-op mode ─────────────────────
+function mpStartBossLocal(level){
+  // Launch math-game screen
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('math-game').classList.add('is-open');
+
+  document.getElementById('math-level-select').classList.add('hidden');
+  document.getElementById('boss-level-select').classList.add('hidden');
+  document.getElementById('math-game-area').classList.add('hidden');
+  document.getElementById('boss-game-area').classList.remove('hidden');
+
+  renderBossMonster(level);
+  document.getElementById('math-hearts').textContent = '';
+  document.getElementById('math-stars').textContent = '';
+  document.getElementById('math-correct-count').textContent = '💀';
+  document.getElementById('math-progress-fill').style.width = '50%';
+
+  window.bossState = {
+    level,
+    hp: MP_BOSS_START_HP,
+    regen: MP_REGEN_PER_LEVEL[level],
+    currentQ: null,
+    currentLvl: null,
+    isMultiplayer: true
+  };
+  window.bossTimerLeft = 10;
+  updateBossUI();
+  nextBossQuestion();
+
+  // Regen — only host drives regen to DB, guests just read
+  if(window.bossInterval) clearInterval(window.bossInterval);
+  window.bossInterval = setInterval(async ()=>{
+    if(!window.bossState) return;
+    window.bossTimerLeft--;
+    document.getElementById('boss-regen-txt').textContent =
+      `+${window.bossState.regen}/${window.bossTimerLeft}с`;
+
+    if(window.bossTimerLeft <= 0){
+      window.bossTimerLeft = 10;
+      if(mpState && mpState.isHost){
+        // Host applies regen to DB
+        const newHp = Math.min(MP_BOSS_DEFEAT_HP, (mpState.bossHp || MP_BOSS_START_HP) + window.bossState.regen);
+        mpState.bossHp = newHp;
+        try { await mpUpdate(`rooms/${mpState.roomCode}`, { bossHp: newHp }); } catch{}
+        updateBossUI(window.bossState.regen);
+        if(newHp >= MP_BOSS_DEFEAT_HP){
+          try { await mpUpdate(`rooms/${mpState.roomCode}`, { status: 'defeat' }); } catch{}
+        }
+      }
+    }
+  }, 1000);
+
+  document.getElementById('boss-answer').onkeypress = e => {
+    if(e.key === 'Enter') checkBossAnswer();
+  };
+
+  // Show live HUD
+  mpOn(`rooms/${mpState.roomCode}/players`, snap => {
+    if(snap.exists()) mpUpdateLiveHud(snap.val());
+  });
+}
+
+// ── patch checkBossAnswer to sync damage to DB ───────────
+const _origCheckBossAnswer = checkBossAnswer;
+window.checkBossAnswer = async function(){
+  if(!window.bossState) return;
+  const inp = document.getElementById('boss-answer');
+  const val = inp.value.trim();
+  if(!val) return;
+  const answer = parseInt(val, 10);
+  const correct = window.bossState.currentQ.a;
+
+  if(answer === correct){
+    const dmg = MATH_LEVELS[window.bossState.currentLvl].reward;
+
+    if(mpState && mpState.roomCode){
+      // Multiplayer: apply damage to shared DB HP
+      const currentHp = mpState.bossHp !== undefined ? mpState.bossHp : window.bossState.hp;
+      const newHp = Math.max(0, currentHp - dmg);
+      mpState.bossHp = newHp;
+
+      inp.style.borderColor = '#27ae60';
+      inp.style.background = '#d4edda';
+      updateBossUI(-dmg);
+
+      // Record personal damage
+      const myDmgPath = `rooms/${mpState.roomCode}/players/${mpState.myId}/dmg`;
+      try {
+        const snap = await mpGet(myDmgPath);
+        const prevDmg = snap.exists() ? (snap.val()||0) : 0;
+        await mpUpdate(`rooms/${mpState.roomCode}/players/${mpState.myId}`, { dmg: prevDmg + dmg });
+        await mpUpdate(`rooms/${mpState.roomCode}`, { bossHp: newHp });
+        if(newHp <= 0){
+          await mpUpdate(`rooms/${mpState.roomCode}`, { status: 'victory' });
+        }
+      } catch(e) { console.warn('mp sync error', e); }
+
+      setTimeout(()=>nextBossQuestion(), 350);
+    } else {
+      // Solo mode — original behaviour
+      window.bossState.hp = Math.max(0, window.bossState.hp - dmg);
+      inp.style.borderColor = '#27ae60';
+      inp.style.background = '#d4edda';
+      updateBossUI(-dmg);
+      if(window.bossState.hp <= 0){ bossEndGame(true); return; }
+      setTimeout(()=>nextBossQuestion(), 350);
+    }
+  } else {
+    inp.style.borderColor = '#e74c3c';
+    inp.style.background = '#f8d7da';
+    setTimeout(()=>nextBossQuestion(), 400);
+  }
+};
+
+// ── leave / cleanup ──────────────────────────────────────
+async function mpLeaveRoom(silent){
+  if(mpState){
+    const fb = mpFb();
+    mpUnsubAll();
+    if(mpState.regenInterval) clearInterval(mpState.regenInterval);
+    if(fb && mpState.roomCode && mpState.myId){
+      try {
+        await mpUpdate(`rooms/${mpState.roomCode}/players/${mpState.myId}`, { online: false });
+        // If host leaves, delete room
+        if(mpState.isHost){
+          await fb.remove(fb.ref(fb.db, `rooms/${mpState.roomCode}`));
+        }
+      } catch{}
+    }
+    mpState = null;
+  }
+  // Hide live HUD
+  const hud = document.getElementById('mp-boss-hud');
+  if(hud) hud.classList.remove('show');
+
+  if(!silent) mpShowChoose();
+}
+
+// Patch closeMath to also clean up multiplayer
+const _origCloseMath = closeMath;
+window.closeMath = function(){
+  mpLeaveRoom(true);
+  _origCloseMath();
+};
+
+// Patch bossEndGame to show co-op results
+const _origBossEndGame = bossEndGame;
+window.bossEndGame = function(victory){
+  const wasMulti = mpState && mpState.roomCode;
+  if(window.bossInterval){ clearInterval(window.bossInterval); window.bossInterval = null; }
+
+  if(wasMulti){
+    // Show result with player damage breakdown
+    mpGet(`rooms/${mpState.roomCode}/players`).then(snap=>{
+      const players = snap.exists() ? snap.val() : {};
+      const lvl = window.bossState ? window.bossState.level : (mpState.level||1);
+      window.bossState = null;
+
+      document.getElementById('boss-game-area').classList.add('hidden');
+      document.getElementById('math-level-select').classList.remove('hidden');
+      document.getElementById('math-hearts').textContent = '❤️❤️❤️❤️❤️❤️❤️❤️';
+      document.getElementById('math-stars').textContent = '0';
+      document.getElementById('math-correct-count').textContent = '0/20';
+      document.getElementById('math-progress-fill').style.width = '0%';
+      document.getElementById('mp-boss-hud').classList.remove('show');
+
+      if(victory){
+        const bees = lvl, stars = lvl * 1000;
+        const user = getUser();
+        if(!user.bees) user.bees = 0;
+        user.bees += bees;
+        user.stars += stars;
+        saveUser(user);
+        updateUI();
+
+        // Build leaderboard string
+        const sorted = Object.values(players).sort((a,b)=>(b.dmg||0)-(a.dmg||0));
+        const board = sorted.map((p,i)=>`${['🥇','🥈','🥉'][i]||'  '} ${p.avatar||'👤'} ${p.name}: ⚔️${p.dmg||0}`).join('\n');
+        document.getElementById('victory-amount').textContent = `+${bees}🐝 +${stars}⭐\n\n👥 Команда:\n${board}`;
+        document.getElementById('victory').style.display = 'flex';
+      } else {
+        const fb2 = document.getElementById('math-feedback');
+        document.getElementById('mfb-title').textContent = '💀 ПОРАЗКА!';
+        document.getElementById('mfb-detail').textContent = 'БоСС виживає… Спробуйте ще!';
+        fb2.className = 'math-feedback show wrong';
+        setTimeout(()=>{ fb2.className = 'math-feedback'; }, 2500);
+      }
+      mpLeaveRoom(true);
+    }).catch(()=>{ _origBossEndGame(victory); mpLeaveRoom(true); });
+  } else {
+    _origBossEndGame(victory);
+  }
+};
 
 </script>
 </body>
