@@ -234,6 +234,39 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 @keyframes appleFall{0%{top:var(--apple-start-y);opacity:1}80%{opacity:1}100%{top:calc(100% - 40px);opacity:1}}
 .bee-anim{position:absolute;font-size:2rem;pointer-events:none;animation:beeApproach 1.5s cubic-bezier(.4,0,.2,1) forwards,beeWiggle .2s linear infinite}
 .apple-on-ground{position:absolute;font-size:2.2rem;pointer-events:none;bottom:24px;cursor:default}
+
+/* Hedgehog animation */
+@keyframes hedgehogRun{0%{left:-10%}100%{left:110%}}
+@keyframes appleFallGround{0%{top:10%;opacity:1}100%{top:calc(100% - 50px);opacity:1}}
+
+/* English CoopBoss */
+#en-boss-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9500;align-items:center;justify-content:center}
+#en-boss-modal.show{display:flex}
+.en-boss-box{background:#1a1a2e;border:2px solid #00b4d8;border-radius:22px;padding:26px 22px;max-width:420px;width:94%;color:#fff;max-height:90vh;overflow-y:auto}
+.en-boss-title{color:#00b4d8;font-size:1.6rem;font-weight:900;text-align:center;margin-bottom:18px}
+
+/* English Boss game area */
+#en-boss-game{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0d1b2a,#1b2838,#0d2137);z-index:3500;touch-action:none;flex-direction:column}
+#en-boss-game.is-open{display:flex}
+.en-boss-hud{height:40px;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.9);color:#fff;font-size:.82rem;white-space:nowrap;flex-shrink:0;position:relative}
+.en-boss-back{position:absolute;left:5px;top:50%;transform:translateY(-50%);background:#e74c3c;color:#fff;border:none;padding:4px 10px;border-radius:12px;cursor:pointer;font-size:.76rem;font-weight:700}
+.en-boss-hp-panel{padding:6px 3% 5px;background:rgba(0,0,0,.88);flex-shrink:0;border-bottom:2px solid #00b4d8}
+.en-boss-word{flex-shrink:0;text-align:center;background:rgba(0,0,0,.75);color:#fff;font-size:2.2rem;font-weight:700;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.1);letter-spacing:1px}
+.en-boss-input-row{display:flex;gap:8px;padding:8px 3%;flex-shrink:0;align-items:stretch}
+.en-boss-input{flex:1;font-size:1.6rem;font-weight:700;padding:8px 10px;border-radius:12px;border:3px solid #00b4d8;background:rgba(255,255,255,.96);text-align:center;min-width:0}
+.en-boss-input.correct{border-color:#27ae60;background:#d4edda}
+.en-boss-input.wrong{border-color:#e74c3c;background:#f8d7da;animation:mshake .5s}
+.en-boss-feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.96);padding:20px 30px;border-radius:22px;color:#fff;text-align:center;z-index:9200;display:none;min-width:250px}
+.en-boss-feedback.show{display:block;animation:fadeIn .3s}
+.en-boss-feedback.correct h2{color:#00ff88}
+.en-boss-feedback.wrong h2{color:#ff4444}
+
+/* Damage leaderboard overlay */
+#dmg-leaderboard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9800;align-items:center;justify-content:center}
+#dmg-leaderboard.show{display:flex}
+.dmg-board-box{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #ffd700;border-radius:20px;padding:20px;width:92%;max-width:400px;color:#fff;text-align:center}
+.dmg-board-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.08);padding:10px 16px;border-radius:10px;margin:6px 0;font-size:1rem}
+.dmg-board-dmg{color:#00e676;font-weight:700;font-size:1.1rem}
 </style>
 </head>
 <body>
@@ -292,11 +325,13 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div class="stars">⭐ <span id="stars-display">0</span></div>
 <div style="font-size:1rem;color:#2e7d32;font-weight:700">🌱<span id="seed-count">0</span></div>
 <div style="font-size:1rem;color:#f39c12;font-weight:700">🐝<span id="bee-count">0</span></div>
+<div style="font-size:1rem;color:#8B4513;font-weight:700">🦔<span id="hedgehog-count">0</span></div>
+<div style="font-size:1rem;color:#795548;font-weight:700">🦴<span id="bone-count">0</span></div>
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
 <button class="btn" onclick="showSyncModal()" style="background:linear-gradient(135deg,#00b4d8,#0096c7)" title="Синхронізація між пристроями">🔄 Синхронізація</button>
 <button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="Кооп БоСС з іншими гравцями">👥 Кооп БоСС</button>
-<button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
+<button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="Кооп БоСС English">🇬🇧 Кооп БоСС</button><button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
 <button class="btn" onclick="logoutUser()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px">🚪</button>
 </div>
 
@@ -334,6 +369,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <polygon points="5,68 75,10 145,68" fill="none" stroke="#922B21" stroke-width="2.5"/>
   <!-- Дах — деталь (друга лінія) -->
   <polygon points="15,68 75,18 135,68" fill="#E74C3C"/>
+  <!-- Урон гравця на даху -->
+  <text id="dog-house-dmg" x="75" y="52" text-anchor="middle" fill="#FFD700" font-size="9" font-weight="bold" font-family="Segoe UI,sans-serif">100%</text>
   <!-- Вентиляційний отвір на даху -->
   <circle cx="75" cy="42" r="7" fill="#922B21" stroke="#7B241C" stroke-width="1.5"/>
   <circle cx="75" cy="42" r="3.5" fill="#1a0a00"/>
@@ -369,6 +406,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn success" onclick="petDog()">✋ Погладити -800⭐</button>
 <button class="btn success" onclick="throwBall()">⚽ М'ячик -800⭐</button>
 <button class="btn" id="apple-action-btn" onclick="doAppleAction()" style="background:linear-gradient(135deg,#e74c3c,#c0392b);display:none">🍎 Яблуко (-10🐝)</button>
+<button class="btn" id="hedgehog-action-btn" onclick="doHedgehogAction()" style="background:linear-gradient(135deg,#795548,#5D4037)">🦔 Їжачок (-1🦔-1🍎)</button>
+<button class="btn" id="throw-bone-boss-btn" onclick="throwBoneBonus()" style="background:linear-gradient(135deg,#ff8f00,#e65100);display:none">🦴 Кинути кісточку (+1% урону)</button>
 </div>
 <div id="poops-container"></div>
 <!-- Tree -->
@@ -403,6 +442,25 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('nature')">🌳 Природа</button>
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('pronouns')">👤 Займенники</button>
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('interrogative')">❓ Питальні</button>
+</div>
+<div style="border-top:2px solid rgba(255,255,255,.2);margin:18px 0"></div>
+<div style="color:#aaa;font-size:.9rem;margin-bottom:10px">Режим БоСС (1 гравець)</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+<button class="btn" style="padding:14px 18px;font-size:1rem;background:linear-gradient(135deg,rgba(180,0,0,.7),rgba(80,0,0,.9));border:2px solid #ff4444" onclick="startEnBossSolo('verbs')">🏃 Дієслова</button>
+<button class="btn" style="padding:14px 18px;font-size:1rem;background:linear-gradient(135deg,rgba(180,0,0,.7),rgba(80,0,0,.9));border:2px solid #ff4444" onclick="startEnBossSolo('home')">🏠 Дім</button>
+<button class="btn" style="padding:14px 18px;font-size:1rem;background:linear-gradient(135deg,rgba(180,0,0,.7),rgba(80,0,0,.9));border:2px solid #ff4444" onclick="startEnBossSolo('nature')">🌳 Природа</button>
+<button class="btn" style="padding:14px 18px;font-size:1rem;background:linear-gradient(135deg,rgba(180,0,0,.7),rgba(80,0,0,.9));border:2px solid #ff4444" onclick="startEnBossSolo('pronouns')">👤 Займенники</button>
+<button class="btn" style="padding:14px 18px;font-size:1rem;background:linear-gradient(135deg,rgba(180,0,0,.7),rgba(80,0,0,.9));border:2px solid #ff4444" onclick="startEnBossSolo('interrogative')">❓ Питальні</button>
+</div>
+<div style="margin-top:10px">
+  <label style="color:#aaa;font-size:.85rem">Рівень БоСС: </label>
+  <select id="en-boss-solo-level" style="padding:7px 12px;border-radius:8px;border:2px solid #ff4444;background:rgba(0,0,0,.7);color:#fff;font-size:.9rem">
+    <option value="1">💀 Рівень 1</option>
+    <option value="2">💀💀 Рівень 2</option>
+    <option value="3">💀💀💀 Рівень 3</option>
+    <option value="4">💀💀💀💀 Рівень 4</option>
+    <option value="5">💀💀💀💀💀 Рівень 5</option>
+  </select>
 </div>
 </div>
 <div id="en-game-area" class="hidden">
@@ -627,10 +685,817 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 </div>
 </div>
 
+<!-- ENGLISH COOP BOSS MODAL -->
+<div id="en-boss-modal">
+  <div class="en-boss-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="en-boss-title" style="margin:0">🇬🇧 Кооп БоСС English</div>
+      <button onclick="closeEnBossModal()" style="background:none;border:none;color:#aaa;font-size:1.8rem;cursor:pointer">✕</button>
+    </div>
+    <div id="en-boss-step-choose">
+      <div class="mp-status" style="color:#aaa;text-align:center;font-size:.9rem;margin:8px 0">Граєте разом проти БоСС на англійських словах!</div>
+      <button class="mp-btn" style="background:linear-gradient(135deg,#e74c3c,#c0392b);width:100%;padding:12px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;color:#fff" onclick="enBossCreateRoom()">🏰 Створити кімнату</button>
+      <button class="mp-btn" style="background:linear-gradient(135deg,#8e44ad,#6c3483);width:100%;padding:12px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;color:#fff" onclick="enBossShowJoin()">🔗 Приєднатись за кодом</button>
+    </div>
+    <div id="en-boss-step-created" style="display:none">
+      <div style="color:#aaa;font-size:.85rem;margin-bottom:8px;text-align:center">Поділіться кодом:</div>
+      <div class="mp-code-display" style="background:rgba(255,255,255,.1);border:2px solid #ffd700;border-radius:12px;padding:14px;text-align:center;margin-bottom:14px">
+        <div style="color:#aaa;font-size:.8rem;margin-bottom:4px">КОД КІМНАТИ</div>
+        <div class="mp-code-val" id="en-boss-room-code-display" style="font-size:2.4rem;font-weight:900;color:#ffd700;letter-spacing:6px">----</div>
+        <button onclick="enBossCopyCode()" style="margin-top:8px;padding:6px 18px;border:none;border-radius:8px;background:#ffd700;color:#000;font-weight:700;cursor:pointer;font-size:.9rem">📋 Скопіювати</button>
+      </div>
+      <div style="color:#aaa;font-size:.85rem;margin-bottom:6px">Тема:</div>
+      <select id="en-boss-theme-select" style="width:100%;padding:9px;border-radius:9px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;margin-bottom:10px">
+        <option value="verbs">🏃 Дієслова</option>
+        <option value="home">🏠 Дім</option>
+        <option value="nature">🌳 Природа</option>
+        <option value="pronouns">👤 Займенники</option>
+        <option value="interrogative">❓ Питальні</option>
+      </select>
+      <div style="color:#aaa;font-size:.85rem;margin-bottom:6px">Рівень БоСС:</div>
+      <select id="en-boss-level-select" style="width:100%;padding:9px;border-radius:9px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;margin-bottom:12px">
+        <option value="1">💀 Рівень 1 — +50/10с</option>
+        <option value="2">💀💀 Рівень 2 — +100/10с</option>
+        <option value="3">💀💀💀 Рівень 3 — +150/10с</option>
+        <option value="4">💀💀💀💀 Рівень 4 — +200/10с</option>
+        <option value="5">💀💀💀💀💀 Рівень 5 — +250/10с</option>
+      </select>
+      <div style="color:#aaa;font-size:.85rem;margin-bottom:6px">Гравці:</div>
+      <div class="mp-player-list" id="en-boss-player-list-created"></div>
+      <button style="width:100%;padding:12px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;color:#fff;background:linear-gradient(135deg,#27ae60,#229954)" onclick="enBossHostStart()">▶️ Почати гру</button>
+      <button style="width:100%;padding:12px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(135deg,#7f8c8d,#636e72)" onclick="enBossLeaveRoom()">🚪 Вийти</button>
+    </div>
+    <div id="en-boss-step-join" style="display:none">
+      <div class="mp-status" style="color:#aaa;text-align:center;margin:8px 0">Введіть код кімнати:</div>
+      <input class="mp-input" id="en-boss-join-input" placeholder="XXXXX" maxlength="6" style="width:100%;padding:11px;border-radius:10px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1.2rem;text-align:center;letter-spacing:4px;font-weight:700;margin-bottom:10px"
+        oninput="this.value=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter')enBossJoinRoom()">
+      <div id="en-boss-join-err" style="color:#e74c3c;display:none;margin-bottom:8px;text-align:center"></div>
+      <button style="width:100%;padding:12px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;color:#fff;background:linear-gradient(135deg,#8e44ad,#6c3483)" onclick="enBossJoinRoom()">🔗 Приєднатись</button>
+      <button style="width:100%;padding:12px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(135deg,#7f8c8d,#636e72)" onclick="enBossShowChoose()">← Назад</button>
+    </div>
+    <div id="en-boss-step-joined" style="display:none">
+      <div style="color:#aaa;text-align:center;margin:8px 0">Ви в кімнаті! Очікуємо початку…</div>
+      <div class="mp-code-display" style="background:rgba(255,255,255,.1);border:2px solid #ffd700;border-radius:12px;padding:14px;text-align:center;margin-bottom:14px">
+        <div style="color:#aaa;font-size:.8rem;margin-bottom:4px">КОД КІМНАТИ</div>
+        <div id="en-boss-joined-code" style="font-size:2.4rem;font-weight:900;color:#ffd700;letter-spacing:6px">----</div>
+      </div>
+      <div class="mp-player-list" id="en-boss-player-list-joined"></div>
+      <button style="width:100%;padding:12px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(135deg,#7f8c8d,#636e72);margin-top:10px" onclick="enBossLeaveRoom()">🚪 Вийти</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENGLISH BOSS GAME -->
+<div id="en-boss-game">
+  <div id="en-boss-monster-bg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;overflow:hidden">
+    <svg id="en-boss-monster-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:min(300px,75vw);height:min(300px,75vw);opacity:.15;filter:drop-shadow(0 0 30px #00b4d8)"></svg>
+  </div>
+  <div class="en-boss-hud" style="position:relative;z-index:1">
+    <button class="en-boss-back" onclick="closeEnBossGame()">← Назад</button>
+    <span id="en-boss-regen-txt" style="color:#00b4d8;font-size:.72rem">+50/10с</span>
+    <span id="en-boss-hp-text" style="color:#fff;font-weight:900;font-size:1.3rem;text-shadow:0 0 8px #00b4d8;flex:1;text-align:center">2000</span>
+    <span id="en-boss-change-txt" style="font-weight:900;font-size:1.2rem;min-width:60px;text-align:center"> </span>
+    <span id="en-boss-timer-txt" style="color:#ffd700;font-size:.72rem">⏱10с</span>
+  </div>
+  <div style="padding:0 3% 4px;background:rgba(0,0,0,.8);flex-shrink:0;border-bottom:2px solid #00b4d8;position:relative;z-index:1">
+    <div style="background:rgba(255,255,255,.15);border-radius:6px;height:8px;overflow:hidden;border:1px solid #00b4d8">
+      <div id="en-boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#00b4d8,#0077aa);border-radius:5px;transition:width .4s;width:33%"></div>
+    </div>
+  </div>
+  <div id="en-boss-mp-hud" style="display:none;padding:4px 3%;background:rgba(0,0,0,.7);border-bottom:1px solid #00b4d8;flex-shrink:0;position:relative;z-index:1">
+    <div style="color:#87ceeb;font-size:.7rem;margin-bottom:2px">👥 КООП:</div>
+    <div id="en-boss-mp-plist" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+  <div class="en-boss-word" id="en-boss-word" style="position:relative;z-index:1">слово</div>
+  <div style="padding:4px 3%;background:rgba(0,0,0,.5);flex-shrink:0;text-align:center;position:relative;z-index:1">
+    <span style="color:#aaa;font-size:.8rem">Введіть переклад українською • урон: <span id="en-boss-dmg-preview">-30</span> за літеру</span>
+  </div>
+  <div class="en-boss-input-row" style="position:relative;z-index:1">
+    <button onclick="replayEnBossWord()" style="flex-shrink:0;padding:8px 12px;background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.3);border-radius:12px;font-size:1rem;cursor:pointer">🔊</button>
+    <input type="text" class="en-boss-input" id="en-boss-answer" placeholder="Переклад..." autocomplete="off"
+      onkeypress="if(event.key==='Enter')checkEnBossAnswer()">
+    <button onclick="checkEnBossAnswer()" style="flex-shrink:0;padding:8px 14px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer">✅</button>
+  </div>
+  <div class="en-boss-feedback" id="en-boss-feedback" style="position:relative;z-index:1">
+    <h2 id="en-boss-fb-title" style="font-size:2rem;margin-bottom:8px">✅ Правильно!</h2>
+    <div id="en-boss-fb-words" style="font-size:1.4rem;margin:8px 0"></div>
+    <div id="en-boss-fb-dmg" style="font-size:1rem;color:#00e676"></div>
+  </div>
+</div>
+
+<!-- DAMAGE LEADERBOARD -->
+<div id="dmg-leaderboard">
+  <div class="dmg-board-box">
+    <div style="font-size:2rem;margin-bottom:8px">🏆</div>
+    <h2 id="dmg-board-title" style="font-size:1.6rem;color:#ffd700;margin-bottom:14px">Урон команди</h2>
+    <div id="dmg-board-rows"></div>
+    <div id="dmg-board-timer" style="color:#aaa;font-size:.85rem;margin-top:12px">Закриється за 5с</div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════
-// DATABASE
+// ENGLISH COOP BOSS GAME
 // ═══════════════════════════════════════════════════════════
+const EN_BOSS_START_HP = 2000;
+const EN_BOSS_DEFEAT_HP = 6000;
+const EN_BOSS_REGEN = [0, 50, 100, 150, 200, 250];
+const EN_BOSS_DMG_PER_LETTER = 30;
+
+let enBossState = null;
+let enBossMpState = null;
+
+function openEnBossModal(){
+  document.getElementById('en-boss-modal').classList.add('show');
+  enBossShowChoose();
+}
+function closeEnBossModal(){
+  document.getElementById('en-boss-modal').classList.remove('show');
+}
+function enBossShowChoose(){
+  ['en-boss-step-choose','en-boss-step-created','en-boss-step-join','en-boss-step-joined'].forEach(id=>{
+    document.getElementById(id).style.display = id==='en-boss-step-choose'?'block':'none';
+  });
+}
+function enBossShowJoin(){
+  ['en-boss-step-choose','en-boss-step-created','en-boss-step-join','en-boss-step-joined'].forEach(id=>{
+    document.getElementById(id).style.display = id==='en-boss-step-join'?'block':'none';
+  });
+  document.getElementById('en-boss-join-err').style.display='none';
+  document.getElementById('en-boss-join-input').value='';
+}
+function enBossShowCreated(){
+  ['en-boss-step-choose','en-boss-step-created','en-boss-step-join','en-boss-step-joined'].forEach(id=>{
+    document.getElementById(id).style.display = id==='en-boss-step-created'?'block':'none';
+  });
+}
+function enBossShowJoined(){
+  ['en-boss-step-choose','en-boss-step-created','en-boss-step-join','en-boss-step-joined'].forEach(id=>{
+    document.getElementById(id).style.display = id==='en-boss-step-joined'?'block':'none';
+  });
+}
+
+function enBossCopyCode(){
+  const code = enBossMpState ? enBossMpState.roomCode : '';
+  if(!code) return;
+  navigator.clipboard.writeText(code).catch(()=>{});
+}
+
+function mpMyInfoEn(){
+  const profiles = loadAllProfiles();
+  const p = profiles[_activeProfileId] || {};
+  return { name: p.name || 'Гравець', avatar: p.avatar || '👤' };
+}
+
+async function enBossCreateRoom(){
+  if(!window._fbReady){ alert('❌ Firebase не підключено.'); return; }
+  const info = mpMyInfoEn();
+  const code = mpGenCode();
+  const myId = 'p_' + Date.now();
+  const roomData = {
+    host: info.name,
+    level: 1,
+    theme: 'verbs',
+    gameType: 'english',
+    status: 'waiting',
+    bossHp: EN_BOSS_START_HP,
+    createdAt: Date.now(),
+    players: { [myId]: { name: info.name, avatar: info.avatar, dmg: 0, online: true } }
+  };
+  try { await mpSet(`en_rooms/${code}`, roomData); } catch(e){ alert('❌ '+e.message); return; }
+  enBossMpState = {
+    roomCode: code, myId, myName: info.name, myAvatar: info.avatar,
+    isHost: true, level: 1, theme: 'verbs', bossHp: EN_BOSS_START_HP,
+    regenInterval: null, fbListeners: []
+  };
+  document.getElementById('en-boss-room-code-display').textContent = code;
+  enBossShowCreated();
+  enBossListenRoom();
+}
+
+async function enBossJoinRoom(){
+  if(!window._fbReady){ alert('❌ Firebase не підключено.'); return; }
+  const code = (document.getElementById('en-boss-join-input').value||'').trim().toUpperCase();
+  const errEl = document.getElementById('en-boss-join-err');
+  errEl.style.display='none';
+  if(code.length<4){ errEl.textContent='❌ Введіть правильний код'; errEl.style.display='block'; return; }
+  let snap;
+  try { snap = await mpGet(`en_rooms/${code}`); } catch(e){ errEl.textContent='❌ Помилка'; errEl.style.display='block'; return; }
+  if(!snap.exists()){ errEl.textContent='❌ Кімнату не знайдено'; errEl.style.display='block'; return; }
+  const room = snap.val();
+  if(room.status==='playing'){ errEl.textContent='❌ Гра вже йде'; errEl.style.display='block'; return; }
+  const info = mpMyInfoEn();
+  const myId = 'p_' + Date.now();
+  try { await mpSet(`en_rooms/${code}/players/${myId}`, { name: info.name, avatar: info.avatar, dmg: 0, online: true }); }
+  catch(e){ errEl.textContent='❌ '+e.message; errEl.style.display='block'; return; }
+  enBossMpState = {
+    roomCode: code, myId, myName: info.name, myAvatar: info.avatar,
+    isHost: false, level: room.level||1, theme: room.theme||'verbs', bossHp: room.bossHp||EN_BOSS_START_HP,
+    regenInterval: null, fbListeners: []
+  };
+  document.getElementById('en-boss-joined-code').textContent = code;
+  enBossShowJoined();
+  enBossListenRoom();
+}
+
+function enBossListenRoom(){
+  if(!enBossMpState) return;
+  const code = enBossMpState.roomCode;
+  const fb = mpFb();
+  if(!fb) return;
+  const r = fb.ref(fb.db, `en_rooms/${code}`);
+  const cb = snap => {
+    if(!snap.exists()){ enBossLeaveRoom(true); return; }
+    const room = snap.val();
+    enBossRenderPlayerList(room.players||{});
+    if(!enBossMpState.isHost && room.level) enBossMpState.level = room.level;
+    if(!enBossMpState.isHost && room.theme) enBossMpState.theme = room.theme;
+    if(room.status==='playing' && !enBossState){
+      closeEnBossModal();
+      enBossStartLocal(room.level||1, room.theme||'verbs');
+    }
+    if(room.status==='playing' && enBossState){
+      enBossMpState.bossHp = room.bossHp;
+      enBossState.hp = room.bossHp;
+      updateEnBossUI();
+    }
+    if((room.status==='victory'||(room.status==='playing'&&room.bossHp<=0)) && enBossState){
+      enBossEndGame(true);
+    } else if((room.status==='defeat'||(room.status==='playing'&&room.bossHp>=EN_BOSS_DEFEAT_HP)) && enBossState){
+      enBossEndGame(false);
+    }
+    if(enBossState) enBossUpdateMpHud(room.players||{});
+  };
+  fb.onValue(r, cb);
+  enBossMpState.fbListeners = enBossMpState.fbListeners || [];
+  enBossMpState.fbListeners.push({r, cb});
+}
+
+function enBossRenderPlayerList(players){
+  ['en-boss-player-list-created','en-boss-player-list-joined'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = Object.values(players).map(p=>`
+      <div class="mp-player-row">
+        <span>${p.avatar||'👤'}</span><span>${p.name}</span>
+        <span class="mp-dmg">⚔️${p.dmg||0}</span>
+      </div>`).join('') || '<div style="color:#888">Немає гравців</div>';
+  });
+}
+
+function enBossUpdateMpHud(players){
+  const hud = document.getElementById('en-boss-mp-hud');
+  const list = document.getElementById('en-boss-mp-plist');
+  if(!hud||!list) return;
+  hud.style.display='block';
+  list.innerHTML = Object.values(players).map(p=>
+    `<span class="mp-plive-chip">${p.avatar||'👤'} ${p.name} ⚔️${p.dmg||0}</span>`
+  ).join('');
+}
+
+async function enBossHostStart(){
+  if(!enBossMpState||!enBossMpState.isHost) return;
+  const lvl = parseInt(document.getElementById('en-boss-level-select').value)||1;
+  const theme = document.getElementById('en-boss-theme-select').value||'verbs';
+  enBossMpState.level = lvl;
+  enBossMpState.theme = theme;
+  try {
+    await mpUpdate(`en_rooms/${enBossMpState.roomCode}`, {
+      level: lvl, theme, status: 'playing', bossHp: EN_BOSS_START_HP
+    });
+  } catch(e){ alert('❌ '+e.message); }
+}
+
+async function enBossLeaveRoom(silent){
+  if(enBossMpState){
+    const fb = mpFb();
+    if(enBossMpState.fbListeners) enBossMpState.fbListeners.forEach(l=>{ try{ fb&&fb.off(l.r,l.cb); }catch{} });
+    if(enBossMpState.regenInterval) clearInterval(enBossMpState.regenInterval);
+    if(fb && enBossMpState.roomCode && enBossMpState.myId){
+      try{ await mpUpdate(`en_rooms/${enBossMpState.roomCode}/players/${enBossMpState.myId}`, {online:false}); }catch{}
+      if(enBossMpState.isHost){
+        try{ await fb.remove(fb.ref(fb.db,`en_rooms/${enBossMpState.roomCode}`)); }catch{}
+      }
+    }
+    enBossMpState = null;
+  }
+  if(!silent) enBossShowChoose();
+}
+
+// ── build word pool with no-repeat rule (not before 5 others) ──
+function enBossGetWordQueue(theme, count){
+  const allWords = EN_WORDS[theme] || [];
+  if(allWords.length < count) return null;
+  // Pick 10 random unique words
+  const pool = [...allWords];
+  const selected = [];
+  for(let i=0;i<count;i++){
+    const idx = Math.floor(Math.random()*pool.length);
+    selected.push(pool.splice(idx,1)[0]);
+  }
+  // Build queue: each word appears randomly but not before 5 other words between repeats
+  // We'll use the 10 words as the game pool — each asked once, then reshuffled
+  return selected;
+}
+
+function enBossStartLocal(level, theme){
+  if(enBossState) return;
+  window._enBossEndRunning = false;
+
+  const words = enBossGetWordQueue(theme, 10);
+  if(!words){ alert('Недостатньо слів!'); return; }
+
+  // Build queue with repeat-after-5-other-words rule
+  const queue = buildEnBossQueue(words);
+
+  enBossState = {
+    level, theme, words,
+    hp: EN_BOSS_START_HP,
+    regen: EN_BOSS_REGEN[level],
+    queue,
+    recentWords: [], // track last 5 to enforce spacing
+    currentWord: null,
+    timerLeft: 10,
+    isMultiplayer: !!(enBossMpState)
+  };
+
+  document.getElementById('main').style.display='none';
+  const gameEl = document.getElementById('en-boss-game');
+  gameEl.classList.add('is-open');
+  document.getElementById('en-boss-mp-hud').style.display = enBossMpState ? 'block' : 'none';
+
+  renderEnBossMonster(level);
+  updateEnBossUI();
+  nextEnBossWord();
+
+  // Regen interval
+  if(enBossState.regenInt) clearInterval(enBossState.regenInt);
+  enBossState.regenInt = setInterval(async()=>{
+    if(!enBossState) return;
+    enBossState.timerLeft--;
+    document.getElementById('en-boss-timer-txt').textContent='⏱'+enBossState.timerLeft+'с';
+    if(enBossState.timerLeft<=0){
+      enBossState.timerLeft=10;
+      if(enBossMpState && enBossMpState.isHost){
+        const newHp = Math.min(EN_BOSS_DEFEAT_HP,(enBossMpState.bossHp||EN_BOSS_START_HP)+enBossState.regen);
+        enBossMpState.bossHp = newHp;
+        try{ await mpUpdate(`en_rooms/${enBossMpState.roomCode}`,{bossHp:newHp}); }catch{}
+        updateEnBossUI(enBossState.regen);
+        if(newHp>=EN_BOSS_DEFEAT_HP){
+          try{ await mpUpdate(`en_rooms/${enBossMpState.roomCode}`,{status:'defeat'}); }catch{}
+        }
+      } else if(!enBossMpState){
+        enBossState.hp = Math.min(EN_BOSS_DEFEAT_HP, enBossState.hp + enBossState.regen);
+        updateEnBossUI(enBossState.regen);
+        if(enBossState.hp>=EN_BOSS_DEFEAT_HP){ enBossEndGame(false); }
+      }
+    }
+  },1000);
+}
+
+function buildEnBossQueue(words){
+  // Start with all 10 words shuffled
+  const q = [...words].sort(()=>Math.random()-.5);
+  return q;
+}
+
+function getNextEnBossWord(words, recentWords){
+  // Find a word not in last 5 recentWords
+  const recentSet = new Set(recentWords.slice(-5).map(w=>w.en));
+  const available = words.filter(w=>!recentSet.has(w.en));
+  if(available.length===0) return words[Math.floor(Math.random()*words.length)];
+  return available[Math.floor(Math.random()*available.length)];
+}
+
+function nextEnBossWord(){
+  if(!enBossState) return;
+  const word = getNextEnBossWord(enBossState.words, enBossState.recentWords);
+  enBossState.currentWord = word;
+  enBossState.recentWords.push(word);
+  if(enBossState.recentWords.length>20) enBossState.recentWords.shift();
+
+  document.getElementById('en-boss-word').textContent = word.en;
+  const inp = document.getElementById('en-boss-answer');
+  inp.value='';
+  inp.className='en-boss-input';
+  inp.style.borderColor='#00b4d8';
+  inp.style.background='rgba(255,255,255,.96)';
+  // Show damage preview
+  const dmgPreview = word.uk.replace(/[^а-яіїєёa-z]/gi,'').length * EN_BOSS_DMG_PER_LETTER;
+  document.getElementById('en-boss-dmg-preview').textContent='-'+dmgPreview;
+  speak(word.en,'en-US');
+  setTimeout(()=>inp.focus(),100);
+}
+
+function replayEnBossWord(){
+  if(enBossState&&enBossState.currentWord) speak(enBossState.currentWord.en,'en-US');
+}
+
+async function checkEnBossAnswer(){
+  if(!enBossState||enBossState.checkingAnswer) return;
+  const inp = document.getElementById('en-boss-answer');
+  const answer = (inp.value||'').trim().toLowerCase();
+  if(!answer) return;
+  enBossState.checkingAnswer = true;
+
+  const word = enBossState.currentWord;
+  // Normalize
+  const normalize = s=>s.replace(/['`´''']/g,'').replace(/ґ/g,'г').trim().toLowerCase();
+  const rawVariants = word.ukVariants||[word.uk];
+  const allVariants = [];
+  rawVariants.forEach(v=>{
+    allVariants.push(v.toLowerCase());
+    v.split(/[,\/;]/).map(s=>s.trim().toLowerCase()).filter(Boolean).forEach(sub=>allVariants.push(sub));
+  });
+  const answerVariants = answer.split(/[,\/;]/).map(s=>normalize(s.trim())).filter(Boolean);
+  const normVariants = allVariants.map(v=>normalize(v));
+  const isCorrect = answerVariants.some(av=>normVariants.some(nv=>av===nv));
+
+  if(isCorrect){
+    // Damage = length of correct answer * 30 (use the matched variant length)
+    const matchedVariant = normVariants.find(nv=>answerVariants.some(av=>av===nv))||normVariants[0];
+    const dmg = matchedVariant.replace(/\s/g,'').length * EN_BOSS_DMG_PER_LETTER;
+    const playerDmgMod = getUserBossDmgMod(); // 100% + bone bonuses
+
+    inp.className='en-boss-input correct';
+
+    if(enBossMpState){
+      const curHp = enBossMpState.bossHp !== undefined ? enBossMpState.bossHp : enBossState.hp;
+      const newHp = Math.max(0, curHp - Math.round(dmg * playerDmgMod));
+      enBossMpState.bossHp = newHp;
+      enBossState.hp = newHp;
+      updateEnBossUI(-Math.round(dmg*playerDmgMod));
+      try{
+        const snap = await mpGet(`en_rooms/${enBossMpState.roomCode}/players/${enBossMpState.myId}`);
+        const prevDmg = snap.exists() ? (snap.val().dmg||0) : 0;
+        await mpUpdate(`en_rooms/${enBossMpState.roomCode}/players/${enBossMpState.myId}`,{dmg: prevDmg+Math.round(dmg*playerDmgMod)});
+        await mpUpdate(`en_rooms/${enBossMpState.roomCode}`,{bossHp:newHp});
+        if(newHp<=0) await mpUpdate(`en_rooms/${enBossMpState.roomCode}`,{status:'victory'});
+      }catch(e){}
+    } else {
+      const realDmg = Math.round(dmg * playerDmgMod);
+      enBossState.hp = Math.max(0, enBossState.hp - realDmg);
+      updateEnBossUI(-realDmg);
+      if(enBossState.hp<=0){ enBossState.checkingAnswer=false; enBossEndGame(true); return; }
+    }
+
+    showEnBossFeedback(true, word, Math.round(dmg*playerDmgMod));
+  } else {
+    inp.className='en-boss-input wrong';
+    showEnBossFeedback(false, word, 0);
+  }
+  enBossState.checkingAnswer = false;
+}
+
+function getUserBossDmgMod(){
+  const user = getUser();
+  return 1 + (user.bossDmgBonus||0)/100;
+}
+
+function showEnBossFeedback(isCorrect, word, dmg){
+  const fb = document.getElementById('en-boss-feedback');
+  fb.className='en-boss-feedback show '+(isCorrect?'correct':'wrong');
+  document.getElementById('en-boss-fb-title').textContent = isCorrect?'✅ Правильно!':'❌ Неправильно';
+  const allV = (word.ukVariants&&word.ukVariants.length>1)?word.ukVariants.join(' / '):word.uk;
+  document.getElementById('en-boss-fb-words').innerHTML=`<div>${word.en} = ${allV}</div>`;
+  document.getElementById('en-boss-fb-dmg').textContent = isCorrect?`⚔️ Урон: -${dmg}`:'';
+  speak(word.uk,'uk-UA');
+  setTimeout(()=>speak(word.en,'en-US'),1500);
+  setTimeout(()=>{
+    fb.className='en-boss-feedback';
+    if(enBossState) nextEnBossWord();
+  }, 2500);
+}
+
+function renderEnBossMonster(level){
+  const svg = document.getElementById('en-boss-monster-svg');
+  if(!svg) return;
+  svg.innerHTML = BOSS_MONSTERS_SVG[(level-1)%BOSS_MONSTERS_SVG.length]||'';
+}
+
+function updateEnBossUI(change){
+  if(!enBossState) return;
+  const hp = enBossState.hp;
+  const pct = Math.max(0,Math.min(100,(hp/EN_BOSS_DEFEAT_HP)*100));
+  const bar = document.getElementById('en-boss-hp-bar');
+  if(bar) bar.style.width=pct+'%';
+  const hpTxt = document.getElementById('en-boss-hp-text');
+  if(hpTxt) hpTxt.textContent=hp;
+  const regenTxt = document.getElementById('en-boss-regen-txt');
+  if(regenTxt) regenTxt.textContent=`+${enBossState.regen}/${enBossState.timerLeft}с`;
+  if(change!==undefined){
+    const isDmg=change<0;
+    const sign=change>0?'+':'';
+    const el=document.getElementById('en-boss-change-txt');
+    if(el){
+      el.textContent=sign+change;
+      el.style.color=isDmg?'#00e676':'#ff4444';
+      el.style.transform='scale(1.5)';
+      clearTimeout(el._t);
+      el._t=setTimeout(()=>{el.style.transform='scale(1)';setTimeout(()=>{el.textContent=' ';},400);},900);
+    }
+    // Floating number
+    const area=document.getElementById('en-boss-game');
+    if(area){
+      const fl=document.createElement('div');
+      fl.className='boss-float-num';
+      fl.textContent=sign+change;
+      fl.style.color=isDmg?'#00ff88':'#ff4444';
+      area.appendChild(fl);
+      setTimeout(()=>fl.remove(),1300);
+    }
+  }
+}
+
+async function enBossEndGame(victory){
+  if(window._enBossEndRunning) return;
+  window._enBossEndRunning = true;
+  if(enBossState&&enBossState.regenInt){ clearInterval(enBossState.regenInt); enBossState.regenInt=null; }
+
+  if(enBossMpState){
+    let players={};
+    try{
+      const snap = await mpGet(`en_rooms/${enBossMpState.roomCode}/players`);
+      if(snap.exists()) players=snap.val();
+    }catch{}
+
+    enBossState=null;
+    document.getElementById('en-boss-game').classList.remove('is-open');
+    document.getElementById('main').style.display='block';
+
+    if(victory){
+      // Give rewards
+      const user=getUser();
+      user.stars=(user.stars||0)+1000;
+      if(!user.hedgehogs)user.hedgehogs=0;
+      user.hedgehogs+=1;
+      if(!user.seeds)user.seeds=0;
+      user.seeds+=1;
+      saveUser(user);
+      updateUI();
+
+      // Show damage leaderboard for 5 seconds
+      showDmgLeaderboard(players, '🎉 ПЕРЕМОГА! English БоСС!');
+    } else {
+      showEnBossDefeat();
+    }
+    await enBossLeaveRoom(true);
+    window._enBossEndRunning=false;
+  } else {
+    // Solo
+    enBossState=null;
+    document.getElementById('en-boss-game').classList.remove('is-open');
+    document.getElementById('main').style.display='block';
+    if(victory){
+      const user=getUser();
+      user.stars=(user.stars||0)+1000;
+      if(!user.hedgehogs)user.hedgehogs=0;
+      user.hedgehogs+=1;
+      if(!user.seeds)user.seeds=0;
+      user.seeds+=1;
+      saveUser(user);
+      updateUI();
+      document.getElementById('victory-amount').textContent='+1🦔 +1🌱 +1000⭐';
+      document.getElementById('victory').style.display='flex';
+    } else {
+      showEnBossDefeat();
+    }
+    window._enBossEndRunning=false;
+  }
+}
+
+function showEnBossDefeat(){
+  const fb2=document.getElementById('math-feedback');
+  if(fb2){
+    document.getElementById('mfb-title').textContent='💀 ПОРАЗКА!';
+    document.getElementById('mfb-detail').textContent='БоСС English виживає… Спробуйте ще!';
+    fb2.className='math-feedback show wrong';
+    document.getElementById('math-game').classList.add('is-open');
+    document.getElementById('main').style.display='none';
+    setTimeout(()=>{
+      fb2.className='math-feedback';
+      document.getElementById('math-game').classList.remove('is-open');
+      document.getElementById('main').style.display='block';
+    },2500);
+  }
+}
+
+function closeEnBossGame(){
+  if(enBossState&&enBossState.regenInt){ clearInterval(enBossState.regenInt); }
+  enBossState=null;
+  document.getElementById('en-boss-game').classList.remove('is-open');
+  document.getElementById('main').style.display='block';
+  if(enBossMpState) enBossLeaveRoom(true);
+}
+
+// ── Damage Leaderboard (5 sec overlay) ─────────────────
+function showDmgLeaderboard(players, title){
+  const overlay = document.getElementById('dmg-leaderboard');
+  const titleEl = document.getElementById('dmg-board-title');
+  const rowsEl = document.getElementById('dmg-board-rows');
+  const timerEl = document.getElementById('dmg-board-timer');
+  if(!overlay) return;
+  titleEl.textContent = title||'🏆 Урон команди';
+  const sorted = Object.values(players).sort((a,b)=>(b.dmg||0)-(a.dmg||0));
+  const medals=['🥇','🥈','🥉'];
+  rowsEl.innerHTML = sorted.map((p,i)=>`
+    <div class="dmg-board-row">
+      <span>${medals[i]||'  '} ${p.avatar||'👤'} ${p.name}</span>
+      <span class="dmg-board-dmg">⚔️${p.dmg||0}</span>
+    </div>`).join('');
+  overlay.classList.add('show');
+  let sec=5;
+  timerEl.textContent='Закриється за '+sec+'с';
+  const t=setInterval(()=>{
+    sec--;
+    timerEl.textContent='Закриється за '+sec+'с';
+    if(sec<=0){ clearInterval(t); overlay.classList.remove('show'); }
+  },1000);
+}
+
+// Patch existing bossEndGame to also show damage leaderboard for Math CoopBoss
+const _origBossEndGameWithBoard = window.bossEndGame;
+window.bossEndGame = function(victory){
+  const wasMulti = mpState && mpState.roomCode;
+  if(window.bossInterval){ clearInterval(window.bossInterval); window.bossInterval=null; }
+  if(window._bossEndGameRunning) return;
+  window._bossEndGameRunning = true;
+
+  if(wasMulti){
+    mpGet(`rooms/${mpState.roomCode}/players`).then(snap=>{
+      const players = snap.exists() ? snap.val() : {};
+      const lvl = window.bossState ? window.bossState.level : (mpState.level||1);
+      window.bossState = null;
+      document.getElementById('boss-game-area').classList.add('hidden');
+      document.getElementById('math-level-select').classList.remove('hidden');
+      document.getElementById('math-hearts').textContent='❤️❤️❤️❤️❤️❤️❤️❤️';
+      document.getElementById('math-stars').textContent='0';
+      document.getElementById('math-correct-count').textContent='0/20';
+      document.getElementById('math-progress-fill').style.width='0%';
+      document.getElementById('mp-boss-hud').classList.remove('show');
+      if(victory){
+        const bees=lvl, stars=lvl*1000;
+        const user=getUser();
+        if(!user.bees)user.bees=0;
+        user.bees+=bees; user.stars+=stars;
+        saveUser(user); updateUI();
+        // Show leaderboard for 5 sec then close
+        showDmgLeaderboard(players,'🎉 ПЕРЕМОГА! Математика БоСС!');
+        setTimeout(()=>{
+          document.getElementById('math-game').classList.remove('is-open');
+          document.getElementById('main').style.display='block';
+        },5500);
+      } else {
+        const fb2=document.getElementById('math-feedback');
+        document.getElementById('mfb-title').textContent='💀 ПОРАЗКА!';
+        document.getElementById('mfb-detail').textContent='БоСС виживає… Спробуйте ще!';
+        fb2.className='math-feedback show wrong';
+        setTimeout(()=>{ fb2.className='math-feedback'; },2500);
+      }
+      mpLeaveRoom(true);
+      window._bossEndGameRunning=false;
+    }).catch(()=>{
+      if(typeof _origBossEndGame==='function') _origBossEndGame(victory);
+      mpLeaveRoom(true);
+      window._bossEndGameRunning=false;
+    });
+  } else {
+    if(typeof _origBossEndGame==='function') _origBossEndGame(victory);
+    window._bossEndGameRunning=false;
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+// HEDGEHOG ACTION
+// ═══════════════════════════════════════════════════════════
+function doHedgehogAction(){
+  const user=getUser();
+  if(!user.hedgehogs||user.hedgehogs<1) return alert('Потрібно 1🦔');
+  // Find apple on tree
+  const appleOnBranch=(user.tree&&user.tree.branches||[]).find(b=>b.flower&&b.flower.apple&&!b.flower.fallen);
+  if(!appleOnBranch) return alert('Немає яблука на дереві! Спочатку виростіть яблуко 🍎');
+
+  user.hedgehogs-=1;
+  // Remove apple from branch
+  appleOnBranch.flower.fallen=true;
+  saveUser(user);
+  updateUI();
+  updateTreeUI();
+
+  const area=document.querySelector('.dog-area');
+  if(!area) return;
+
+  // Apple falls from tree
+  const appleEl=document.createElement('div');
+  appleEl.textContent='🍎';
+  appleEl.style.cssText='position:absolute;font-size:2.5rem;left:8%;bottom:70%;pointer-events:none;z-index:20;transition:bottom 1s ease-in';
+  area.appendChild(appleEl);
+  setTimeout(()=>{ appleEl.style.bottom='30px'; },50);
+
+  // Hedgehog runs in from left after apple lands
+  setTimeout(()=>{
+    const hog=document.createElement('div');
+    hog.textContent='🦔';
+    hog.style.cssText='position:absolute;font-size:2.5rem;left:-10%;bottom:24px;pointer-events:none;z-index:21;transition:left 1.5s linear';
+    area.appendChild(hog);
+    setTimeout(()=>{ hog.style.left='8%'; },50);
+
+    // Hedgehog picks up apple (moves to apple position)
+    setTimeout(()=>{
+      appleEl.style.bottom='28px';
+      appleEl.style.left='8%';
+      hog.textContent='🦔🍎';
+      appleEl.style.opacity='0';
+    },1600);
+
+    // Hedgehog carries apple to right
+    setTimeout(()=>{
+      hog.style.left='110%';
+    },2200);
+
+    // Give bone to dog
+    setTimeout(()=>{
+      hog.remove();
+      appleEl.remove();
+      const u2=getUser();
+      if(!u2.bones)u2.bones=0;
+      u2.bones+=1;
+      saveUser(u2);
+      updateUI();
+      updateDogActionsUI();
+      // Show floating +1 bone
+      const boneFloat=document.createElement('div');
+      boneFloat.textContent='+1🦴';
+      boneFloat.style.cssText='position:absolute;right:15%;bottom:80px;font-size:1.5rem;color:#ffd700;font-weight:700;pointer-events:none;z-index:30;transition:bottom 1s,opacity 1s';
+      area.appendChild(boneFloat);
+      setTimeout(()=>{boneFloat.style.bottom='160px';boneFloat.style.opacity='0';},50);
+      setTimeout(()=>boneFloat.remove(),1200);
+    },4000);
+  }, 1200);
+}
+
+// ═══════════════════════════════════════════════════════════
+// THROW BONE BONUS (requires dog at 10 hearts)
+// ═══════════════════════════════════════════════════════════
+function throwBoneBonus(){
+  const user=getUser();
+  if((user.dog.hearts||0)<10) return alert('Собаці потрібно 10 ❤️ щоб прийняти кісточку!');
+  if(!user.bones||user.bones<1) return alert('Немає кісточок! Зіграйте в КооП БоСС English 🦔');
+  user.bones-=1;
+  if(!user.bossDmgBonus) user.bossDmgBonus=0;
+  user.bossDmgBonus+=1;
+  saveUser(user);
+  updateUI();
+  updateDogActionsUI();
+  updateDogHouseDmg();
+
+  const area=document.querySelector('.dog-area');
+  const bone=document.createElement('div');
+  bone.textContent='🦴';
+  bone.style.cssText='position:absolute;left:50%;bottom:80%;font-size:2rem;pointer-events:none;z-index:20;transition:left 0.8s ease,bottom 0.8s ease';
+  area.appendChild(bone);
+  setTimeout(()=>{bone.style.left='72%';bone.style.bottom='30px';},50);
+  const dog=document.getElementById('dog');
+  hideEyes();
+  dog.style.display='block';
+  setTimeout(()=>{dog.style.left='70%';},900);
+  setTimeout(()=>{bone.remove();
+    let w=false;
+    const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(0) rotate(8deg)':'translateX(0) rotate(-8deg)';},250);
+    setTimeout(()=>{clearInterval(wi);dog.style.left='50%';dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},4000);
+  },2000);
+
+  alert(`✅ +1% урону БоССу! Поточний урон: ${100+(user.bossDmgBonus)}%`);
+}
+
+function updateDogActionsUI(){
+  const user=getUser();
+  const throwBtn=document.getElementById('throw-bone-boss-btn');
+  if(throwBtn){
+    const hasBones=(user.bones||0)>0;
+    const has10Hearts=(user.dog.hearts||0)>=10;
+    throwBtn.style.display=(hasBones&&has10Hearts)?'block':'none';
+    throwBtn.textContent=`🦴 Кинути кісточку (+1% урону) [${user.bones||0}🦴]`;
+  }
+  const hogBtn=document.getElementById('hedgehog-action-btn');
+  if(hogBtn){
+    const hasHog=(user.hedgehogs||0)>0;
+    hogBtn.style.display=hasHog?'block':'none';
+    hogBtn.textContent=`🦔 Їжачок (-1🦔-1🍎) [${user.hedgehogs||0}🦔]`;
+  }
+}
+
+function updateDogHouseDmg(){
+  const user=getUser();
+  const dmgEl=document.getElementById('dog-house-dmg');
+  if(dmgEl){
+    const pct=100+(user.bossDmgBonus||0);
+    dmgEl.textContent=pct+'%';
+    dmgEl.style.fill=pct>100?'#00e676':'#FFD700';
+  }
+}
+</script>
 const USERS_KEY='larikaV3';
 let currentUser='гравець';
 let englishState=null;
@@ -903,7 +1768,12 @@ const sc=document.getElementById('seed-count');
 if(sc)sc.textContent=user.seeds||0;
 const bc=document.getElementById('bee-count');
 if(bc)bc.textContent=user.bees||0;
+const hc=document.getElementById('hedgehog-count');
+if(hc)hc.textContent=user.hedgehogs||0;
+const bnc=document.getElementById('bone-count');
+if(bnc)bnc.textContent=user.bones||0;
 if(typeof updateTreeUI==='function')updateTreeUI();
+updateDogHouseDmg();
 }
 
 function updateDog(){
@@ -1048,6 +1918,7 @@ if(appleBtn){
   const hasFlower=(user.tree&&user.tree.branches||[]).some(b=>b.flower&&!b.flower.fallen&&!b.flower.apple);
   appleBtn.style.display=hasFlower?'block':'none';
 }
+updateDogActionsUI();
 let w=false;
 const wi=setInterval(()=>{w=!w;dog.style.transform=w?'translateX(-50%) rotate(6deg)':'translateX(-50%) rotate(-6deg)';},300);
 setTimeout(()=>{clearInterval(wi);dog.style.transform='translateX(-50%)';dog.style.display='none';document.getElementById('dog-actions').style.display='none';showEyes();},60000);
@@ -1307,6 +2178,13 @@ document.getElementById('main').style.display='none';
 document.getElementById('english-game').classList.add('is-open');
 document.getElementById('en-theme-select').classList.remove('hidden');
 document.getElementById('en-game-area').classList.add('hidden');
+}
+
+function startEnBossSolo(theme){
+  const level = parseInt(document.getElementById('en-boss-solo-level')?.value)||1;
+  document.getElementById('english-game').classList.remove('is-open');
+  document.getElementById('main').style.display='none';
+  enBossStartLocal(level, theme);
 }
 
 function closeEnglish(){
