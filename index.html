@@ -264,9 +264,12 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 /* Damage leaderboard overlay */
 #dmg-leaderboard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9800;align-items:center;justify-content:center}
 #dmg-leaderboard.show{display:flex}
-.dmg-board-box{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #ffd700;border-radius:20px;padding:20px;width:92%;max-width:400px;color:#fff;text-align:center}
-.dmg-board-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.08);padding:10px 16px;border-radius:10px;margin:6px 0;font-size:1rem}
-.dmg-board-dmg{color:#00e676;font-weight:700;font-size:1.1rem}
+.dmg-board-box{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #ffd700;border-radius:16px;padding:14px 16px;width:92%;max-width:360px;color:#fff;text-align:center;max-height:90vh;overflow-y:auto}
+.dmg-board-title{font-size:1.1rem;font-weight:900;color:#ffd700;margin-bottom:8px}
+.dmg-board-rewards{font-size:.95rem;color:#00e676;margin-bottom:10px;font-weight:700}
+.dmg-board-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.08);padding:8px 12px;border-radius:8px;margin:4px 0;font-size:.95rem}
+.dmg-board-dmg{color:#00e676;font-weight:700;font-size:1rem}
+.dmg-board-timer{color:#aaa;font-size:.8rem;margin-top:8px}
 </style>
 </head>
 <body>
@@ -371,9 +374,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <polygon points="15,68 75,18 135,68" fill="#E74C3C"/>
   <!-- Урон гравця на даху -->
   <text id="dog-house-dmg" x="75" y="52" text-anchor="middle" fill="#FFD700" font-size="9" font-weight="bold" font-family="Segoe UI,sans-serif">100%</text>
-  <!-- Вентиляційний отвір на даху -->
-  <circle cx="75" cy="42" r="7" fill="#922B21" stroke="#7B241C" stroke-width="1.5"/>
-  <circle cx="75" cy="42" r="3.5" fill="#1a0a00"/>
+  <!-- Вентиляційний отвір на даху прибрано (закривав урон) -->
   <!-- Дошки стін (горизонтальні лінії) -->
   <line x1="15" y1="85" x2="135" y2="85" stroke="#B8B8B8" stroke-width="1"/>
   <line x1="15" y1="103" x2="135" y2="103" stroke="#B8B8B8" stroke-width="1"/>
@@ -402,14 +403,14 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 </div>
 <div class="dog" id="dog" style="left:50%;transform:translateX(-50%)">🐕</div>
 <div class="dog-actions" id="dog-actions">
-<button class="btn success" onclick="throwBone()">🦴 Кісточка -800⭐</button>
+<button class="btn success" id="bone-to-dog-btn" onclick="throwBoneToDog()" style="display:none">🦴 Кісточка −1🦴 +1%урону</button>
 <button class="btn success" onclick="petDog()">✋ Погладити -800⭐</button>
 <button class="btn success" onclick="throwBall()">⚽ М'ячик -800⭐</button>
-<button class="btn" id="apple-action-btn" onclick="doAppleAction()" style="background:linear-gradient(135deg,#e74c3c,#c0392b);display:none">🍎 Яблуко (-10🐝)</button>
+<button class="btn" id="apple-action-btn" onclick="doAppleAction()" style="background:linear-gradient(135deg,#e74c3c,#c0392b);display:none">🍎 Яблуко (-5🐝)</button>
 <button class="btn" id="hedgehog-action-btn" onclick="doHedgehogAction()" style="background:linear-gradient(135deg,#795548,#5D4037)">🦔 Їжачок (-1🦔-1🍎)</button>
 <button class="btn" id="throw-bone-boss-btn" onclick="throwBoneBonus()" style="background:linear-gradient(135deg,#ff8f00,#e65100);display:none">🦴 Кинути кісточку (+1% урону)</button>
 </div>
-<div id="poops-container"></div>
+<div id="poops-container" style="position:absolute;inset:0;z-index:5;pointer-events:none"></div>
 <!-- Tree -->
 <div id="tree-container" style="position:absolute;left:4px;bottom:20px;width:130px;height:260px;pointer-events:none">
   <svg id="tree-svg" viewBox="0 0 130 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;pointer-events:all"></svg>
@@ -645,7 +646,10 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 
 <!-- MULTIPLAYER LIVE HUD (inside boss-game-area) -->
 <div id="mp-boss-hud">
-  <div style="color:#ff9999;font-size:.72rem;margin-bottom:2px">👥 КООП — гравці:</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+    <span style="color:#ff9999;font-size:.72rem">👥 КООП — гравці:</span>
+    <span id="mp-total-dmg" style="color:#00e676;font-size:.78rem;font-weight:700;margin-left:auto">⚔️ Разом: 0</span>
+  </div>
   <div class="mp-plist-live" id="mp-plist-live"></div>
 </div>
 
@@ -787,10 +791,10 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <!-- DAMAGE LEADERBOARD -->
 <div id="dmg-leaderboard">
   <div class="dmg-board-box">
-    <div style="font-size:2rem;margin-bottom:8px">🏆</div>
-    <h2 id="dmg-board-title" style="font-size:1.6rem;color:#ffd700;margin-bottom:14px">Урон команди</h2>
+    <div class="dmg-board-title" id="dmg-board-title">🏆 Урон команди</div>
+    <div class="dmg-board-rewards" id="dmg-board-rewards"></div>
     <div id="dmg-board-rows"></div>
-    <div id="dmg-board-timer" style="color:#aaa;font-size:.85rem;margin-top:12px">Закриється за 5с</div>
+    <div class="dmg-board-timer" id="dmg-board-timer">Закриється за 5с</div>
   </div>
 </div>
 
@@ -1120,6 +1124,25 @@ async function checkEnBossAnswer(){
 
     inp.className='en-boss-input correct';
 
+    // Track per-word correct count for SRS (in game session)
+    if(!enBossState.wordProgress) enBossState.wordProgress={};
+    const en=word.en;
+    enBossState.wordProgress[en]=(enBossState.wordProgress[en]||0)+1;
+    // If reached 3 correct answers for this word — save SRS to user data
+    if(enBossState.wordProgress[en]>=3){
+      const srsDelays=[0,1,3,5,10,30,60,120];
+      const theme=enBossState.theme;
+      const user2=getUser();
+      if(!user2.english[theme]) user2.english[theme]={};
+      if(!user2.english[theme][en]) user2.english[theme][en]={correct:0,lastSeen:0};
+      user2.english[theme][en].correct=(user2.english[theme][en].correct||0)+1;
+      user2.english[theme][en].lastSeen=Date.now();
+      const totalCorrect=user2.english[theme][en].correct;
+      const delayIdx=Math.min(totalCorrect,srsDelays.length-1);
+      user2.english[theme][en].nextReview=Date.now()+srsDelays[delayIdx]*24*3600000;
+      saveUser(user2);
+    }
+
     if(enBossMpState){
       const curHp = enBossMpState.bossHp !== undefined ? enBossMpState.bossHp : enBossState.hp;
       const newHp = Math.max(0, curHp - Math.round(dmg * playerDmgMod));
@@ -1236,7 +1259,7 @@ async function enBossEndGame(victory){
       updateUI();
 
       // Show damage leaderboard for 5 seconds
-      showDmgLeaderboard(players, '🎉 ПЕРЕМОГА! English БоСС!');
+      showDmgLeaderboard(players, '🎉 ПЕРЕМОГА! English БоСС!', '+1🦔 +1🌱 +1000⭐');
     } else {
       showEnBossDefeat();
     }
@@ -1290,13 +1313,15 @@ function closeEnBossGame(){
 }
 
 // ── Damage Leaderboard (5 sec overlay) ─────────────────
-function showDmgLeaderboard(players, title){
+function showDmgLeaderboard(players, title, rewards){
   const overlay = document.getElementById('dmg-leaderboard');
   const titleEl = document.getElementById('dmg-board-title');
+  const rewardsEl = document.getElementById('dmg-board-rewards');
   const rowsEl = document.getElementById('dmg-board-rows');
   const timerEl = document.getElementById('dmg-board-timer');
   if(!overlay) return;
   titleEl.textContent = title||'🏆 Урон команди';
+  if(rewardsEl) rewardsEl.textContent = rewards||'';
   const sorted = Object.values(players).sort((a,b)=>(b.dmg||0)-(a.dmg||0));
   const medals=['🥇','🥈','🥉'];
   rowsEl.innerHTML = sorted.map((p,i)=>`
@@ -1341,7 +1366,7 @@ window.bossEndGame = function(victory){
         user.bees+=bees; user.stars+=stars;
         saveUser(user); updateUI();
         // Show leaderboard for 5 sec then close
-        showDmgLeaderboard(players,'🎉 ПЕРЕМОГА! Математика БоСС!');
+        showDmgLeaderboard(players,`🎉 ПЕРЕМОГА! +${bees}🐝 +${stars}⭐`);
         setTimeout(()=>{
           document.getElementById('math-game').classList.remove('is-open');
           document.getElementById('main').style.display='block';
@@ -1386,12 +1411,13 @@ function doHedgehogAction(){
   const area=document.querySelector('.dog-area');
   if(!area) return;
 
-  // Apple falls from tree
+  // Apple falls from tree (tree is at left ~4px, ~8% from left)
   const appleEl=document.createElement('div');
   appleEl.textContent='🍎';
-  appleEl.style.cssText='position:absolute;font-size:2.5rem;left:8%;bottom:70%;pointer-events:none;z-index:20;transition:bottom 1s ease-in';
+  appleEl.style.cssText='position:absolute;font-size:2.5rem;left:8%;bottom:65%;pointer-events:none;z-index:20;transition:bottom 0.9s cubic-bezier(.4,0,1,1),opacity 0.9s';
   area.appendChild(appleEl);
-  setTimeout(()=>{ appleEl.style.bottom='30px'; },50);
+  // Trigger fall after a tiny delay
+  setTimeout(()=>{ appleEl.style.bottom='28px'; },50);
 
   // Hedgehog runs in from left after apple lands
   setTimeout(()=>{
@@ -1436,9 +1462,9 @@ function doHedgehogAction(){
 }
 
 // ═══════════════════════════════════════════════════════════
-// THROW BONE BONUS (requires dog at 10 hearts)
+// THROW BONE TO DOG (requires 10 hearts, costs 1 bone, gives +1% boss dmg)
 // ═══════════════════════════════════════════════════════════
-function throwBoneBonus(){
+function throwBoneToDog(){
   const user=getUser();
   if((user.dog.hearts||0)<10) return alert('Собаці потрібно 10 ❤️ щоб прийняти кісточку!');
   if(!user.bones||user.bones<1) return alert('Немає кісточок! Зіграйте в КооП БоСС English 🦔');
@@ -1466,18 +1492,27 @@ function throwBoneBonus(){
     setTimeout(()=>{clearInterval(wi);dog.style.left='50%';dog.style.transform='translateX(-50%)';dog.style.display='none';showEyes();},4000);
   },2000);
 
-  alert(`✅ +1% урону БоССу! Поточний урон: ${100+(user.bossDmgBonus)}%`);
+  // Show floating +1% dmg
+  const boneFloat=document.createElement('div');
+  boneFloat.textContent=`+1% урону (${100+(user.bossDmgBonus)}%)`;
+  boneFloat.style.cssText='position:absolute;right:15%;bottom:80px;font-size:1.2rem;color:#00e676;font-weight:700;pointer-events:none;z-index:30;transition:bottom 1s,opacity 1s;white-space:nowrap';
+  area.appendChild(boneFloat);
+  setTimeout(()=>{boneFloat.style.bottom='160px';boneFloat.style.opacity='0';},50);
+  setTimeout(()=>boneFloat.remove(),1200);
 }
+
 
 function updateDogActionsUI(){
   const user=getUser();
-  const throwBtn=document.getElementById('throw-bone-boss-btn');
-  if(throwBtn){
+  const boneToDogBtn=document.getElementById('bone-to-dog-btn');
+  if(boneToDogBtn){
     const hasBones=(user.bones||0)>0;
     const has10Hearts=(user.dog.hearts||0)>=10;
-    throwBtn.style.display=(hasBones&&has10Hearts)?'block':'none';
-    throwBtn.textContent=`🦴 Кинути кісточку (+1% урону) [${user.bones||0}🦴]`;
+    boneToDogBtn.style.display=(hasBones&&has10Hearts)?'block':'none';
+    boneToDogBtn.textContent=`🦴 Кісточка −1🦴 +1%урону [${user.bones||0}🦴]`;
   }
+  const throwBtn=document.getElementById('throw-bone-boss-btn');
+  if(throwBtn) throwBtn.style.display='none'; // старий кнопка захована
   const hogBtn=document.getElementById('hedgehog-action-btn');
   if(hogBtn){
     const hasHog=(user.hedgehogs||0)>0;
@@ -1820,7 +1855,7 @@ const container=document.getElementById('poops-container');
 container.innerHTML='';
 (user.dog.puddles||[]).forEach((p,i)=>{
 const el=document.createElement('div');
-el.style.cssText=`position:absolute;left:${p.x}%;bottom:${p.y}px;font-size:2rem;cursor:pointer;user-select:none`;
+el.style.cssText=`position:absolute;left:${p.x}%;bottom:${p.y}px;font-size:2rem;cursor:pointer;user-select:none;pointer-events:auto;z-index:6`;
 el.textContent='💛';
 el.title='Прибрати калюжу -800⭐ +1❤️';
 el.onclick=()=>cleanPuddle(i);
@@ -1828,7 +1863,7 @@ container.appendChild(el);
 });
 (user.dog.poops||[]).forEach((p,i)=>{
 const el=document.createElement('div');
-el.style.cssText=`position:absolute;left:${p.x}%;bottom:${p.y}px;font-size:2rem;cursor:pointer;user-select:none`;
+el.style.cssText=`position:absolute;left:${p.x}%;bottom:${p.y}px;font-size:2rem;cursor:pointer;user-select:none;pointer-events:auto;z-index:6`;
 el.textContent='💩';
 el.title='Прибрати какашку -800⭐ +1❤️';
 el.onclick=()=>cleanPoop(i);
@@ -2106,12 +2141,12 @@ setTimeout(()=>{
 // ═══════════════════════════════════════════════════════
 function doAppleAction(){
 const user=getUser();
-if(!user.bees||user.bees<10)return alert('Потрібно 10🐝');
+if(!user.bees||user.bees<5)return alert('Потрібно 5🐝');
 // Find a branch with a flower that can become an apple
 const branch=(user.tree&&user.tree.branches||[]).find(b=>b.flower&&!b.flower.fallen&&!b.flower.apple);
 if(!branch)return alert('Немає квіток на дереві! Потрібно хоча б 1 квітка 🌸');
 
-user.bees-=10;
+user.bees-=5;
 saveUser(user);
 updateUI();
 
@@ -2415,14 +2450,14 @@ function englishVictory(){
 const bonus=10*20*20;
 const total=englishState.stars+bonus;
 
-// Apply SRS nextReview only on VICTORY — delays: 1,3,10,30,60,180 days
-const srsDelays=[0,1,3,10,30,60,180]; // index = total correct answers
+// Apply SRS nextReview only on VICTORY — delays: 1,3,5,10,30,60,120 days
+const srsDelays=[0,1,3,5,10,30,60,120]; // index = total correct answers
 const user=getUser();
 if(!user.english[englishState.theme]) user.english[englishState.theme]={};
 
-// For each word that got 2 correct answers in this game — set nextReview
+// For each word that got 3 correct answers in this game — set nextReview
 Object.entries(englishState.progress||{}).forEach(([en,gameProg])=>{
-if(gameProg>=2){
+if(gameProg>=3){
 if(!user.english[englishState.theme][en]) user.english[englishState.theme][en]={correct:0,lastSeen:0};
 const totalCorrect=user.english[englishState.theme][en].correct||0;
 const delayIdx=Math.min(totalCorrect,srsDelays.length-1);
@@ -3747,8 +3782,11 @@ function mpRenderPlayerList(players){
 function mpUpdateLiveHud(players){
   const hud = document.getElementById('mp-boss-hud');
   const list = document.getElementById('mp-plist-live');
+  const totalDmgEl = document.getElementById('mp-total-dmg');
   if(!hud || !list) return;
   hud.classList.add('show');
+  const totalDmg = Object.values(players).reduce((s,p)=>s+(p.dmg||0),0);
+  if(totalDmgEl) totalDmgEl.textContent = `⚔️ Разом: ${totalDmg}`;
   list.innerHTML = Object.values(players).map(p=>
     `<span class="mp-plive-chip">${p.avatar||'👤'} ${p.name} ⚔️${p.dmg||0}</span>`
   ).join('');
