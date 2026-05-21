@@ -1401,6 +1401,33 @@ function doHedgehogAction(){
   const appleOnBranch=(user.tree&&user.tree.branches||[]).find(b=>b.flower&&b.flower.apple&&!b.flower.fallen);
   if(!appleOnBranch) return alert('Немає яблука на дереві! Спочатку виростіть яблуко 🍎');
 
+  // Calculate branch position to animate apple falling from the right spot
+  const branchIdx=(user.tree.branches||[]).indexOf(appleOnBranch);
+  const trunkTopY=210, branchLen=38, angleRad=35*Math.PI/180;
+  const dir=appleOnBranch.side==='right'?1:-1;
+  const attachY=trunkTopY-(Math.floor(branchIdx/2)*16);
+  const tipX=65+dir*(branchLen*Math.cos(angleRad));
+  const tipY=attachY-(branchLen*Math.sin(angleRad));
+  // Tree container is 130px wide, at left:4px of dog-area (130px wide)
+  // Convert SVG coords (0-130 x, 0-260 y) to percent of dog-area
+  const area=document.querySelector('.dog-area');
+  const treeContainer=document.getElementById('tree-container');
+  let appleLeftPct='8%', appleBottomPct='65%';
+  if(area&&treeContainer){
+    const areaW=area.offsetWidth||300;
+    const areaH=area.offsetHeight||350;
+    const treeW=treeContainer.offsetWidth||130;
+    const treeH=treeContainer.offsetHeight||260;
+    const treeLeft=treeContainer.offsetLeft||4;
+    const treeBottom=parseFloat(treeContainer.style.bottom)||20;
+    // SVG coords: tipX in [0,130], tipY in [0,260] (from top of SVG)
+    // SVG bottom = treeBottom, SVG top = treeBottom + treeH
+    const pxFromLeft = treeLeft + (tipX/130)*treeW;
+    const pxFromBottom = treeBottom + (1-(tipY/260))*treeH;
+    appleLeftPct = (pxFromLeft/areaW*100).toFixed(1)+'%';
+    appleBottomPct = (pxFromBottom/areaH*100).toFixed(1)+'%';
+  }
+
   user.hedgehogs-=1;
   // Remove apple from branch
   appleOnBranch.flower.fallen=true;
@@ -1408,29 +1435,28 @@ function doHedgehogAction(){
   updateUI();
   updateTreeUI();
 
-  const area=document.querySelector('.dog-area');
   if(!area) return;
 
-  // Apple falls from tree (tree is at left ~4px, ~8% from left)
+  // Apple starts at branch tip, falls to ground
   const appleEl=document.createElement('div');
   appleEl.textContent='🍎';
-  appleEl.style.cssText='position:absolute;font-size:2.5rem;left:8%;bottom:65%;pointer-events:none;z-index:20;transition:bottom 0.9s cubic-bezier(.4,0,1,1),opacity 0.9s';
+  appleEl.style.cssText=`position:absolute;font-size:2.5rem;left:${appleLeftPct};bottom:${appleBottomPct};pointer-events:none;z-index:20;transition:bottom 0.9s cubic-bezier(.4,0,1,1),opacity 0.9s`;
   area.appendChild(appleEl);
   // Trigger fall after a tiny delay
-  setTimeout(()=>{ appleEl.style.bottom='28px'; },50);
+  const groundBottom='28px';
+  setTimeout(()=>{ appleEl.style.bottom=groundBottom; },50);
 
   // Hedgehog runs in from left after apple lands
   setTimeout(()=>{
     const hog=document.createElement('div');
     hog.textContent='🦔';
-    hog.style.cssText='position:absolute;font-size:2.5rem;left:-10%;bottom:24px;pointer-events:none;z-index:21;transition:left 1.5s linear';
+    hog.style.cssText=`position:absolute;font-size:2.5rem;left:-10%;bottom:24px;pointer-events:none;z-index:21;transition:left 1.5s linear`;
     area.appendChild(hog);
-    setTimeout(()=>{ hog.style.left='8%'; },50);
+    // Run to apple position
+    setTimeout(()=>{ hog.style.left=appleLeftPct; },50);
 
-    // Hedgehog picks up apple (moves to apple position)
+    // Hedgehog picks up apple
     setTimeout(()=>{
-      appleEl.style.bottom='28px';
-      appleEl.style.left='8%';
       hog.textContent='🦔🍎';
       appleEl.style.opacity='0';
     },1600);
@@ -2371,12 +2397,19 @@ if(englishState.correctCount%5===0&&englishState.hearts<10){
 englishState.hearts++;
 }
 
-// Save correct count to user data (but NOT nextReview — applied only on victory)
+// Save correct count to user data + SRS scheduling after 3 correct this game
 const user=getUser();
 if(!user.english[englishState.theme]) user.english[englishState.theme]={};
 if(!user.english[englishState.theme][en]) user.english[englishState.theme][en]={correct:0,lastSeen:0};
 user.english[englishState.theme][en].correct++;
 user.english[englishState.theme][en].lastSeen=Date.now();
+// SRS: after 3 correct in this game session — schedule nextReview
+if((englishState.progress[en]+1)>=3){
+  const srsDelays=[0,1,3,5,10,30,60,120];
+  const totalCorrect=user.english[englishState.theme][en].correct;
+  const delayIdx=Math.min(totalCorrect,srsDelays.length-1);
+  user.english[englishState.theme][en].nextReview=Date.now()+srsDelays[delayIdx]*24*3600000;
+}
 saveUser(user);
 
 showEnglishFeedback(true);
@@ -2681,20 +2714,48 @@ return `
 ${[0,1,2].map(j=>`<div class="dict-dot ${w.progress>j?'done':''}"></div>`).join('')}
 </div>
 </div>
-${w.custom?`
 <div style="display:flex;gap:8px">
+${w.custom?`
 <button class="btn" style="padding:8px 14px;font-size:0.9rem;background:linear-gradient(135deg,#f39c12,#e67e22)" onclick="editWord(${i},'${filterTheme}')">✏️</button>
 <button class="btn danger" style="padding:8px 14px;font-size:0.9rem" onclick="deleteWord(${i},'${filterTheme}')">🗑️</button>
-</div>`:''}
+`:`
+<button class="btn" style="padding:8px 14px;font-size:0.9rem;background:linear-gradient(135deg,#f39c12,#e67e22)" onclick="editDefaultWord('${w.en}','${w.theme}','${filterTheme}')">✏️</button>
+<button class="btn danger" style="padding:8px 14px;font-size:0.9rem" onclick="deleteDefaultWord('${w.en}','${w.theme}','${filterTheme}')">🗑️</button>
+`}
+</div>
 </div>
 `;
 }).join('');
 
 document.getElementById('dict-list').innerHTML=html||'<p style="text-align:center;color:#999">Немає слів</p>';
 }
-// ═══════════════════════════════════════════════════════════
-// MATH GAME
-// ═══════════════════════════════════════════════════════════
+// ── Edit / delete built-in (default) words ──────────────
+function editDefaultWord(enWord, theme, filterTheme){
+  // Find in EN_WORDS
+  const arr = EN_WORDS[theme];
+  if(!arr) return;
+  const idx = arr.findIndex(w=>w.en===enWord);
+  if(idx===-1) return;
+  const w = arr[idx];
+  const newEn = prompt('English слово:', w.en);
+  if(!newEn||!newEn.trim()) return;
+  const allUk = (w.ukVariants||[w.uk]).join(', ');
+  const newUk = prompt('Переклад(и) українською (через кому):', allUk);
+  if(!newUk||!newUk.trim()) return;
+  const ukVariants = newUk.split(',').map(s=>s.trim()).filter(Boolean);
+  arr[idx] = {...w, en: newEn.trim(), uk: ukVariants[0], ukVariants};
+  renderDictionary(filterTheme);
+}
+
+function deleteDefaultWord(enWord, theme, filterTheme){
+  if(!confirm(`Видалити слово "${enWord}" зі словника? Це тимчасово (до перезавантаження сторінки).`)) return;
+  const arr = EN_WORDS[theme];
+  if(!arr) return;
+  const idx = arr.findIndex(w=>w.en===enWord);
+  if(idx!==-1) arr.splice(idx,1);
+  renderDictionary(filterTheme);
+}
+
 // ═══════════════════════════════════════════════════════
 // TREE SYSTEM
 // ═══════════════════════════════════════════════════════
