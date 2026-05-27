@@ -216,7 +216,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 
 /* Boss Monster Background */
 #boss-monster-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;overflow:hidden}
-#boss-monster-svg{width:min(340px,80vw);height:min(340px,80vw);opacity:.18;filter:drop-shadow(0 0 30px #ff0000)}
+#boss-monster-svg{width:min(220px,55vw);height:min(220px,55vw);opacity:.55;filter:drop-shadow(0 0 20px #ff0000)}
+#boss-monster-avatar{margin-top:45px}
 #boss-game-area > *:not(#boss-monster-bg){position:relative;z-index:1}
 
 /* Boss HP display */
@@ -264,10 +265,10 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 /* Damage leaderboard overlay */
 #dmg-leaderboard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9800;align-items:center;justify-content:center}
 #dmg-leaderboard.show{display:flex}
-.dmg-board-box{background:linear-gradient(160deg,#1a1a2e,#0d2137);border:3px solid #ffd700;border-radius:20px;padding:18px 14px;width:96%;max-width:380px;color:#fff;text-align:center;max-height:96dvh;overflow-y:auto;box-shadow:0 0 40px rgba(255,215,0,.3)}
-.dmg-board-title{font-size:1.3rem;font-weight:900;color:#ffd700;margin-bottom:6px;line-height:1.25}
+.dmg-board-box{background:linear-gradient(160deg,#1a1a2e,#0d2137);border:3px solid #ffd700;border-radius:16px;padding:12px 10px;width:94%;max-width:360px;color:#fff;text-align:center;max-height:88dvh;overflow-y:auto;box-shadow:0 0 30px rgba(255,215,0,.3)}
+.dmg-board-title{font-size:1.1rem;font-weight:900;color:#ffd700;margin-bottom:4px;line-height:1.25}
 .dmg-board-rewards{font-size:1.05rem;color:#00e676;margin-bottom:12px;font-weight:700}
-.dmg-board-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.1);padding:10px 14px;border-radius:12px;margin:5px 0;font-size:1rem;gap:8px}
+.dmg-board-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.1);padding:7px 10px;border-radius:10px;margin:4px 0;font-size:.95rem;gap:6px}
 .dmg-board-row-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,0,.5)}
 .dmg-board-row-emoji{font-size:1.8rem;flex-shrink:0;width:36px;text-align:center}
 .dmg-board-name{flex:1;text-align:left;font-weight:700;font-size:1rem}
@@ -297,14 +298,17 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
     <div class="login-pin-screen" id="login-pin-view">
       <div class="pin-title">Введи пароль для</div>
       <div class="pin-user" id="pin-username-label"></div>
-      <div class="pin-input-wrap">
+      <div class="pin-input-wrap" style="position:relative">
         <input class="pin-text-input" id="pin-password-input" type="password" placeholder="Пароль..." autocomplete="current-password"
           oninput="document.getElementById('pin-error').textContent=''"
-          onkeydown="if(event.key==='Enter')pinSubmit()">
+          onkeydown="if(event.key==='Enter')pinSubmit()"
+          style="padding-right:44px">
+        <button type="button" onclick="togglePwdVis('pin-password-input',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;padding:4px">👁</button>
       </div>
       <div class="pin-error" id="pin-error"></div>
       <button class="pin-submit-btn" onclick="pinSubmit()">✓ Увійти</button>
       <div class="pin-back-link" onclick="loginShowProfiles()">← Назад до профілів</div>
+      <div class="pin-back-link" style="margin-top:8px;color:#764ba2" onclick="showForgotPassword()">🔑 Забули пароль?</div>
     </div>
 
     <!-- New profile creation -->
@@ -312,15 +316,29 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       <div class="pin-title" style="font-size:1.2rem;margin-bottom:16px;color:#764ba2;font-weight:700">Новий профіль</div>
       <input id="new-profile-name" type="text" placeholder="Ім'я гравця" maxlength="16"
         style="width:100%;padding:12px;border-radius:10px;border:2px solid #c9a8f0;font-size:1.1rem;text-align:center;margin-bottom:14px;outline:none">
+      <div class="pin-title" style="margin-bottom:8px">Аватарка профілю</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;justify-content:center">
+        <div id="new-profile-avatar-preview" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#e8d4ff,#c9a8f0);border:3px solid #764ba2;display:flex;align-items:center;justify-content:center;font-size:2.2rem;overflow:hidden;cursor:pointer" onclick="document.getElementById('new-profile-photo-input').click()">😊</div>
+        <div>
+          <div style="font-size:.85rem;color:#888;margin-bottom:6px">Обери емодзі або завантаж фото</div>
+          <input type="file" id="new-profile-photo-input" accept="image/*" style="display:none" onchange="handleNewProfilePhoto(event)">
+          <button type="button" onclick="document.getElementById('new-profile-photo-input').click()" style="padding:6px 14px;background:linear-gradient(135deg,#764ba2,#667eea);color:#fff;border:none;border-radius:8px;font-size:.85rem;cursor:pointer">📷 Фото</button>
+          <button type="button" onclick="openEmojiPicker('new-profile-avatar-preview','new-avatar-emoji-val')" style="padding:6px 14px;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border:none;border-radius:8px;font-size:.85rem;cursor:pointer;margin-left:6px">😊 Емодзі</button>
+        </div>
+      </div>
+      <input type="hidden" id="new-avatar-emoji-val" value="😊">
       <div class="pin-title" style="margin-bottom:8px">Придумай пароль (будь-який)</div>
-      <div class="pin-input-wrap">
+      <div class="pin-input-wrap" style="position:relative">
         <input class="pin-text-input" id="new-pin-input" type="password" placeholder="Пароль (необов'язково)..." autocomplete="new-password"
           oninput="document.getElementById('new-pin-error').textContent=''"
-          onkeydown="if(event.key==='Enter')createProfile()">
+          onkeydown="if(event.key==='Enter')createProfile()"
+          style="padding-right:44px">
+        <button type="button" onclick="togglePwdVis('new-pin-input',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;padding:4px">👁</button>
       </div>
       <div class="pin-error" id="new-pin-error"></div>
       <button class="pin-submit-btn" onclick="createProfile()">✓ Створити профіль</button>
       <div class="pin-back-link" onclick="loginShowProfiles()">← Назад до профілів</div>
+      <div class="pin-back-link" style="margin-top:8px;color:#764ba2" onclick="showForgotPassword()">🔑 Забули пароль?</div>
     </div>
   </div>
 </div>
@@ -337,8 +355,9 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
 <button class="btn" onclick="showSyncModal()" style="background:linear-gradient(135deg,#00b4d8,#0096c7)" title="Синхронізація між пристроями">🔄 Синхронізація</button>
-<button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="Кооп БоСС з іншими гравцями">👥 Кооп БоСС</button>
-<button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="Кооп БоСС English">🇬🇧 Кооп БоСС</button><button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
+<button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="БоСС-Математика">💀 БоСС-Математика</button>
+<button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
+<button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
 <button class="btn" onclick="logoutUser()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px">🚪</button>
 </div>
 
@@ -447,6 +466,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('nature')">🌳 Природа</button>
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('pronouns')">👤 Займенники</button>
 <button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('interrogative')">❓ Питальні</button>
+<button class="btn" style="padding:20px 26px;font-size:1.2rem" onclick="startEnglishTheme('food')">🍕 Їжа</button>
 </div>
 <div style="border-top:2px solid rgba(255,255,255,.2);margin:18px 0"></div>
 <div style="color:#aaa;font-size:.9rem;margin-bottom:10px">Режим БоСС (1 гравець)</div>
@@ -456,6 +476,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" style="padding:14px 18px;font-size:1rem;background:linear-gradient(135deg,rgba(180,0,0,.7),rgba(80,0,0,.9));border:2px solid #ff4444" onclick="startEnBossSolo('nature')">🌳 Природа</button>
 <button class="btn" style="padding:14px 18px;font-size:1rem;background:linear-gradient(135deg,rgba(180,0,0,.7),rgba(80,0,0,.9));border:2px solid #ff4444" onclick="startEnBossSolo('pronouns')">👤 Займенники</button>
 <button class="btn" style="padding:14px 18px;font-size:1rem;background:linear-gradient(135deg,rgba(180,0,0,.7),rgba(80,0,0,.9));border:2px solid #ff4444" onclick="startEnBossSolo('interrogative')">❓ Питальні</button>
+<button class="btn" style="padding:14px 18px;font-size:1rem;background:linear-gradient(135deg,rgba(180,0,0,.7),rgba(80,0,0,.9));border:2px solid #ff4444" onclick="startEnBossSolo('food')">🍕 Їжа</button>
 </div>
 <div style="margin-top:10px">
   <label style="color:#aaa;font-size:.85rem">Рівень БоСС: </label>
@@ -495,6 +516,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="theme-btn" onclick="filterDictionary('nature')">Природа</button>
 <button class="theme-btn" onclick="filterDictionary('pronouns')">Займенники</button>
 <button class="theme-btn" onclick="filterDictionary('interrogative')">Питальні</button>
+<button class="theme-btn" onclick="filterDictionary('food')">🍕 Їжа</button>
 </div>
 <div style="margin:20px 0">
 <input type="text" placeholder="English" id="dict-en" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px;width:200px">
@@ -505,6 +527,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <option value="nature">Природа</option>
 <option value="pronouns">Займенники</option>
 <option value="interrogative">Питальні</option>
+<option value="food">🍕 Їжа</option>
 </select>
 <button class="btn success" onclick="addWord()">➕ Додати</button>
 </div>
@@ -543,13 +566,23 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(3)"><span>💀💀💀 Рівень 3 — +150 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+3🐝+3000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(4)"><span>💀💀💀💀 Рівень 4 — +200 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+4🐝+4000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(5)"><span>💀💀💀💀💀 Рівень 5 — +250 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+5🐝+5000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(6)"><span>⚡ Рівень 6 — +300 кожні 10с</span><span class="math-level-badge" style="background:#4B0082;color:#fff">+6🐝+6000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(7)"><span>🔥 Рівень 7 — +350 кожні 10с</span><span class="math-level-badge" style="background:#4B0082;color:#fff">+7🐝+7000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(8)"><span>💥 Рівень 8 — +400 кожні 10с</span><span class="math-level-badge" style="background:#1a0044;color:#fff">+8🐝+8000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(9)"><span>🌪️ Рівень 9 — +450 кожні 10с</span><span class="math-level-badge" style="background:#1a0044;color:#fff">+9🐝+9000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(10)"><span>☠️ Рівень 10 — +500 кожні 10с</span><span class="math-level-badge" style="background:#000;color:#ffd700">+10🐝+10000⭐</span></button>
 <button class="btn danger" style="margin-top:10px;width:100%;padding:12px" onclick="hideBossSelect()">← Назад</button>
 </div>
 
 <!-- BOSS GAME AREA -->
 <div id="boss-game-area" class="hidden" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-start">
-  <!-- Monster background -->
-  <div id="boss-monster-bg"><svg id="boss-monster-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  <!-- Boss Monster avatar (prominent) -->
+  <div id="boss-monster-bg">
+    <div id="boss-monster-avatar" style="position:relative;display:flex;flex-direction:column;align-items:center">
+      <svg id="boss-monster-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="boss-hp-change-overlay" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:2rem;font-weight:900;color:#ff4444;text-shadow:0 0 12px #ff4444;pointer-events:none;opacity:0;transition:opacity .3s"></div>
+    </div>
+  </div>
   <!-- HP panel: компактний -->
   <div style="padding:6px 3% 5px;background:rgba(0,0,0,.88);flex-shrink:0;border-bottom:2px solid #ff4444">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
@@ -587,13 +620,13 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div id="mp-modal">
   <div class="mp-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <div class="mp-title" style="margin:0">💀 Кооп БоСС</div>
+      <div class="mp-title" style="margin:0">💀 БоСС-Математика</div>
       <button onclick="closeMpModal()" style="background:none;border:none;color:#aaa;font-size:1.8rem;cursor:pointer">✕</button>
     </div>
 
     <!-- Step 0: choose action -->
     <div id="mp-step-choose">
-      <div class="mp-status">Граєте разом проти одного БоСС!<br>Хтось один створює кімнату, решта — приєднуються.</div>
+      <div class="mp-status">Граєте разом проти одного БоСС!<br>Хтось один створює кімнату, решта — приєднуються.<br><small style="color:#ff9999">⚠️ Максимум 5 гравців</small></div>
       <button class="mp-btn mp-btn-create" onclick="mpCreateRoom()">🏰 Створити кімнату</button>
       <button class="mp-btn mp-btn-join" onclick="mpShowJoin()">🔗 Приєднатись за кодом</button>
     </div>
@@ -617,6 +650,11 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
           <option value="3">💀💀💀 Рівень 3</option>
           <option value="4">💀💀💀💀 Рівень 4</option>
           <option value="5">💀💀💀💀💀 Рівень 5</option>
+          <option value="6">⚡ Рівень 6 — +300 кожні 10с</option>
+          <option value="7">🔥 Рівень 7 — +350 кожні 10с</option>
+          <option value="8">💥 Рівень 8 — +400 кожні 10с</option>
+          <option value="9">🌪️ Рівень 9 — +450 кожні 10с</option>
+          <option value="10">☠️ Рівень 10 — +500 кожні 10с</option>
         </select>
       </div>
       <button class="mp-btn mp-btn-start" id="mp-start-btn" onclick="mpHostStartGame()">▶️ Почати гру</button>
@@ -650,11 +688,11 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 
 <!-- MULTIPLAYER LIVE HUD (inside boss-game-area) -->
 <div id="mp-boss-hud">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
-    <span style="color:#ff9999;font-size:.72rem">👥 КООП — гравці:</span>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+    <span style="color:#ff9999;font-size:.72rem">👥 КООП:</span>
     <span id="mp-total-dmg" style="color:#00e676;font-size:.78rem;font-weight:700;margin-left:auto">⚔️ Разом: 0</span>
   </div>
-  <div class="mp-plist-live" id="mp-plist-live"></div>
+  <div id="mp-plist-live" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"></div>
 </div>
 
 <!-- SYNC MODAL -->
@@ -697,11 +735,11 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div id="en-boss-modal">
   <div class="en-boss-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <div class="en-boss-title" style="margin:0">🇬🇧 Кооп БоСС English</div>
+      <div class="en-boss-title" style="margin:0">🇬🇧 БоСС-English</div>
       <button onclick="closeEnBossModal()" style="background:none;border:none;color:#aaa;font-size:1.8rem;cursor:pointer">✕</button>
     </div>
     <div id="en-boss-step-choose">
-      <div class="mp-status" style="color:#aaa;text-align:center;font-size:.9rem;margin:8px 0">Граєте разом проти БоСС на англійських словах!</div>
+      <div class="mp-status" style="color:#aaa;text-align:center;font-size:.9rem;margin:8px 0">Граєте разом проти БоСС на англійських словах!<br><small style="color:#87ceeb">⚠️ Максимум 5 гравців</small></div>
       <button class="mp-btn" style="background:linear-gradient(135deg,#e74c3c,#c0392b);width:100%;padding:12px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;color:#fff" onclick="enBossCreateRoom()">🏰 Створити кімнату</button>
       <button class="mp-btn" style="background:linear-gradient(135deg,#8e44ad,#6c3483);width:100%;padding:12px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;color:#fff" onclick="enBossShowJoin()">🔗 Приєднатись за кодом</button>
     </div>
@@ -719,6 +757,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
         <option value="nature">🌳 Природа</option>
         <option value="pronouns">👤 Займенники</option>
         <option value="interrogative">❓ Питальні</option>
+        <option value="food">🍕 Їжа</option>
       </select>
       <div style="color:#aaa;font-size:.85rem;margin-bottom:6px">Рівень БоСС:</div>
       <select id="en-boss-level-select" style="width:100%;padding:9px;border-radius:9px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;margin-bottom:12px">
@@ -757,7 +796,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <!-- ENGLISH BOSS GAME -->
 <div id="en-boss-game">
   <div id="en-boss-monster-bg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;overflow:hidden">
-    <svg id="en-boss-monster-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:min(300px,75vw);height:min(300px,75vw);opacity:.15;filter:drop-shadow(0 0 30px #00b4d8)"></svg>
+    <svg id="en-boss-monster-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:min(200px,52vw);height:min(200px,52vw);opacity:.5;filter:drop-shadow(0 0 20px #00b4d8);margin-top:45px"></svg>
   </div>
   <div class="en-boss-hud" style="position:relative;z-index:1">
     <button class="en-boss-back" onclick="closeEnBossGame()">← Назад</button>
@@ -853,7 +892,7 @@ function enBossCopyCode(){
 function mpMyInfoEn(){
   const profiles = loadAllProfiles();
   const p = profiles[_activeProfileId] || {};
-  return { name: p.name || 'Гравець', avatar: p.avatar || '👤' };
+  return { name: p.name || 'Гравець', avatar: p.avatar || '👤', photoUrl: (p.data&&p.data.photoDataUrl)||null };
 }
 
 async function enBossCreateRoom(){
@@ -869,7 +908,7 @@ async function enBossCreateRoom(){
     status: 'waiting',
     bossHp: EN_BOSS_START_HP,
     createdAt: Date.now(),
-    players: { [myId]: { name: info.name, avatar: info.avatar, dmg: 0, online: true } }
+    players: { [myId]: { name: info.name, avatar: info.avatar, photoUrl: info.photoUrl||null, dmg: 0, online: true } }
   };
   try { await mpSet(`en_rooms/${code}`, roomData); } catch(e){ alert('❌ '+e.message); return; }
   enBossMpState = {
@@ -893,9 +932,12 @@ async function enBossJoinRoom(){
   if(!snap.exists()){ errEl.textContent='❌ Кімнату не знайдено'; errEl.style.display='block'; return; }
   const room = snap.val();
   if(room.status==='playing'){ errEl.textContent='❌ Гра вже йде'; errEl.style.display='block'; return; }
+  if(room.players && Object.keys(room.players).filter(k=>room.players[k].online!==false).length >= 5){
+    errEl.textContent='❌ Кімната заповнена (макс. 5 гравців)'; errEl.style.display='block'; return;
+  }
   const info = mpMyInfoEn();
   const myId = 'p_' + Date.now();
-  try { await mpSet(`en_rooms/${code}/players/${myId}`, { name: info.name, avatar: info.avatar, dmg: 0, online: true }); }
+  try { await mpSet(`en_rooms/${code}/players/${myId}`, { name: info.name, avatar: info.avatar, photoUrl: info.photoUrl||null, dmg: 0, online: true }); }
   catch(e){ errEl.textContent='❌ '+e.message; errEl.style.display='block'; return; }
   enBossMpState = {
     roomCode: code, myId, myName: info.name, myAvatar: info.avatar,
@@ -957,9 +999,21 @@ function enBossUpdateMpHud(players){
   const list = document.getElementById('en-boss-mp-plist');
   if(!hud||!list) return;
   hud.style.display='block';
-  list.innerHTML = Object.values(players).map(p=>
-    `<span class="mp-plive-chip">${p.avatar||'👤'} ${p.name} ⚔️${p.dmg||0}</span>`
-  ).join('');
+  const playerArr = Object.values(players).slice(0,5);
+  const allProfiles = typeof loadAllProfiles === 'function' ? loadAllProfiles() : {};
+  const photoByName = {};
+  Object.values(allProfiles).forEach(pr=>{ if(pr.data&&pr.data.photoDataUrl) photoByName[pr.name]=pr.data.photoDataUrl; });
+  list.innerHTML = playerArr.map((p,i)=>{
+    const col = MP_PLAYER_COLORS[i % MP_PLAYER_COLORS.length];
+    const photo = p.photoUrl || photoByName[p.name];
+    const avatarHtml = photo
+      ? `<img src="${photo}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid ${col}">`
+      : `<div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid ${col};display:flex;align-items:center;justify-content:center;font-size:1.4rem">${p.avatar||'👤'}</div>`;
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:48px">
+      <div style="position:relative">${avatarHtml}<span style="position:absolute;bottom:-2px;right:-2px;background:${col};color:#000;font-size:.55rem;font-weight:900;border-radius:4px;padding:1px 3px;line-height:1">⚔️${p.dmg||0}</span></div>
+      <div style="font-size:.6rem;color:${col};font-weight:700;text-align:center;max-width:48px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.name}</div>
+    </div>`;
+  }).join('');
 }
 
 async function enBossHostStart(){
@@ -1574,6 +1628,246 @@ function updateDogHouseDmg(){
   }
 }
 
+
+// ═══════════════════════════════════════════════════════════
+// PASSWORD SHOW/HIDE TOGGLE
+// ═══════════════════════════════════════════════════════════
+function togglePwdVis(inputId, btn){
+  const inp = document.getElementById(inputId);
+  if(!inp) return;
+  if(inp.type === 'password'){
+    inp.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    inp.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// FORGOT PASSWORD
+// ═══════════════════════════════════════════════════════════
+let _forgotPwdProfile = null;
+let _forgotPwdCode = null;
+let _forgotPwdProfileId = null;
+
+function showForgotPassword(){
+  document.getElementById('forgot-pwd-modal').style.display = 'flex';
+  document.getElementById('forgot-pwd-step1').style.display = 'block';
+  document.getElementById('forgot-pwd-step2').style.display = 'none';
+  document.getElementById('forgot-pwd-name').value = '';
+  document.getElementById('forgot-pwd-err').textContent = '';
+  _forgotPwdCode = null;
+  _forgotPwdProfile = null;
+  _forgotPwdProfileId = null;
+}
+function closeForgotPassword(){
+  document.getElementById('forgot-pwd-modal').style.display = 'none';
+}
+async function sendForgotPasswordCode(){
+  const name = (document.getElementById('forgot-pwd-name').value||'').trim();
+  const errEl = document.getElementById('forgot-pwd-err');
+  if(!name){ errEl.textContent = '❌ Введіть імя'; return; }
+  const profiles = loadAllProfiles();
+  const found = Object.entries(profiles).find(([id,p]) => p.name && p.name.toLowerCase() === name.toLowerCase());
+  if(!found){ errEl.textContent = '❌ Профіль не знайдено'; return; }
+  const [pid, profile] = found;
+  _forgotPwdProfileId = pid;
+  _forgotPwdProfile = profile;
+  // Generate 6-digit code
+  _forgotPwdCode = Math.floor(100000 + Math.random() * 900000).toString();
+  // Send via Firebase (store in DB) + EmailJS simulation
+  if(window._fbReady){
+    try {
+      await window._fb.set(window._fb.ref(window._fb.db, `reset_codes/${pid}`), {
+        code: _forgotPwdCode,
+        name: profile.name,
+        createdAt: Date.now()
+      });
+    } catch(e){ console.warn('Could not store reset code', e); }
+  }
+  // Show code in alert for demo (in production would be emailed)
+  alert(`📧 Код відновлення для "${profile.name}":
+
+${_forgotPwdCode}
+
+(В реальній грі цей код надсилається на kosmeet@gmail.com)`);
+  document.getElementById('forgot-pwd-step1').style.display = 'none';
+  document.getElementById('forgot-pwd-step2').style.display = 'block';
+  document.getElementById('forgot-pwd-code').value = '';
+  document.getElementById('forgot-pwd-new').value = '';
+  document.getElementById('forgot-pwd-code-err').textContent = '';
+}
+function confirmForgotPasswordCode(){
+  const enteredCode = (document.getElementById('forgot-pwd-code').value||'').trim();
+  const newPwd = document.getElementById('forgot-pwd-new').value || '';
+  const errEl = document.getElementById('forgot-pwd-code-err');
+  if(!enteredCode){ errEl.textContent = '❌ Введіть код'; return; }
+  if(enteredCode !== _forgotPwdCode){ errEl.textContent = '❌ Невірний код'; return; }
+  const profiles = loadAllProfiles();
+  if(profiles[_forgotPwdProfileId]){
+    profiles[_forgotPwdProfileId].pin = newPwd;
+    saveAllProfiles(profiles);
+    closeForgotPassword();
+    alert(`✅ Пароль для "${_forgotPwdProfile.name}" змінено!`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// EMOJI PICKER
+// ═══════════════════════════════════════════════════════════
+const PROFILE_EMOJIS = ['😊','😎','🦊','🐱','🐶','🦁','🐯','🐻','🐼','🐨','🐸','🐧',
+  '🦄','🐲','🦖','🦋','🌟','⚡','🔥','💎','👑','🎮','🚀','🌈','🍕','🎯','🏆',
+  '🧠','💪','🎪','🎭','🎨','🎵','🎸','⚽','🏀','🎾','🌸','🌺','🌻','🍀','🌙','☀️',
+  '💗','💜','💙','💚','🧡','❤️','🖤','🤍','🌊','🏔️','🦅','🐬','🦚','🦜','🐝','🦋'];
+let _emojiPickerTargetId = null;
+let _emojiPickerHiddenId = null;
+
+function openEmojiPicker(targetId, hiddenId){
+  _emojiPickerTargetId = targetId;
+  _emojiPickerHiddenId = hiddenId;
+  const grid = document.getElementById('emoji-picker-grid');
+  grid.innerHTML = PROFILE_EMOJIS.map(e =>
+    `<div onclick="selectEmoji('${e}')" style="font-size:1.8rem;cursor:pointer;padding:6px;border-radius:8px;transition:.15s" onmouseover="this.style.background='#f0e0ff'" onmouseout="this.style.background=''">${e}</div>`
+  ).join('');
+  document.getElementById('emoji-picker-modal').style.display = 'flex';
+}
+function closeEmojiPicker(){
+  document.getElementById('emoji-picker-modal').style.display = 'none';
+}
+function selectEmoji(emoji){
+  const target = document.getElementById(_emojiPickerTargetId);
+  const hidden = _emojiPickerHiddenId ? document.getElementById(_emojiPickerHiddenId) : null;
+  if(target){
+    // Clear any img
+    target.innerHTML = '';
+    target.textContent = emoji;
+    if(target._photoDataUrl) target._photoDataUrl = null;
+  }
+  if(hidden) hidden.value = emoji;
+  closeEmojiPicker();
+}
+
+// ═══════════════════════════════════════════════════════════
+// AVATAR MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+function handleNewProfilePhoto(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('new-profile-avatar-preview');
+    if(preview){
+      preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      preview._photoDataUrl = e.target.result;
+    }
+    document.getElementById('new-avatar-emoji-val').value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function getNewProfileAvatarData(){
+  const preview = document.getElementById('new-profile-avatar-preview');
+  if(preview && preview._photoDataUrl){
+    return { type:'photo', data: preview._photoDataUrl };
+  }
+  const emojiVal = document.getElementById('new-avatar-emoji-val').value;
+  return { type:'emoji', data: emojiVal || PROFILE_AVATARS[0] };
+}
+
+function openAvatarModal(){
+  const profiles = loadAllProfiles();
+  const p = profiles[_activeProfileId];
+  if(!p) return;
+  const preview = document.getElementById('avatar-modal-preview');
+  if(preview){
+    if(p.data && p.data.photoDataUrl){
+      preview.innerHTML = `<img src="${p.data.photoDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      preview._photoDataUrl = p.data.photoDataUrl;
+    } else {
+      preview.innerHTML = '';
+      preview.textContent = p.avatar || '😊';
+      preview._photoDataUrl = null;
+    }
+  }
+  document.getElementById('avatar-modal-emoji-hidden').value = p.avatar || '';
+  document.getElementById('avatar-modal').style.display = 'flex';
+}
+function closeAvatarModal(){
+  document.getElementById('avatar-modal').style.display = 'none';
+}
+function handleAvatarModalPhoto(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('avatar-modal-preview');
+    if(preview){
+      preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      preview._photoDataUrl = e.target.result;
+    }
+    document.getElementById('avatar-modal-emoji-hidden').value = '';
+  };
+  reader.readAsDataURL(file);
+}
+function saveAvatarModal(){
+  const profiles = loadAllProfiles();
+  const p = profiles[_activeProfileId];
+  if(!p) return;
+  const preview = document.getElementById('avatar-modal-preview');
+  if(preview && preview._photoDataUrl){
+    if(!p.data) p.data = {};
+    p.data.photoDataUrl = preview._photoDataUrl;
+    p.avatar = '📷';
+  } else {
+    const emojiVal = document.getElementById('avatar-modal-emoji-hidden').value;
+    if(emojiVal){
+      p.avatar = emojiVal;
+      if(p.data) delete p.data.photoDataUrl;
+    }
+  }
+  saveAllProfiles(profiles);
+  closeAvatarModal();
+  updateHeaderAvatar();
+  alert('✅ Аватарку оновлено!');
+}
+function updateHeaderAvatar(){
+  const profiles = loadAllProfiles();
+  const p = profiles[_activeProfileId];
+  if(!p) return;
+  const btn = document.getElementById('header-avatar-btn');
+  if(!btn) return;
+  if(p.data && p.data.photoDataUrl){
+    btn.innerHTML = `<img src="${p.data.photoDataUrl}" style="width:28px;height:28px;border-radius:50%;object-fit:cover">`;
+  } else {
+    btn.textContent = p.avatar || '😊';
+  }
+}
+
+// Override createProfile to save avatar
+window.createProfile = function(){
+  const nameEl = document.getElementById('new-profile-name');
+  const name = (nameEl ? nameEl.value : '').trim();
+  if(!name){ document.getElementById('new-pin-error').textContent = 'Введи імя'; return; }
+  const pwdEl = document.getElementById('new-pin-input');
+  const pwd = pwdEl ? pwdEl.value : '';
+  const profiles = loadAllProfiles();
+  const id = 'p_' + Date.now();
+  const avatarInfo = getNewProfileAvatarData();
+  const newData = {
+    stars:0, seeds:0, bees:0, tree:null,
+    dog:{name:'Рекс', hearts:10, lastHeartLoss:Date.now(), poops:[], lastPoopAdd:Date.now(), puddles:[], lastPuddleAdd:Date.now()},
+    english:{}, customWords:[], games:{}
+  };
+  if(avatarInfo.type === 'photo'){
+    newData.photoDataUrl = avatarInfo.data;
+  }
+  const emojiAvatar = avatarInfo.type === 'emoji' ? avatarInfo.data : (PROFILE_AVATARS[Object.keys(profiles).length % PROFILE_AVATARS.length]);
+  profiles[id] = { id, name, pin:pwd, avatar: avatarInfo.type==='photo' ? '📷' : emojiAvatar, data: newData };
+  saveAllProfiles(profiles);
+  loginShowProfiles();
+};
+
 const USERS_KEY='larikaV3';
 let currentUser='гравець';
 let englishState=null;
@@ -1629,6 +1923,18 @@ interrogative:[ // Питальні прислівники
 {en:'already',uk:'вже'},{en:'still',uk:'ще, все ще'},{en:'again',uk:'знову'},{en:'always',uk:'завжди'},{en:'never',uk:'ніколи'},
 {en:'often',uk:'часто'},{en:'sometimes',uk:'іноді'},{en:'rarely',uk:'рідко'},{en:'soon',uk:'скоро'},{en:'late',uk:'пізно, пізній'},
 {en:'early',uk:'рано, ранній'},{en:'together',uk:'разом'},{en:'alone',uk:'самотньо, один'},{en:'almost',uk:'майже'},{en:'enough',uk:'достатньо'}
+],
+food:[ // Їжа — 50 слів
+{en:'apple',uk:'яблуко'},{en:'bread',uk:'хліб'},{en:'milk',uk:'молоко'},{en:'egg',uk:'яйце'},{en:'cheese',uk:'сир'},
+{en:'butter',uk:'масло'},{en:'water',uk:'вода'},{en:'juice',uk:'сік'},{en:'tea',uk:'чай'},{en:'coffee',uk:'кава'},
+{en:'soup',uk:'суп'},{en:'salad',uk:'салат'},{en:'rice',uk:'рис'},{en:'pasta',uk:'паста'},{en:'pizza',uk:'піца'},
+{en:'chicken',uk:'курка'},{en:'fish',uk:'риба'},{en:'meat',uk:"м'ясо"},{en:'potato',uk:'картопля'},{en:'carrot',uk:'морква'},
+{en:'tomato',uk:'томат'},{en:'onion',uk:'цибуля'},{en:'garlic',uk:'часник'},{en:'banana',uk:'банан'},{en:'orange',uk:'апельсин'},
+{en:'strawberry',uk:'полуниця'},{en:'cake',uk:'торт'},{en:'candy',uk:'цукерка'},{en:'chocolate',uk:'шоколад'},{en:'ice cream',uk:'морозиво'},
+{en:'sandwich',uk:'бутерброд'},{en:'burger',uk:'бургер'},{en:'salt',uk:'сіль'},{en:'sugar',uk:'цукор'},{en:'honey',uk:'мед'},
+{en:'mushroom',uk:'гриб'},{en:'cucumber',uk:'огірок'},{en:'pepper',uk:'перець'},{en:'lemon',uk:'лимон'},{en:'grape',uk:'виноград'},
+{en:'yogurt',uk:'йогурт'},{en:'sausage',uk:'ковбаса'},{en:'pancake',uk:'млинець'},{en:'porridge',uk:'каша'},{en:'broth',uk:'бульйон'},
+{en:'vinegar',uk:'оцет'},{en:'oil',uk:'олія'},{en:'cream',uk:'вершки'},{en:'flour',uk:'борошно'},{en:'corn',uk:'кукурудза'}
 ]
 };
 
@@ -1827,11 +2133,13 @@ function createProfile(){
   const pwd=pwdEl?pwdEl.value:'';
   const profiles=loadAllProfiles();
   const id='p_'+Date.now();
-  const avatarIdx=Object.keys(profiles).length % PROFILE_AVATARS.length;
+  const avatarInfo = typeof getNewProfileAvatarData === 'function' ? getNewProfileAvatarData() : {type:'emoji', data: PROFILE_AVATARS[Object.keys(profiles).length % PROFILE_AVATARS.length]};
   const newData={stars:0,seeds:0,bees:0,tree:null,
     dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
     english:{},customWords:[],games:{}};
-  profiles[id]={id,name,pin:pwd,avatar:PROFILE_AVATARS[avatarIdx],data:newData};
+  if(avatarInfo.type === 'photo') newData.photoDataUrl = avatarInfo.data;
+  const emojiAvatar = avatarInfo.type === 'emoji' ? avatarInfo.data : (PROFILE_AVATARS[Object.keys(profiles).length % PROFILE_AVATARS.length]);
+  profiles[id]={id,name,pin:pwd,avatar:avatarInfo.type==='photo'?'📷':emojiAvatar,data:newData};
   saveAllProfiles(profiles);
   loginShowProfiles();
 }
@@ -3149,7 +3457,82 @@ const BOSS_MONSTERS_SVG=[
    <path d="M155,100 C170,85 165,60 150,70 C160,55 145,45 140,65 C145,50 130,45 132,65" fill="#e67e22" opacity=".8"/>
    <ellipse cx="100" cy="162" rx="28" ry="16" fill="#922b21"/>
    <path d="M80,162 C75,175 70,185 65,180 C72,170 78,160 80,162Z" fill="#c0392b"/>
-   <path d="M120,162 C125,175 130,185 135,180 C128,170 122,160 120,162Z" fill="#c0392b"/>`
+   <path d="M120,162 C125,175 130,185 135,180 C128,170 122,160 120,162Z" fill="#c0392b"/>`,
+
+  // Level 6 — льодовий велетень
+  `<ellipse cx="100" cy="115" rx="65" ry="60" fill="#1a6ca8"/>
+   <ellipse cx="100" cy="80" rx="50" ry="48" fill="#2980b9"/>
+   <polygon points="70,35 60,8 80,32" fill="#cce8ff"/>
+   <polygon points="130,35 140,8 120,32" fill="#cce8ff"/>
+   <circle cx="78" cy="75" r="16" fill="#e8f4fc"/><circle cx="122" cy="75" r="16" fill="#e8f4fc"/>
+   <circle cx="80" cy="77" r="9" fill="#1a3a5c"/><circle cx="124" cy="77" r="9" fill="#1a3a5c"/>
+   <circle cx="82" cy="74" r="3.5" fill="#fff"/><circle cx="126" cy="74" r="3.5" fill="#fff"/>
+   <path d="M80,106 L88,98 L94,108 L100,98 L106,108 L112,98 L120,106" stroke="#e8f4fc" stroke-width="3" fill="none"/>
+   <ellipse cx="55" cy="130" rx="22" ry="12" fill="#1a6ca8"/>
+   <ellipse cx="145" cy="130" rx="22" ry="12" fill="#1a6ca8"/>
+   <path d="M60,165 L80,195 L100,165 L120,195 L140,165" fill="none" stroke="#cce8ff" stroke-width="4"/>`,
+
+  // Level 7 — отруйний павук
+  `<ellipse cx="100" cy="130" rx="55" ry="50" fill="#1e8449"/>
+   <ellipse cx="100" cy="82" rx="42" ry="38" fill="#27ae60"/>
+   <line x1="100" y1="130" x2="30" y2="90" stroke="#1e8449" stroke-width="6"/>
+   <line x1="100" y1="130" x2="25" y2="130" stroke="#1e8449" stroke-width="6"/>
+   <line x1="100" y1="130" x2="35" y2="170" stroke="#1e8449" stroke-width="6"/>
+   <line x1="100" y1="130" x2="170" y2="90" stroke="#1e8449" stroke-width="6"/>
+   <line x1="100" y1="130" x2="175" y2="130" stroke="#1e8449" stroke-width="6"/>
+   <line x1="100" y1="130" x2="165" y2="170" stroke="#1e8449" stroke-width="6"/>
+   <circle cx="78" cy="75" r="15" fill="#d5f5e3"/><circle cx="122" cy="75" r="15" fill="#d5f5e3"/>
+   <circle cx="80" cy="77" r="8" fill="#117a65"/><circle cx="124" cy="77" r="8" fill="#117a65"/>
+   <circle cx="82" cy="74" r="3" fill="#fff"/><circle cx="126" cy="74" r="3" fill="#fff"/>
+   <path d="M82,105 C91,115 109,115 118,105" stroke="#52be80" stroke-width="3" fill="none"/>
+   <circle cx="88" cy="112" r="4" fill="#52be80"/>
+   <circle cx="112" cy="112" r="4" fill="#52be80"/>`,
+
+  // Level 8 — тіньовий демон
+  `<ellipse cx="100" cy="120" rx="65" ry="58" fill="#1a1a2e"/>
+   <ellipse cx="100" cy="80" rx="52" ry="48" fill="#16213e"/>
+   <polygon points="55,30 45,5 70,28" fill="#2c2c54"/>
+   <polygon points="145,30 155,5 130,28" fill="#2c2c54"/>
+   <circle cx="78" cy="73" r="16" fill="#9b59b6"/><circle cx="122" cy="73" r="16" fill="#9b59b6"/>
+   <circle cx="80" cy="75" r="10" fill="#4a235a"/><circle cx="124" cy="75" r="10" fill="#4a235a"/>
+   <circle cx="83" cy="72" r="4" fill="#e8daef"/><circle cx="127" cy="72" r="4" fill="#e8daef"/>
+   <path d="M75,108 C88,124 112,124 125,108" stroke="#9b59b6" stroke-width="4" fill="none"/>
+   <path d="M38,100 C22,80 28,55 42,68" fill="#2c2c54"/>
+   <path d="M162,100 C178,80 172,55 158,68" fill="#2c2c54"/>
+   <path d="M60,160 C50,180 40,185 55,195 C70,205 85,185 100,175 C115,185 130,205 145,195 C160,185 150,180 140,160" fill="#1a1a2e"/>`,
+
+  // Level 9 — магічний феніх
+  `<ellipse cx="100" cy="110" rx="58" ry="50" fill="#f39c12"/>
+   <ellipse cx="100" cy="76" rx="45" ry="42" fill="#e67e22"/>
+   <path d="M100,30 C90,5 70,10 65,25 C78,20 88,32 100,30Z" fill="#e74c3c"/>
+   <path d="M100,30 C110,5 130,10 135,25 C122,20 112,32 100,30Z" fill="#e74c3c"/>
+   <path d="M35,80 C10,60 5,30 25,45 C18,28 35,20 40,42 C30,28 48,22 48,45" fill="#e74c3c" opacity=".85"/>
+   <path d="M165,80 C190,60 195,30 175,45 C182,28 165,20 160,42 C170,28 152,22 152,45" fill="#e74c3c" opacity=".85"/>
+   <circle cx="78" cy="70" r="16" fill="#ffeaa7"/><circle cx="122" cy="70" r="16" fill="#ffeaa7"/>
+   <circle cx="80" cy="72" r="9" fill="#d35400"/><circle cx="124" cy="72" r="9" fill="#d35400"/>
+   <circle cx="82" cy="69" r="3.5" fill="#fff"/><circle cx="126" cy="69" r="3.5" fill="#fff"/>
+   <path d="M78,100 C90,112 110,112 122,100" stroke="#ffeaa7" stroke-width="3.5" fill="none"/>
+   <path d="M70,150 C55,170 45,190 60,195 C75,200 90,180 100,170 C110,180 125,200 140,195 C155,190 145,170 130,150" fill="#e74c3c"/>`,
+
+  // Level 10 — BOSS ФІНАЛЬНИЙ — Космічний Бог
+  `<ellipse cx="100" cy="115" rx="68" ry="60" fill="#0d0d1a"/>
+   <ellipse cx="100" cy="78" rx="54" ry="50" fill="#1a0033"/>
+   <circle cx="100" cy="78" r="52" fill="none" stroke="#ffd700" stroke-width="2" stroke-dasharray="8 5" opacity=".5"/>
+   <polygon points="75,22 68,0 82,20" fill="#ffd700" opacity=".9"/>
+   <polygon points="125,22 132,0 118,20" fill="#ffd700" opacity=".9"/>
+   <polygon points="100,15 95,0 105,0" fill="#ff4444" opacity=".9"/>
+   <circle cx="78" cy="72" r="18" fill="#ffd700"/><circle cx="122" cy="72" r="18" fill="#ffd700"/>
+   <circle cx="80" cy="74" r="11" fill="#c0392b"/><circle cx="124" cy="74" r="11" fill="#c0392b"/>
+   <circle cx="83" cy="71" r="4.5" fill="#fff"/><circle cx="127" cy="71" r="4.5" fill="#fff"/>
+   <path d="M78,106 C92,120 108,120 122,106" stroke="#ffd700" stroke-width="4.5" fill="none"/>
+   <polygon points="82,106 86,116 78,116" fill="#ffd700"/>
+   <polygon points="100,104 104,114 96,114" fill="#ffd700"/>
+   <polygon points="118,106 122,116 114,116" fill="#ffd700"/>
+   <circle cx="100" cy="78" r="20" fill="none" stroke="#ff4444" stroke-width="1.5" opacity=".4"/>
+   <circle cx="100" cy="78" r="35" fill="none" stroke="#9b59b6" stroke-width="1" opacity=".35"/>
+   <ellipse cx="40" cy="115" rx="28" ry="12" fill="#1a0033"/>
+   <ellipse cx="160" cy="115" rx="28" ry="12" fill="#1a0033"/>
+   <path d="M55,155 L45,185 M75,165 L72,192 M100,168 L100,195 M125,165 L128,192 M145,155 L155,185" stroke="#ffd700" stroke-width="3.5" stroke-linecap="round" opacity=".8"/>`
 ];
 
 function renderBossMonster(level){
@@ -3163,7 +3546,7 @@ window.bossState=null;
 window.bossInterval=null;
 window.bossTimerLeft=10;
 
-const BOSS_REGEN_PER_LEVEL=[0,50,100,150,200,250];
+const BOSS_REGEN_PER_LEVEL=[0,50,100,150,200,250,300,350,400,450,500];
 const BOSS_START_HP=1500;
 const BOSS_DEFEAT_HP=3000;
 
@@ -3610,7 +3993,7 @@ window.addEventListener('appinstalled',()=>{deferredPrompt=null;});
 
 const MP_BOSS_START_HP = 1500;
 const MP_BOSS_DEFEAT_HP = 3000;
-const MP_REGEN_PER_LEVEL = [0, 50, 100, 150, 200, 250];
+const MP_REGEN_PER_LEVEL = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 const MP_ROOM_TTL_MS = 2 * 60 * 60 * 1000; // auto-clean rooms older than 2h (client-side)
 
 let mpState = null;
@@ -3684,7 +4067,7 @@ function mpGenCode(){
 function mpMyInfo(){
   const profiles = loadAllProfiles();
   const p = profiles[_activeProfileId] || {};
-  return { name: p.name || 'Гравець', avatar: p.avatar || '👤' };
+  return { name: p.name || 'Гравець', avatar: p.avatar || '👤', photoUrl: (p.data&&p.data.photoDataUrl)||null };
 }
 
 // ── modal navigation ─────────────────────────────────────
@@ -3882,17 +4265,30 @@ function mpRenderPlayerList(players){
     : 'Очікуємо гравців…';
 }
 
+const MP_PLAYER_COLORS = ['#ff69b4','#ffd700','#7fff00','#ff8c00','#f5deb3'];
 function mpUpdateLiveHud(players){
   const hud = document.getElementById('mp-boss-hud');
   const list = document.getElementById('mp-plist-live');
   const totalDmgEl = document.getElementById('mp-total-dmg');
   if(!hud || !list) return;
   hud.classList.add('show');
-  const totalDmg = Object.values(players).reduce((s,p)=>s+(p.dmg||0),0);
+  const playerArr = Object.values(players).slice(0, 5); // max 5
+  const totalDmg = playerArr.reduce((s,p)=>s+(p.dmg||0),0);
   if(totalDmgEl) totalDmgEl.textContent = `⚔️ Разом: ${totalDmg}`;
-  list.innerHTML = Object.values(players).map(p=>
-    `<span class="mp-plive-chip">${p.avatar||'👤'} ${p.name} ⚔️${p.dmg||0}</span>`
-  ).join('');
+  const allProfiles = typeof loadAllProfiles === 'function' ? loadAllProfiles() : {};
+  const photoByName = {};
+  Object.values(allProfiles).forEach(pr=>{ if(pr.data&&pr.data.photoDataUrl) photoByName[pr.name]=pr.data.photoDataUrl; });
+  list.innerHTML = playerArr.map((p,i)=>{
+    const col = MP_PLAYER_COLORS[i % MP_PLAYER_COLORS.length];
+    const photo = p.photoUrl || photoByName[p.name];
+    const avatarHtml = photo
+      ? `<img src="${photo}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid ${col}">`
+      : `<div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid ${col};display:flex;align-items:center;justify-content:center;font-size:1.4rem">${p.avatar||'👤'}</div>`;
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:48px">
+      <div style="position:relative">${avatarHtml}<span style="position:absolute;bottom:-2px;right:-2px;background:${col};color:#000;font-size:.55rem;font-weight:900;border-radius:4px;padding:1px 3px;line-height:1">⚔️${p.dmg||0}</span></div>
+      <div style="font-size:.6rem;color:${col};font-weight:700;text-align:center;max-width:48px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.name}</div>
+    </div>`;
+  }).join('');
 }
 
 // ── host starts game ─────────────────────────────────────
@@ -4113,5 +4509,82 @@ window.bossEndGame = function(victory){
 };
 
 </script>
+
+
+<!-- CHANGE PASSWORD MODAL -->
+<div id="change-pwd-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9900;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:22px;padding:28px 24px;max-width:380px;width:92%;box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center">
+    <div style="font-size:2rem;margin-bottom:8px">🔑</div>
+    <h2 style="color:#764ba2;font-size:1.4rem;margin-bottom:16px">Змінити пароль</h2>
+    <div style="position:relative;margin-bottom:12px">
+      <input id="change-pwd-old" type="password" placeholder="Поточний пароль (якщо є)" style="width:100%;padding:11px 44px 11px 11px;border-radius:10px;border:2px solid #c9a8f0;font-size:1rem;text-align:center;outline:none">
+      <button type="button" onclick="togglePwdVis('change-pwd-old',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888">👁</button>
+    </div>
+    <div style="position:relative;margin-bottom:12px">
+      <input id="change-pwd-new" type="password" placeholder="Новий пароль" style="width:100%;padding:11px 44px 11px 11px;border-radius:10px;border:2px solid #c9a8f0;font-size:1rem;text-align:center;outline:none">
+      <button type="button" onclick="togglePwdVis('change-pwd-new',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888">👁</button>
+    </div>
+    <div style="position:relative;margin-bottom:12px">
+      <input id="change-pwd-confirm" type="password" placeholder="Підтвердіть новий пароль" style="width:100%;padding:11px 44px 11px 11px;border-radius:10px;border:2px solid #c9a8f0;font-size:1rem;text-align:center;outline:none">
+      <button type="button" onclick="togglePwdVis('change-pwd-confirm',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888">👁</button>
+    </div>
+    <div id="change-pwd-err" style="color:#e74c3c;font-size:.9rem;min-height:1.2em;margin-bottom:10px"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="saveChangedPassword()" style="flex:1;padding:12px;background:linear-gradient(135deg,#764ba2,#667eea);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer">✅ Зберегти</button>
+      <button onclick="document.getElementById('change-pwd-modal').style.display='none'" style="flex:1;padding:12px;background:rgba(0,0,0,.1);border:none;border-radius:12px;font-size:1rem;cursor:pointer;color:#666">← Скасувати</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div id="forgot-pwd-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9900;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:22px;padding:28px 24px;max-width:380px;width:92%;box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center">
+    <div style="font-size:2rem;margin-bottom:8px">🔑</div>
+    <h2 style="color:#764ba2;font-size:1.4rem;margin-bottom:12px">Відновлення паролю</h2>
+    <p style="color:#555;font-size:.95rem;margin-bottom:16px">Код для скидання паролю буде відправлено на <b>kosmeet@gmail.com</b></p>
+    <div id="forgot-pwd-step1">
+      <p style="color:#888;font-size:.9rem;margin-bottom:14px">Введіть ваше ім'я профілю:</p>
+      <input id="forgot-pwd-name" type="text" placeholder="Ім'я гравця" style="width:100%;padding:11px;border-radius:10px;border:2px solid #c9a8f0;font-size:1.1rem;text-align:center;margin-bottom:12px;outline:none">
+      <div id="forgot-pwd-err" style="color:#e74c3c;font-size:.9rem;min-height:1.2em;margin-bottom:8px"></div>
+      <button onclick="sendForgotPasswordCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#764ba2,#667eea);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px">📧 Надіслати код</button>
+    </div>
+    <div id="forgot-pwd-step2" style="display:none">
+      <p style="color:#27ae60;font-size:.9rem;margin-bottom:14px">✅ Код відправлено на kosmeet@gmail.com<br>Введіть код нижче:</p>
+      <input id="forgot-pwd-code" type="text" placeholder="Код з email" style="width:100%;padding:11px;border-radius:10px;border:2px solid #c9a8f0;font-size:1.2rem;text-align:center;letter-spacing:4px;margin-bottom:12px;outline:none">
+      <input id="forgot-pwd-new" type="password" placeholder="Новий пароль" style="width:100%;padding:11px;border-radius:10px;border:2px solid #c9a8f0;font-size:1.1rem;text-align:center;margin-bottom:12px;outline:none">
+      <div id="forgot-pwd-code-err" style="color:#e74c3c;font-size:.9rem;min-height:1.2em;margin-bottom:8px"></div>
+      <button onclick="confirmForgotPasswordCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px">✅ Підтвердити</button>
+    </div>
+    <button onclick="closeForgotPassword()" style="width:100%;padding:10px;background:rgba(0,0,0,.1);border:none;border-radius:10px;font-size:.95rem;cursor:pointer;color:#666">← Назад</button>
+  </div>
+</div>
+
+<!-- EMOJI PICKER MODAL -->
+<div id="emoji-picker-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9950;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:18px;padding:20px;max-width:360px;width:92%;max-height:70vh;overflow-y:auto">
+    <div style="font-size:1.2rem;font-weight:700;color:#764ba2;margin-bottom:14px;text-align:center">Обери аватарку</div>
+    <div id="emoji-picker-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;justify-items:center"></div>
+    <button onclick="closeEmojiPicker()" style="width:100%;margin-top:16px;padding:10px;background:#764ba2;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:1rem">← Назад</button>
+  </div>
+</div>
+
+<!-- AVATAR CHANGE MODAL (in main) -->
+<div id="avatar-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9900;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:22px;padding:24px;max-width:360px;width:92%;text-align:center">
+    <div style="font-size:1.5rem;font-weight:800;color:#764ba2;margin-bottom:16px">🖼️ Змінити аватарку</div>
+    <div id="avatar-modal-preview" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#e8d4ff,#c9a8f0);border:4px solid #764ba2;display:flex;align-items:center;justify-content:center;font-size:2.8rem;overflow:hidden;cursor:pointer;margin:0 auto 16px" onclick="document.getElementById('avatar-modal-file').click()">😊</div>
+    <input type="file" id="avatar-modal-file" accept="image/*" style="display:none" onchange="handleAvatarModalPhoto(event)">
+    <div style="display:flex;gap:10px;justify-content:center;margin-bottom:16px">
+      <button onclick="document.getElementById('avatar-modal-file').click()" style="padding:8px 18px;background:linear-gradient(135deg,#764ba2,#667eea);color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:.9rem">📷 Завантажити фото</button>
+      <button onclick="openEmojiPicker('avatar-modal-preview','avatar-modal-emoji-hidden')" style="padding:8px 18px;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:.9rem">😊 Емодзі</button>
+    </div>
+    <input type="hidden" id="avatar-modal-emoji-hidden" value="">
+    <div style="display:flex;gap:10px">
+      <button onclick="saveAvatarModal()" style="flex:1;padding:11px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer">✅ Зберегти</button>
+      <button onclick="closeAvatarModal()" style="flex:1;padding:11px;background:rgba(0,0,0,.1);border:none;border-radius:12px;font-size:1rem;cursor:pointer;color:#666">← Скасувати</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
