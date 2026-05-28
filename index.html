@@ -221,7 +221,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 #boss-game-area > *:not(#boss-monster-bg){position:relative;z-index:1}
 
 /* New: Boss + Players visual HUD (math boss) */
-#math-boss-visual-hud{display:none;position:absolute;top:45px;left:0;right:0;z-index:6;padding:4px 3% 6px;background:rgba(0,0,0,.88);border-bottom:2px solid #ff4444}
+#math-boss-visual-hud{display:none;position:relative;z-index:6;padding:4px 3% 6px;background:rgba(0,0,0,.88);border-bottom:2px solid #ff4444;flex-shrink:0}
 #math-boss-visual-hud.show{display:block}
 .mbv-boss-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:5px}
 .mbv-boss-avatar{width:48px;height:48px;border-radius:50%;background:rgba(255,0,0,.2);border:2px solid #ff4444;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;overflow:hidden;position:relative}
@@ -379,18 +379,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="logoutUser()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px">🚪</button>
 </div>
 
-<div class="games">
-<div class="game-card" onclick="selectGame('math')">
-<span class="emoji">💗</span>
-<h2>Математика</h2>
-<p>5 рівнів складності</p>
-</div>
-<div class="game-card" onclick="startEnglish()">
-<span class="emoji">🇬🇧</span>
-<h2>English</h2>
-<p>Убивай монстрів словами!</p>
-</div>
-</div>
+<!-- Individual math and english games removed; use БоСС-Математика and БоСС-English buttons in header -->
 
 <div class="dog-area">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
@@ -604,7 +593,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <!-- HP panel: компактний -->
   <div style="padding:6px 3% 5px;background:rgba(0,0,0,.88);flex-shrink:0;border-bottom:2px solid #ff4444">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
-      <span style="color:#ff4444;font-weight:700;font-size:.78rem;white-space:nowrap">💀 BOSS</span>
+      <div id="math-boss-avatar-icon" style="width:38px;height:38px;border-radius:50%;background:rgba(255,0,0,.2);border:2px solid #ff4444;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">💀</div>
       <span id="boss-hp-text" style="color:#fff;font-weight:900;font-size:1.6rem;letter-spacing:1px;text-shadow:0 0 8px #ff4444;flex:1;text-align:center">1500</span>
       <span id="boss-change-txt" style="font-weight:900;font-size:1.5rem;min-width:70px;text-align:center"> </span>
       <span id="boss-regen-txt" style="color:#ff9999;font-size:.72rem;white-space:nowrap">+50/10с</span>
@@ -612,6 +601,10 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
     <div style="background:rgba(255,255,255,.15);border-radius:6px;height:10px;overflow:hidden;border:1px solid #ff4444">
       <div id="boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#ff5252,#b71c1c);border-radius:5px;transition:width .4s;width:50%"></div>
     </div>
+  </div>
+  <!-- Math Boss Visual HUD (players with damage) — same as English boss -->
+  <div id="math-boss-visual-hud" style="flex-shrink:0;position:relative;z-index:6;padding:4px 3% 6px;background:rgba(0,0,0,.88);border-bottom:2px solid #ff4444;display:none">
+    <div class="mbv-players-row" id="mbv-players-row"></div>
   </div>
   <!-- Question — компактний -->
   <div id="boss-question" style="flex-shrink:0;text-align:center;background:rgba(0,0,0,.75);color:#fff;font-size:2.2rem;font-weight:700;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.1);letter-spacing:1px">? = ?</div>
@@ -831,6 +824,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   </div>
   <div class="en-boss-hud" style="position:relative;z-index:1">
     <button class="en-boss-back" onclick="closeEnBossGame()">← Назад</button>
+    <div id="en-boss-avatar-hud-icon" style="width:32px;height:32px;border-radius:50%;background:rgba(0,180,216,.2);border:2px solid #00b4d8;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">👾</div>
     <span id="en-boss-regen-txt" style="color:#00b4d8;font-size:.72rem">+50/10с</span>
     <span id="en-boss-hp-text" style="color:#fff;font-weight:900;font-size:1.3rem;text-shadow:0 0 8px #00b4d8;flex:1;text-align:center">2000</span>
     <span id="en-boss-change-txt" style="font-weight:900;font-size:1.2rem;min-width:60px;text-align:center"> </span>
@@ -1029,11 +1023,16 @@ function enBossRenderPlayerList(players){
   ['en-boss-player-list-created','en-boss-player-list-joined'].forEach(id=>{
     const el = document.getElementById(id);
     if(!el) return;
-    el.innerHTML = Object.values(players).map(p=>`
-      <div class="mp-player-row">
-        <span>${p.avatar||'👤'}</span><span>${p.name}</span>
-        <span class="mp-dmg">⚔️${p.dmg||0}</span>
-      </div>`).join('') || '<div style="color:#888">Немає гравців</div>';
+    const allProfiles=typeof loadAllProfiles==='function'?loadAllProfiles():{};
+    const photoByName={};
+    Object.values(allProfiles).forEach(pr=>{if(pr.data&&pr.data.photoDataUrl)photoByName[pr.name]=pr.data.photoDataUrl;});
+    el.innerHTML = Object.values(players).map(p=>{
+      const photo=p.photoUrl||photoByName[p.name];
+      const avatarHtml=photo
+        ?`<img src="${photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid #00b4d8;flex-shrink:0">`
+        :`<span style="font-size:1.5rem">${p.avatar||'👤'}</span>`;
+      return `<div class="mp-player-row">${avatarHtml}<span>${p.name}</span><span class="mp-dmg">⚔️${p.dmg||0}</span></div>`;
+    }).join('') || '<div style="color:#888">Немає гравців</div>';
   });
 }
 
@@ -1145,6 +1144,8 @@ function enBossStartLocal(level, theme){
   const bossLvlIdx = Math.max(0, Math.min(level-1, BOSS_LEVEL_AVATARS.length-1));
   const bossAvEl = document.getElementById('en-mbv-boss-avatar-icon');
   if(bossAvEl) bossAvEl.textContent = BOSS_LEVEL_AVATARS[bossLvlIdx];
+  const enBossHudAv = document.getElementById('en-boss-avatar-hud-icon');
+  if(enBossHudAv) enBossHudAv.textContent = BOSS_LEVEL_AVATARS[bossLvlIdx];
   // For solo mode, show current player as the only player in HUD
   if(!enBossMpState){
     const myInfo = mpMyInfoEn();
@@ -3613,6 +3614,9 @@ document.getElementById('math-game-area').classList.add('hidden');
 document.getElementById('boss-game-area').classList.remove('hidden');
 // Render monster background
 renderBossMonster(level);
+// Set boss avatar icon in HP panel
+const mathBossAv = document.getElementById('math-boss-avatar-icon');
+if(mathBossAv){ const lvlIdx=Math.max(0,Math.min(level-1,BOSS_LEVEL_AVATARS.length-1)); mathBossAv.textContent=BOSS_LEVEL_AVATARS[lvlIdx]; }
 // Reset math HUD for boss
 document.getElementById('math-hearts').textContent='';
 document.getElementById('math-stars').textContent='';
@@ -3745,6 +3749,9 @@ document.getElementById('math-hearts').textContent='❤️❤️❤️❤️❤�
 document.getElementById('math-stars').textContent='0';
 document.getElementById('math-correct-count').textContent='0/20';
 document.getElementById('math-progress-fill').style.width='0%';
+// Hide visual HUD
+const _soloVisHud=document.getElementById('math-boss-visual-hud');
+if(_soloVisHud) _soloVisHud.classList.remove('show');
 
 if(victory){
   const bees=lvl;
@@ -3755,8 +3762,15 @@ if(victory){
   user.stars+=stars;
   saveUser(user);
   updateUI();
-  document.getElementById('victory-amount').textContent=`+${bees}🐝 +${stars}⭐`;
-  document.getElementById('victory').style.display='flex';
+  // Show damage leaderboard (solo — one player)
+  const myInfo=mpMyInfo();
+  const soloPlayers={solo:{name:myInfo.name,avatar:myInfo.avatar,photoUrl:myInfo.photoUrl||null,dmg:window._soloMathDmg||0}};
+  showDmgLeaderboard(soloPlayers,`🎉 ПЕРЕМОГА! Математика БоСС!`,`+${bees}🐝 +${stars}⭐`);
+  window._soloMathDmg=0;
+  setTimeout(()=>{
+    document.getElementById('math-game').classList.remove('is-open');
+    document.getElementById('main').style.display='block';
+  },5500);
 } else {
   const fb=document.getElementById('math-feedback');
   document.getElementById('mfb-title').textContent='💀 ПОРАЗКА!';
@@ -3765,7 +3779,6 @@ if(victory){
   setTimeout(()=>{fb.className='math-feedback';},2500);
 }
 }
-// ═══════════════════════════════════════════════════════
 
 const MATH_MONSTERS=['👾','👹','👺','🤖','👻','💀','🎃','👿','😈','🧟'];
 
@@ -4180,7 +4193,7 @@ async function mpCreateRoom(){
     bossHp: MP_BOSS_START_HP,
     createdAt: Date.now(),
     players: {
-      [myId]: { name: info.name, avatar: info.avatar, dmg: 0, online: true }
+      [myId]: { name: info.name, avatar: info.avatar, photoUrl: info.photoUrl||null, dmg: 0, online: true }
     }
   };
 
@@ -4238,7 +4251,7 @@ async function mpJoinRoom(){
   const myId = 'p_' + Date.now();
 
   try {
-    await mpSet(`rooms/${code}/players/${myId}`, { name: info.name, avatar: info.avatar, dmg: 0, online: true });
+    await mpSet(`rooms/${code}/players/${myId}`, { name: info.name, avatar: info.avatar, photoUrl: info.photoUrl||null, dmg: 0, online: true });
   } catch(e) { errEl.textContent = '❌ ' + e.message; errEl.style.display='block'; return; }
 
   mpState = {
@@ -4302,12 +4315,16 @@ function mpRenderPlayerList(players){
   ['mp-player-list-created','mp-player-list-joined'].forEach(id=>{
     const el = document.getElementById(id);
     if(!el) return;
-    const rows = Object.values(players).map(p=>`
-      <div class="mp-player-row">
-        <span>${p.avatar||'👤'}</span>
-        <span>${p.name}</span>
-        <span class="mp-dmg">⚔️${p.dmg||0}</span>
-      </div>`).join('');
+    const allProfiles = typeof loadAllProfiles==='function'?loadAllProfiles():{};
+    const photoByName={};
+    Object.values(allProfiles).forEach(pr=>{if(pr.data&&pr.data.photoDataUrl)photoByName[pr.name]=pr.data.photoDataUrl;});
+    const rows = Object.values(players).map(p=>{
+      const photo=p.photoUrl||photoByName[p.name];
+      const avatarHtml=photo
+        ?`<img src="${photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid #ff9999;flex-shrink:0">`
+        :`<span style="font-size:1.5rem">${p.avatar||'👤'}</span>`;
+      return `<div class="mp-player-row">${avatarHtml}<span>${p.name}</span><span class="mp-dmg">⚔️${p.dmg||0}</span></div>`;
+    }).join('');
     el.innerHTML = rows || '<div style="color:#888">Немає гравців</div>';
   });
 
@@ -4513,8 +4530,12 @@ function mpStartBossLocal(level){
   // Show math boss visual HUD
   const mathVisHud = document.getElementById('math-boss-visual-hud');
   if(mathVisHud) mathVisHud.classList.add('show');
+  // Set boss avatar icons
+  const lvlIdx2=Math.max(0,Math.min(level-1,BOSS_LEVEL_AVATARS.length-1));
   const mbvBossAv = document.getElementById('mbv-boss-avatar-icon');
-  if(mbvBossAv){ const lvlIdx=Math.max(0,Math.min(level-1,BOSS_LEVEL_AVATARS.length-1)); mbvBossAv.textContent=BOSS_LEVEL_AVATARS[lvlIdx]; }
+  if(mbvBossAv) mbvBossAv.textContent=BOSS_LEVEL_AVATARS[lvlIdx2];
+  const mathBossAvIcon = document.getElementById('math-boss-avatar-icon');
+  if(mathBossAvIcon) mathBossAvIcon.textContent=BOSS_LEVEL_AVATARS[lvlIdx2];
 }
 
 // ── patch checkBossAnswer to sync damage to DB ───────────
@@ -4559,6 +4580,7 @@ window.checkBossAnswer = async function(){
     } else {
       // Solo mode — original behaviour
       window.bossState.hp = Math.max(0, window.bossState.hp - dmg);
+      window._soloMathDmg = (window._soloMathDmg||0) + dmg;
       inp.style.borderColor = '#27ae60';
       inp.style.background = '#d4edda';
       updateBossUI(-dmg);
