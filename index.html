@@ -370,6 +370,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div style="font-size:1rem;color:#f39c12;font-weight:700">🐝<span id="bee-count">0</span></div>
 <div style="font-size:1rem;color:#8B4513;font-weight:700">🦔<span id="hedgehog-count">0</span></div>
 <div style="font-size:1rem;color:#795548;font-weight:700">🦴<span id="bone-count">0</span></div>
+<div style="font-size:1rem;color:#c0392b;font-weight:700">🧵<span id="thread-count">0</span></div>
+<div style="font-size:1rem;color:#8e44ad;font-weight:700">🔘<span id="guzuk-count">0</span></div>
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
 <button class="btn" onclick="showSyncModal()" style="background:linear-gradient(135deg,#00b4d8,#0096c7)" title="Синхронізація між пристроями">🔄 Синхронізація</button>
@@ -573,11 +575,14 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(3)"><span>💀💀💀 Рівень 3 — +150 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+3🐝+3000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(4)"><span>💀💀💀💀 Рівень 4 — +200 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+4🐝+4000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(5)"><span>💀💀💀💀💀 Рівень 5 — +250 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+5🐝+5000⭐</span></button>
-<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(6)"><span>⚡ Рівень 6 — +300 кожні 10с</span><span class="math-level-badge" style="background:#4B0082;color:#fff">+6🐝+6000⭐</span></button>
-<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(7)"><span>🔥 Рівень 7 — +350 кожні 10с</span><span class="math-level-badge" style="background:#4B0082;color:#fff">+7🐝+7000⭐</span></button>
-<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(8)"><span>💥 Рівень 8 — +400 кожні 10с</span><span class="math-level-badge" style="background:#1a0044;color:#fff">+8🐝+8000⭐</span></button>
-<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(9)"><span>🌪️ Рівень 9 — +450 кожні 10с</span><span class="math-level-badge" style="background:#1a0044;color:#fff">+9🐝+9000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(6)"><span>⚡ Рівень 6 — +300 кожні 10с • ×2 таблиця</span><span class="math-level-badge" style="background:#4B0082;color:#fff">+6🐝+6000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(7)"><span>🔥 Рівень 7 — +350 кожні 10с • ×2,×3</span><span class="math-level-badge" style="background:#4B0082;color:#fff">+7🐝+7000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(8)"><span>💥 Рівень 8 — +400 кожні 10с • ×3,×4</span><span class="math-level-badge" style="background:#1a0044;color:#fff">+8🐝+8000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(9)"><span>🌪️ Рівень 9 — +450 кожні 10с • ×4,×5</span><span class="math-level-badge" style="background:#1a0044;color:#fff">+9🐝+9000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(10)"><span>☠️ Рівень 10 — +500 кожні 10с</span><span class="math-level-badge" style="background:#000;color:#ffd700">+10🐝+10000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(11)"><span>💫 Рівень 11 — +550 кожні 10с</span><span class="math-level-badge" style="background:#000;color:#ffd700">+11🐝+11000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(12)"><span>🌠 Рівень 12 — +600 кожні 10с</span><span class="math-level-badge" style="background:#000;color:#ffd700">+12🐝+12000⭐</span></button>
+<button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(13)"><span>🔱 Рівень 13 — +650 кожні 10с</span><span class="math-level-badge" style="background:#000;color:#ffd700">+13🐝+13000⭐</span></button>
 <button class="btn danger" style="margin-top:10px;width:100%;padding:12px" onclick="hideBossSelect()">← Назад</button>
 </div>
 
@@ -666,6 +671,9 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
           <option value="8">💥 Рівень 8 — +400 кожні 10с</option>
           <option value="9">🌪️ Рівень 9 — +450 кожні 10с</option>
           <option value="10">☠️ Рівень 10 — +500 кожні 10с</option>
+          <option value="11">💫 Рівень 11 — +550 кожні 10с</option>
+          <option value="12">🌠 Рівень 12 — +600 кожні 10с</option>
+          <option value="13">🔱 Рівень 13 — +650 кожні 10с</option>
         </select>
       </div>
       <button class="mp-btn mp-btn-start" id="mp-start-btn" onclick="mpHostStartGame()">▶️ Почати гру</button>
@@ -1395,6 +1403,8 @@ async function enBossEndGame(victory){
   if(window._enBossEndRunning) return;
   window._enBossEndRunning = true;
   if(enBossState&&enBossState.regenInt){ clearInterval(enBossState.regenInt); enBossState.regenInt=null; }
+  // Capture level before clearing state
+  window._enBossLastLevel = enBossState ? (enBossState.level||1) : (enBossMpState ? (enBossMpState.level||1) : 1);
 
   if(enBossMpState){
     let players={};
@@ -1412,17 +1422,21 @@ async function enBossEndGame(victory){
 
     if(victory){
       // Give rewards
+      const enLvl = window._enBossLastLevel||1;
+      const earnedEnThreads=enLvl*1, earnedEnGuzuky=enLvl*10;
       const user=getUser();
       user.stars=(user.stars||0)+1000;
       if(!user.hedgehogs)user.hedgehogs=0;
       user.hedgehogs+=1;
       if(!user.seeds)user.seeds=0;
       user.seeds+=1;
+      if(!user.threads)user.threads=0; user.threads+=earnedEnThreads;
+      if(!user.guzuky)user.guzuky=0; user.guzuky+=earnedEnGuzuky;
       saveUser(user);
       updateUI();
 
       // Show damage leaderboard for 5 seconds
-      showDmgLeaderboard(players, '🎉 ПЕРЕМОГА! English БоСС!', '+1🦔 +1🌱 +1000⭐');
+      showDmgLeaderboard(players, '🎉 ПЕРЕМОГА! English БоСС!', `+1🦔 +1🌱 +1000⭐ +${earnedEnThreads}🧵 +${earnedEnGuzuky}🔘`);
     } else {
       showEnBossDefeat();
     }
@@ -1437,15 +1451,20 @@ async function enBossEndGame(victory){
     if(_enVisHudSolo) _enVisHudSolo.classList.remove('show');
     window._lastEnMpPlayers = null;
     if(victory){
+      const enLvlSolo = 1; // solo always level from enBossState before null (capture before)
+      const _capturedEnLvl = window._enBossLastLevel||1;
+      const earnedEnThreadsSolo=_capturedEnLvl*1, earnedEnGuzukySolo=_capturedEnLvl*10;
       const user=getUser();
       user.stars=(user.stars||0)+1000;
       if(!user.hedgehogs)user.hedgehogs=0;
       user.hedgehogs+=1;
       if(!user.seeds)user.seeds=0;
       user.seeds+=1;
+      if(!user.threads)user.threads=0; user.threads+=earnedEnThreadsSolo;
+      if(!user.guzuky)user.guzuky=0; user.guzuky+=earnedEnGuzukySolo;
       saveUser(user);
       updateUI();
-      document.getElementById('victory-amount').textContent='+1🦔 +1🌱 +1000⭐';
+      document.getElementById('victory-amount').textContent=`+1🦔 +1🌱 +1000⭐ +${earnedEnThreadsSolo}🧵 +${earnedEnGuzukySolo}🔘`;
       document.getElementById('victory').style.display='flex';
     } else {
       showEnBossDefeat();
@@ -1540,12 +1559,15 @@ window.bossEndGame = function(victory){
       document.getElementById('mp-boss-hud').classList.remove('show');
       if(victory){
         const bees=lvl, stars=lvl*1000;
+        const earnedThreads=lvl*10, earnedGuzuky=lvl*1;
         const user=getUser();
         if(!user.bees)user.bees=0;
         user.bees+=bees; user.stars+=stars;
+        if(!user.threads)user.threads=0; user.threads+=earnedThreads;
+        if(!user.guzuky)user.guzuky=0; user.guzuky+=earnedGuzuky;
         saveUser(user); updateUI();
         // Show leaderboard for 5 sec then close
-        showDmgLeaderboard(players,`🎉 ПЕРЕМОГА! Математика`,`+${bees}🐝 +${stars}⭐`);
+        showDmgLeaderboard(players,`🎉 ПЕРЕМОГА! Математика`,`+${bees}🐝 +${stars}⭐ +${earnedThreads}🧵 +${earnedGuzuky}🔘`);
         setTimeout(()=>{
           document.getElementById('math-game').classList.remove('is-open');
           document.getElementById('main').style.display='block';
@@ -2076,7 +2098,7 @@ function getUser(){
   const profiles=loadAllProfiles();
   const p=profiles[_activeProfileId];
   if(p&&p.data) return p.data;
-  const newData={stars:0,seeds:0,bees:0,tree:null,
+  const newData={stars:0,seeds:0,bees:0,threads:0,guzuky:0,tree:null,
     dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
     english:{},customWords:[],games:{}};
   return newData;
@@ -2219,7 +2241,7 @@ function createProfile(){
   const profiles=loadAllProfiles();
   const id='p_'+Date.now();
   const avatarInfo = typeof getNewProfileAvatarData === 'function' ? getNewProfileAvatarData() : {type:'emoji', data: PROFILE_AVATARS[Object.keys(profiles).length % PROFILE_AVATARS.length]};
-  const newData={stars:0,seeds:0,bees:0,tree:null,
+  const newData={stars:0,seeds:0,bees:0,threads:0,guzuky:0,tree:null,
     dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
     english:{},customWords:[],games:{}};
   if(avatarInfo.type === 'photo') newData.photoDataUrl = avatarInfo.data;
@@ -2266,6 +2288,10 @@ const hc=document.getElementById('hedgehog-count');
 if(hc)hc.textContent=user.hedgehogs||0;
 const bnc=document.getElementById('bone-count');
 if(bnc)bnc.textContent=user.bones||0;
+const thc=document.getElementById('thread-count');
+if(thc)thc.textContent=user.threads||0;
+const gzc=document.getElementById('guzuk-count');
+if(gzc)gzc.textContent=user.guzuky||0;
 if(typeof updateTreeUI==='function')updateTreeUI();
 updateDogHouseDmg();
 }
@@ -3595,7 +3621,7 @@ window.bossState=null;
 window.bossInterval=null;
 window.bossTimerLeft=10;
 
-const BOSS_REGEN_PER_LEVEL=[0,50,100,150,200,250,300,350,400,450,500];
+const BOSS_REGEN_PER_LEVEL=[0,50,100,150,200,250,300,350,400,450,500,550,600,650];
 const BOSS_START_HP=1500;
 const BOSS_DEFEAT_HP=3000;
 
@@ -3628,7 +3654,8 @@ window.bossState={
   hp:BOSS_START_HP,
   regen:BOSS_REGEN_PER_LEVEL[level],
   currentQ:null,
-  currentLvl:null
+  currentLvl:null,
+  qCount:0
 };
 window.bossTimerLeft=10;
 updateBossUI();
@@ -3698,10 +3725,51 @@ if(change!==undefined){
 function nextBossQuestion(){
 if(!window.bossState)return;
 const levels=['A','B','C','D','E','F'];
-const lvl=levels[r(levels.length)];
-const q=MATH_LEVELS[lvl].gen();
+const lvl=window.bossState.level;
+let q;
+// Multiplication table logic for levels 6-13
+// Level 6: every 3rd question from ×2 table
+// Level 7: every 4th from ×3, every 4th from ×2
+// Level 8: every 4th from ×4, every 4th from ×3
+// ... and so on
+const multMap={
+  6: [{table:2,every:3}],
+  7: [{table:3,every:4},{table:2,every:4}],
+  8: [{table:4,every:4},{table:3,every:4}],
+  9: [{table:5,every:4},{table:4,every:4}],
+ 10: [{table:6,every:4},{table:5,every:4}],
+ 11: [{table:7,every:4},{table:6,every:4}],
+ 12: [{table:8,every:4},{table:7,every:4}],
+ 13: [{table:9,every:4},{table:8,every:4}]
+};
+if(!window.bossState.qCount) window.bossState.qCount=0;
+window.bossState.qCount++;
+const qc=window.bossState.qCount;
+if(multMap[lvl]){
+  const multDmgMap={2:50,3:100,4:150,5:100,6:200,7:250,8:300,9:300};
+  // Check each mult rule in order of priority
+  let picked=false;
+  for(const rule of multMap[lvl]){
+    if(qc % rule.every === 0){
+      const t=rule.table;
+      const factor=r(9)+2; // 2-10
+      q={q:`${t} × ${factor} = ?`, a:t*factor, multDmg:multDmgMap[t]||100};
+      picked=true;
+      break;
+    }
+  }
+  if(!picked){
+    const baseLvl=levels[r(levels.length)];
+    q=MATH_LEVELS[baseLvl].gen();
+    q.baseLvl=baseLvl;
+  }
+} else {
+  const baseLvl=levels[r(levels.length)];
+  q=MATH_LEVELS[baseLvl].gen();
+  q.baseLvl=baseLvl;
+}
 window.bossState.currentQ=q;
-window.bossState.currentLvl=lvl;
+window.bossState.currentLvl=q.baseLvl||null;
 document.getElementById('boss-question').textContent=q.q;
 const inp=document.getElementById('boss-answer');
 inp.value='';
@@ -3719,10 +3787,17 @@ if(!val)return;
 const answer=parseInt(val,10);
 const correct=window.bossState.currentQ.a;
 if(answer===correct){
-  const baseDmg=MATH_LEVELS[window.bossState.currentLvl].reward;
+  let baseDmg;
+  if(window.bossState.currentQ.multDmg){
+    baseDmg=window.bossState.currentQ.multDmg;
+  } else {
+    baseDmg=window.bossState.currentLvl?MATH_LEVELS[window.bossState.currentLvl].reward:100;
+  }
   const dmgMod=getUserBossDmgMod();
   const dmg=Math.round(baseDmg*dmgMod);
   window.bossState.hp=Math.max(0,window.bossState.hp-dmg);
+  if(!window._soloMathDmg)window._soloMathDmg=0;
+  window._soloMathDmg+=dmg;
   inp.style.borderColor='#27ae60';
   inp.style.background='#d4edda';
   updateBossUI(-dmg);
@@ -3756,16 +3831,22 @@ if(_soloVisHud) _soloVisHud.classList.remove('show');
 if(victory){
   const bees=lvl;
   const stars=lvl*1000;
+  const earnedThreads=lvl*10;
+  const earnedGuzuky=lvl*1;
   const user=getUser();
   if(!user.bees)user.bees=0;
   user.bees+=bees;
   user.stars+=stars;
+  if(!user.threads)user.threads=0;
+  user.threads+=earnedThreads;
+  if(!user.guzuky)user.guzuky=0;
+  user.guzuky+=earnedGuzuky;
   saveUser(user);
   updateUI();
   // Show damage leaderboard (solo — one player)
   const myInfo=mpMyInfo();
   const soloPlayers={solo:{name:myInfo.name,avatar:myInfo.avatar,photoUrl:myInfo.photoUrl||null,dmg:window._soloMathDmg||0}};
-  showDmgLeaderboard(soloPlayers,`🎉 ПЕРЕМОГА! Математика БоСС!`,`+${bees}🐝 +${stars}⭐`);
+  showDmgLeaderboard(soloPlayers,`🎉 ПЕРЕМОГА! Математика БоСС!`,`+${bees}🐝 +${stars}⭐ +${earnedThreads}🧵 +${earnedGuzuky}🔘`);
   window._soloMathDmg=0;
   setTimeout(()=>{
     document.getElementById('math-game').classList.remove('is-open');
@@ -3814,12 +3895,7 @@ E:{name:'E',reward:100,gen:()=>{
   return{q:`${a} + ${b} = ?`,a:a+b};
 }},
 F:{name:'F',reward:200,gen:()=>{
-  // Multiplication of two 2-digit numbers (10-20 range) or addition of three 2-digit numbers
-  const type=r(2);
-  if(type===0){
-    const a=r(11)+10,b=r(11)+2; // 10-20 × 2-12
-    return{q:`${a} × ${b} = ?`,a:a*b};
-  }
+  // Three 2-digit numbers addition only (no multiplication at levels 1-5)
   const a=r(90)+10,b=r(90)+10,c=r(90)+10;
   return{q:`${a} + ${b} + ${c} = ?`,a:a+b+c};
 }}
@@ -4059,7 +4135,7 @@ window.addEventListener('appinstalled',()=>{deferredPrompt=null;});
 
 const MP_BOSS_START_HP = 1500;
 const MP_BOSS_DEFEAT_HP = 3000;
-const MP_REGEN_PER_LEVEL = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
+const MP_REGEN_PER_LEVEL = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650];
 const MP_ROOM_TTL_MS = 2 * 60 * 60 * 1000; // auto-clean rooms older than 2h (client-side)
 
 let mpState = null;
@@ -4657,14 +4733,17 @@ window.bossEndGame = function(victory){
 
       if(victory){
         const bees = lvl, stars = lvl * 1000;
+        const earnedThreads=lvl*10, earnedGuzuky=lvl*1;
         const user = getUser();
         if(!user.bees) user.bees = 0;
         user.bees += bees;
         user.stars += stars;
+        if(!user.threads)user.threads=0; user.threads+=earnedThreads;
+        if(!user.guzuky)user.guzuky=0; user.guzuky+=earnedGuzuky;
         saveUser(user);
         updateUI();
         // Show compact leaderboard overlay for 5 sec, then close math-game
-        showDmgLeaderboard(players, `🎉 ПЕРЕМОГА! Математика`, `+${bees}🐝 +${stars}⭐`);
+        showDmgLeaderboard(players, `🎉 ПЕРЕМОГА! Математика`, `+${bees}🐝 +${stars}⭐ +${earnedThreads}🧵 +${earnedGuzuky}🔘`);
         setTimeout(()=>{
           document.getElementById('math-game').classList.remove('is-open');
           document.getElementById('main').style.display = 'block';
