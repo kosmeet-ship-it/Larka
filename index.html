@@ -220,6 +220,24 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 #boss-monster-avatar{margin-top:45px}
 #boss-game-area > *:not(#boss-monster-bg){position:relative;z-index:1}
 
+/* New: Boss + Players visual HUD (math boss) */
+#math-boss-visual-hud{display:none;position:absolute;top:45px;left:0;right:0;z-index:6;padding:4px 3% 6px;background:rgba(0,0,0,.88);border-bottom:2px solid #ff4444}
+#math-boss-visual-hud.show{display:block}
+.mbv-boss-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:5px}
+.mbv-boss-avatar{width:48px;height:48px;border-radius:50%;background:rgba(255,0,0,.2);border:2px solid #ff4444;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;overflow:hidden;position:relative}
+.mbv-boss-hp-change{font-size:1rem;font-weight:900;color:#ff4444;min-width:60px;text-align:center;text-shadow:0 0 8px currentColor}
+.mbv-players-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.mbv-player-slot{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:46px;max-width:58px}
+.mbv-player-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden;flex-shrink:0;position:relative}
+.mbv-player-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.mbv-player-dmg-badge{font-size:.52rem;font-weight:900;border-radius:4px;padding:1px 3px;line-height:1;text-align:center;margin-top:1px;color:#000}
+.mbv-player-cum-dmg{font-size:.58rem;font-weight:700;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:56px}
+.mbv-player-name{font-size:.5rem;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:56px;opacity:.8}
+
+/* English boss visual HUD */
+#en-boss-visual-hud{display:none;padding:4px 3% 6px;background:rgba(0,0,0,.88);flex-shrink:0;border-bottom:2px solid #00b4d8;position:relative;z-index:1}
+#en-boss-visual-hud.show{display:block}
+
 /* Boss HP display */
 #boss-hp-text{font-size:2rem!important;letter-spacing:2px;text-shadow:0 0 10px #ff4444}
 #boss-change-txt{font-size:1.6rem!important;font-weight:900!important;min-width:70px;text-align:center;text-shadow:0 0 10px currentColor;transition:transform .15s}
@@ -262,19 +280,19 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 .en-boss-feedback.correct h2{color:#00ff88}
 .en-boss-feedback.wrong h2{color:#ff4444}
 
-/* Damage leaderboard overlay */
-#dmg-leaderboard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9800;align-items:center;justify-content:center}
+/* Damage leaderboard overlay — mobile-first compact */
+#dmg-leaderboard{display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:9800;align-items:center;justify-content:center;padding:8px}
 #dmg-leaderboard.show{display:flex}
-.dmg-board-box{background:linear-gradient(160deg,#1a1a2e,#0d2137);border:3px solid #ffd700;border-radius:16px;padding:12px 10px;width:94%;max-width:360px;color:#fff;text-align:center;max-height:88dvh;overflow-y:auto;box-shadow:0 0 30px rgba(255,215,0,.3)}
-.dmg-board-title{font-size:1.1rem;font-weight:900;color:#ffd700;margin-bottom:4px;line-height:1.25}
-.dmg-board-rewards{font-size:1.05rem;color:#00e676;margin-bottom:12px;font-weight:700}
-.dmg-board-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.1);padding:7px 10px;border-radius:10px;margin:4px 0;font-size:.95rem;gap:6px}
-.dmg-board-row-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,0,.5)}
-.dmg-board-row-emoji{font-size:1.8rem;flex-shrink:0;width:36px;text-align:center}
-.dmg-board-name{flex:1;text-align:left;font-weight:700;font-size:1rem}
-.dmg-board-dmg{color:#00e676;font-weight:900;font-size:1.1rem;flex-shrink:0}
-.dmg-board-medal{font-size:1.4rem;flex-shrink:0;width:28px}
-.dmg-board-timer{color:#aaa;font-size:.85rem;margin-top:10px}
+.dmg-board-box{background:linear-gradient(160deg,#1a1a2e,#0d2137);border:2px solid #ffd700;border-radius:14px;padding:10px 8px 8px;width:100%;max-width:340px;color:#fff;text-align:center;max-height:96dvh;overflow-y:auto;box-shadow:0 0 24px rgba(255,215,0,.25)}
+.dmg-board-title{font-size:.95rem;font-weight:900;color:#ffd700;margin-bottom:2px;line-height:1.2}
+.dmg-board-rewards{font-size:.9rem;color:#00e676;margin-bottom:8px;font-weight:700}
+.dmg-board-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.1);padding:5px 8px;border-radius:8px;margin:3px 0;font-size:.85rem;gap:5px}
+.dmg-board-row-avatar{width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,0,.5)}
+.dmg-board-row-emoji{font-size:1.5rem;flex-shrink:0;width:30px;text-align:center;line-height:1}
+.dmg-board-name{flex:1;text-align:left;font-weight:700;font-size:.9rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.dmg-board-dmg{color:#00e676;font-weight:900;font-size:.95rem;flex-shrink:0}
+.dmg-board-medal{font-size:1.2rem;flex-shrink:0;width:22px}
+.dmg-board-timer{color:#aaa;font-size:.8rem;margin-top:6px}
 </style>
 </head>
 <body>
@@ -510,13 +528,13 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="closeDictionary()">← Назад</button>
 </div>
 <div class="theme-select" id="dict-theme-filter">
-<button class="theme-btn active" onclick="filterDictionary('all')">Всі</button>
-<button class="theme-btn" onclick="filterDictionary('verbs')">Дієслова</button>
-<button class="theme-btn" onclick="filterDictionary('home')">Дім</button>
-<button class="theme-btn" onclick="filterDictionary('nature')">Природа</button>
-<button class="theme-btn" onclick="filterDictionary('pronouns')">Займенники</button>
-<button class="theme-btn" onclick="filterDictionary('interrogative')">Питальні</button>
-<button class="theme-btn" onclick="filterDictionary('food')">🍕 Їжа</button>
+<button class="theme-btn active" onclick="filterDictionary('all',this)">Всі</button>
+<button class="theme-btn" onclick="filterDictionary('verbs',this)">Дієслова</button>
+<button class="theme-btn" onclick="filterDictionary('home',this)">Дім</button>
+<button class="theme-btn" onclick="filterDictionary('nature',this)">Природа</button>
+<button class="theme-btn" onclick="filterDictionary('pronouns',this)">Займенники</button>
+<button class="theme-btn" onclick="filterDictionary('interrogative',this)">Питальні</button>
+<button class="theme-btn" onclick="filterDictionary('food',this)">🍕 Їжа</button>
 </div>
 <div style="margin:20px 0">
 <input type="text" placeholder="English" id="dict-en" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px;width:200px">
@@ -695,6 +713,19 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <div id="mp-plist-live" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"></div>
 </div>
 
+<!-- MATH BOSS VISUAL HUD (boss avatar + players with cumulative damage) -->
+<div id="math-boss-visual-hud">
+  <div class="mbv-boss-row">
+    <div class="mbv-boss-avatar" id="mbv-boss-avatar-icon">💀</div>
+    <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">
+      <div style="color:#ff4444;font-size:.7rem;font-weight:700;margin-bottom:1px">💀 BOSS HP</div>
+      <div id="mbv-boss-hp-display" style="color:#fff;font-size:1rem;font-weight:900;text-shadow:0 0 8px #ff4444">—</div>
+    </div>
+    <div class="mbv-boss-hp-change" id="mbv-boss-hp-change"> </div>
+  </div>
+  <div class="mbv-players-row" id="mbv-players-row"></div>
+</div>
+
 <!-- SYNC MODAL -->
 <div id="sync-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;align-items:center;justify-content:center">
 <div style="background:#fff;border-radius:22px;padding:28px 24px;max-width:420px;width:92%;box-shadow:0 12px 40px rgba(0,0,0,.3)">
@@ -813,6 +844,18 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <div id="en-boss-mp-hud" style="display:none;padding:4px 3%;background:rgba(0,0,0,.7);border-bottom:1px solid #00b4d8;flex-shrink:0;position:relative;z-index:1">
     <div style="color:#87ceeb;font-size:.7rem;margin-bottom:2px">👥 КООП:</div>
     <div id="en-boss-mp-plist" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+  <!-- ENGLISH BOSS VISUAL HUD (boss avatar + players with cumulative damage) -->
+  <div id="en-boss-visual-hud" style="flex-shrink:0;position:relative;z-index:1">
+    <div class="mbv-boss-row">
+      <div class="mbv-boss-avatar" id="en-mbv-boss-avatar-icon" style="border-color:#00b4d8;background:rgba(0,180,216,.2)">👾</div>
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">
+        <div style="color:#00b4d8;font-size:.7rem;font-weight:700;margin-bottom:1px">👾 BOSS HP</div>
+        <div id="en-mbv-boss-hp-display" style="color:#fff;font-size:1rem;font-weight:900;text-shadow:0 0 8px #00b4d8">—</div>
+      </div>
+      <div class="mbv-boss-hp-change" id="en-mbv-boss-hp-change" style="color:#00b4d8"> </div>
+    </div>
+    <div class="mbv-players-row" id="en-mbv-players-row"></div>
   </div>
   <div class="en-boss-word" id="en-boss-word" style="position:relative;z-index:1">слово</div>
   <div style="padding:4px 3%;background:rgba(0,0,0,.5);flex-shrink:0;text-align:center;position:relative;z-index:1">
@@ -999,6 +1042,8 @@ function enBossUpdateMpHud(players){
   const list = document.getElementById('en-boss-mp-plist');
   if(!hud||!list) return;
   hud.style.display='block';
+  // Store for visual HUD
+  window._lastEnMpPlayers = players;
   const playerArr = Object.values(players).slice(0,5);
   const allProfiles = typeof loadAllProfiles === 'function' ? loadAllProfiles() : {};
   const photoByName = {};
@@ -1014,6 +1059,12 @@ function enBossUpdateMpHud(players){
       <div style="font-size:.6rem;color:${col};font-weight:700;text-align:center;max-width:48px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.name}</div>
     </div>`;
   }).join('');
+  // Update English visual HUD (no HP change here, just player sync)
+  renderBossVisualHud(
+    'en-boss-visual-hud','en-mbv-boss-avatar-icon','en-mbv-boss-hp-display','en-mbv-boss-hp-change','en-mbv-players-row',
+    players, enBossState ? enBossState.hp : undefined, undefined,
+    enBossMpState ? enBossMpState.level : 1, true
+  );
 }
 
 async function enBossHostStart(){
@@ -1087,6 +1138,21 @@ function enBossStartLocal(level, theme){
   gameEl.classList.add('is-open');
   document.getElementById('en-boss-mp-hud').style.display = enBossMpState ? 'block' : 'none';
 
+  // Show English visual HUD
+  const visHud = document.getElementById('en-boss-visual-hud');
+  if(visHud) visHud.classList.add('show');
+  // Init boss avatar icon
+  const bossLvlIdx = Math.max(0, Math.min(level-1, BOSS_LEVEL_AVATARS.length-1));
+  const bossAvEl = document.getElementById('en-mbv-boss-avatar-icon');
+  if(bossAvEl) bossAvEl.textContent = BOSS_LEVEL_AVATARS[bossLvlIdx];
+  // For solo mode, show current player as the only player in HUD
+  if(!enBossMpState){
+    const myInfo = mpMyInfoEn();
+    window._lastEnMpPlayers = { solo: { name: myInfo.name, avatar: myInfo.avatar, photoUrl: myInfo.photoUrl||null, dmg: 0 } };
+    renderBossVisualHud('en-boss-visual-hud','en-mbv-boss-avatar-icon','en-mbv-boss-hp-display','en-mbv-boss-hp-change','en-mbv-players-row',
+      window._lastEnMpPlayers, level, undefined, level, true);
+  }
+
   renderEnBossMonster(level);
   updateEnBossUI();
   nextEnBossWord();
@@ -1136,6 +1202,8 @@ function nextEnBossWord(){
   enBossState.currentWord = word;
   enBossState.recentWords.push(word);
   if(enBossState.recentWords.length>20) enBossState.recentWords.shift();
+  // Reset per-question answered tracking
+  enBossState.answeredWords = new Set();
 
   document.getElementById('en-boss-word').textContent = word.en;
   const inp = document.getElementById('en-boss-answer');
@@ -1180,6 +1248,17 @@ async function checkEnBossAnswer(){
     const dmg = matchedVariant.replace(/\s/g,'').length * EN_BOSS_DMG_PER_LETTER;
     const playerDmgMod = getUserBossDmgMod(); // 100% + bone bonuses
 
+    // ── ONE correct answer per question: skip if already answered ──
+    if(!enBossState.answeredWords) enBossState.answeredWords = new Set();
+    if(enBossState.answeredWords.has(word.en)){
+      // Already answered this question correctly — just move to next word
+      enBossState.checkingAnswer = false;
+      inp.className = 'en-boss-input correct';
+      setTimeout(()=>{ if(enBossState) nextEnBossWord(); }, 600);
+      return;
+    }
+    enBossState.answeredWords.add(word.en);
+
     inp.className='en-boss-input correct';
 
     // Track per-word correct count for SRS (in game session)
@@ -1217,6 +1296,12 @@ async function checkEnBossAnswer(){
     } else {
       const realDmg = Math.round(dmg * playerDmgMod);
       enBossState.hp = Math.max(0, enBossState.hp - realDmg);
+      // Update solo dmg tracking for visual HUD
+      if(window._lastEnMpPlayers && window._lastEnMpPlayers.solo){
+        window._lastEnMpPlayers.solo.dmg = (window._lastEnMpPlayers.solo.dmg||0) + realDmg;
+        renderBossVisualHud('en-boss-visual-hud','en-mbv-boss-avatar-icon','en-mbv-boss-hp-display','en-mbv-boss-hp-change','en-mbv-players-row',
+          window._lastEnMpPlayers, enBossState.hp, -realDmg, enBossState.level, true);
+      }
       updateEnBossUI(-realDmg);
       if(enBossState.hp<=0){ enBossState.checkingAnswer=false; enBossEndGame(true); return; }
     }
@@ -1286,6 +1371,22 @@ function updateEnBossUI(change){
       area.appendChild(fl);
       setTimeout(()=>fl.remove(),1300);
     }
+    // Update English visual HUD with HP change flash
+    if(enBossMpState && window._lastEnMpPlayers){
+      renderBossVisualHud('en-boss-visual-hud','en-mbv-boss-avatar-icon','en-mbv-boss-hp-display','en-mbv-boss-hp-change','en-mbv-players-row',
+        window._lastEnMpPlayers, hp, change, enBossMpState.level, true);
+    } else {
+      // Solo — just update HP display
+      const mbvHp = document.getElementById('en-mbv-boss-hp-display');
+      if(mbvHp) mbvHp.textContent = hp;
+      const mbvCh = document.getElementById('en-mbv-boss-hp-change');
+      if(mbvCh){
+        const s=change>0?'+':''; mbvCh.textContent=s+change;
+        mbvCh.style.color=change<0?'#00e676':'#ff4444';
+        clearTimeout(mbvCh._t); mbvCh.style.transform='scale(1.4)';
+        mbvCh._t=setTimeout(()=>{ mbvCh.style.transform='scale(1)'; setTimeout(()=>{ mbvCh.textContent=' '; },400); },1000);
+      }
+    }
   }
 }
 
@@ -1304,6 +1405,9 @@ async function enBossEndGame(victory){
     enBossState=null;
     document.getElementById('en-boss-game').classList.remove('is-open');
     document.getElementById('main').style.display='block';
+    const _enVisHud = document.getElementById('en-boss-visual-hud');
+    if(_enVisHud) _enVisHud.classList.remove('show');
+    window._lastEnMpPlayers = null;
 
     if(victory){
       // Give rewards
@@ -1328,6 +1432,9 @@ async function enBossEndGame(victory){
     enBossState=null;
     document.getElementById('en-boss-game').classList.remove('is-open');
     document.getElementById('main').style.display='block';
+    const _enVisHudSolo = document.getElementById('en-boss-visual-hud');
+    if(_enVisHudSolo) _enVisHudSolo.classList.remove('show');
+    window._lastEnMpPlayers = null;
     if(victory){
       const user=getUser();
       user.stars=(user.stars||0)+1000;
@@ -1844,29 +1951,6 @@ function updateHeaderAvatar(){
   }
 }
 
-// Override createProfile to save avatar
-window.createProfile = function(){
-  const nameEl = document.getElementById('new-profile-name');
-  const name = (nameEl ? nameEl.value : '').trim();
-  if(!name){ document.getElementById('new-pin-error').textContent = 'Введи імя'; return; }
-  const pwdEl = document.getElementById('new-pin-input');
-  const pwd = pwdEl ? pwdEl.value : '';
-  const profiles = loadAllProfiles();
-  const id = 'p_' + Date.now();
-  const avatarInfo = getNewProfileAvatarData();
-  const newData = {
-    stars:0, seeds:0, bees:0, tree:null,
-    dog:{name:'Рекс', hearts:10, lastHeartLoss:Date.now(), poops:[], lastPoopAdd:Date.now(), puddles:[], lastPuddleAdd:Date.now()},
-    english:{}, customWords:[], games:{}
-  };
-  if(avatarInfo.type === 'photo'){
-    newData.photoDataUrl = avatarInfo.data;
-  }
-  const emojiAvatar = avatarInfo.type === 'emoji' ? avatarInfo.data : (PROFILE_AVATARS[Object.keys(profiles).length % PROFILE_AVATARS.length]);
-  profiles[id] = { id, name, pin:pwd, avatar: avatarInfo.type==='photo' ? '📷' : emojiAvatar, data: newData };
-  saveAllProfiles(profiles);
-  loginShowProfiles();
-};
 
 const USERS_KEY='larikaV3';
 let currentUser='гравець';
@@ -2752,7 +2836,7 @@ if(!user.english[englishState.theme][en]) user.english[englishState.theme][en]={
 user.english[englishState.theme][en].correct++;
 user.english[englishState.theme][en].lastSeen=Date.now();
 // SRS: after 3 correct in this game session — schedule nextReview
-if((englishState.progress[en]+1)>=3){
+if((englishState.progress[en])>=3){
   const srsDelays=[0,1,3,5,10,30,60,120];
   const totalCorrect=user.english[englishState.theme][en].correct;
   const delayIdx=Math.min(totalCorrect,srsDelays.length-1);
@@ -2911,47 +2995,11 @@ document.getElementById('dictionary').style.display='none';
 document.getElementById('main').style.display='block';
 }
 
-function filterDictionary(theme){
+function filterDictionary(theme, btn){
 document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));
-event.target.classList.add('active');
+if(btn) btn.classList.add('active');
+else if(typeof event!=='undefined'&&event&&event.target) event.target.classList.add('active');
 renderDictionary(theme);
-}
-
-function renderDictionary(filterTheme){
-const user=getUser();
-const allWords=[];
-
-// Add default words
-for(const theme in EN_WORDS){
-EN_WORDS[theme].forEach(w=>{
-const progress=user.english[theme]&&user.english[theme][w.en]?user.english[theme][w.en].correct:0;
-allWords.push({...w,theme,progress,custom:false});
-});
-}
-
-// Add custom words
-user.customWords.forEach(w=>{
-const progress=user.english[w.theme]&&user.english[w.theme][w.en]?user.english[w.theme][w.en].correct:0;
-allWords.push({...w,progress,custom:true});
-});
-
-// Filter
-const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
-
-const html=filtered.map((w,i)=>`
-<div class="dict-word">
-<div>
-<div style="font-size:1.2rem;font-weight:600">${w.en} → ${w.uk}</div>
-<div style="color:#666;font-size:0.9rem">Тема: ${w.theme} ${w.custom?'(власне)':''}</div>
-<div class="dict-progress">
-${[0,1,2].map(i=>`<div class="dict-dot ${w.progress>i?'done':''}"></div>`).join('')}
-</div>
-</div>
-${w.custom?`<button class="btn danger" onclick="deleteWord(${i},'${filterTheme}')">🗑️</button>`:''}
-</div>
-`).join('');
-
-document.getElementById('dict-list').innerHTML=html||'<p style="text-align:center;color:#999">Немає слів</p>';
 }
 
 function addWord(){
@@ -3753,9 +3801,14 @@ E:{name:'E',reward:100,gen:()=>{
   return{q:`${a} + ${b} = ?`,a:a+b};
 }},
 F:{name:'F',reward:200,gen:()=>{
-  const a=r(90)+10,b=r(90)+10,op=rnd(['+','-']);
-  if(op==='-'){const big=Math.max(a,b),small=Math.min(a,b);return{q:`${big} − ${small} = ?`,a:big-small};}
-  return{q:`${a} + ${b} = ?`,a:a+b};
+  // Multiplication of two 2-digit numbers (10-20 range) or addition of three 2-digit numbers
+  const type=r(2);
+  if(type===0){
+    const a=r(11)+10,b=r(11)+2; // 10-20 × 2-12
+    return{q:`${a} × ${b} = ?`,a:a*b};
+  }
+  const a=r(90)+10,b=r(90)+10,c=r(90)+10;
+  return{q:`${a} + ${b} + ${c} = ?`,a:a+b+c};
 }}
 };
 
@@ -4266,12 +4319,95 @@ function mpRenderPlayerList(players){
 }
 
 const MP_PLAYER_COLORS = ['#ff69b4','#ffd700','#7fff00','#ff8c00','#f5deb3'];
+
+// ── Boss avatars per level ────────────────────────────────
+const BOSS_LEVEL_AVATARS = ['💀','👹','👺','🤖','👻','🧟','🧛','☠️','👿','😈','🔥'];
+
+// ── Shared: render boss visual HUD (boss avatar + 5 player avatars with damage) ──
+function renderBossVisualHud(hudId, bossAvatarId, bossHpId, bossHpChangeId, playersRowId, players, bossHp, hpChange, level, isEnglish){
+  const hud = document.getElementById(hudId);
+  if(!hud) return;
+  hud.classList.add('show');
+
+  // Boss avatar
+  const bossAvEl = document.getElementById(bossAvatarId);
+  if(bossAvEl){
+    const lvlIdx = Math.max(0, Math.min((level||1) - 1, BOSS_LEVEL_AVATARS.length-1));
+    bossAvEl.textContent = BOSS_LEVEL_AVATARS[lvlIdx];
+  }
+
+  // Boss HP display
+  const bossHpEl = document.getElementById(bossHpId);
+  if(bossHpEl && bossHp !== undefined) bossHpEl.textContent = bossHp;
+
+  // HP change flash
+  if(hpChange !== undefined){
+    const chEl = document.getElementById(bossHpChangeId);
+    if(chEl){
+      const sign = hpChange > 0 ? '+' : '';
+      chEl.textContent = sign + hpChange;
+      chEl.style.color = hpChange < 0 ? '#00e676' : '#ff4444';
+      clearTimeout(chEl._t);
+      chEl.style.transform = 'scale(1.4)';
+      chEl._t = setTimeout(()=>{ chEl.style.transform='scale(1)'; setTimeout(()=>{ chEl.textContent=' '; },400); }, 1000);
+    }
+  }
+
+  // Players row
+  const rowEl = document.getElementById(playersRowId);
+  if(!rowEl || !players) return;
+
+  const allProfiles = typeof loadAllProfiles === 'function' ? loadAllProfiles() : {};
+  const photoByName = {};
+  Object.values(allProfiles).forEach(pr=>{ if(pr.data&&pr.data.photoDataUrl) photoByName[pr.name]=pr.data.photoDataUrl; });
+
+  const playerArr = Object.values(players).slice(0, 5);
+  rowEl.innerHTML = playerArr.map((p, i) => {
+    const col = MP_PLAYER_COLORS[i % MP_PLAYER_COLORS.length];
+    const photo = p.photoUrl || photoByName[p.name];
+    const avatarInner = photo
+      ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+      : `<span style="font-size:1.4rem">${p.avatar||'👤'}</span>`;
+    const cumDmg = p.dmg || 0;
+    return `<div class="mbv-player-slot">
+      <div class="mbv-player-avatar" style="border:2px solid ${col}">${avatarInner}</div>
+      <div class="mbv-player-dmg-badge" style="background:${col}">⚔️${cumDmg}</div>
+      <div class="mbv-player-name" style="color:${col}">${p.name}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Math boss: update visual HUD ─────────────────────────
+function mathBossUpdateVisualHud(hpChange){
+  if(!mpState) return;
+  const players = {};
+  // Collect current known players from live listener data — we use lastKnownMpPlayers
+  if(window._lastMpPlayers) renderBossVisualHud(
+    'math-boss-visual-hud', 'mbv-boss-avatar-icon', 'mbv-boss-hp-display', 'mbv-boss-hp-change', 'mbv-players-row',
+    window._lastMpPlayers, window.bossState ? window.bossState.hp : undefined, hpChange,
+    mpState ? mpState.level : 1, false
+  );
+}
+
+// ── English boss: update visual HUD ──────────────────────
+function enBossUpdateVisualHud(hpChange){
+  if(!enBossMpState && !enBossState) return;
+  if(window._lastEnMpPlayers || !enBossMpState) {
+    renderBossVisualHud(
+      'en-boss-visual-hud', 'en-mbv-boss-avatar-icon', 'en-mbv-boss-hp-display', 'en-mbv-boss-hp-change', 'en-mbv-players-row',
+      window._lastEnMpPlayers || {}, enBossState ? enBossState.hp : undefined, hpChange,
+      enBossMpState ? enBossMpState.level : (enBossState ? enBossState.level : 1), true
+    );
+  }
+}
 function mpUpdateLiveHud(players){
   const hud = document.getElementById('mp-boss-hud');
   const list = document.getElementById('mp-plist-live');
   const totalDmgEl = document.getElementById('mp-total-dmg');
   if(!hud || !list) return;
   hud.classList.add('show');
+  // Store for visual HUD
+  window._lastMpPlayers = players;
   const playerArr = Object.values(players).slice(0, 5); // max 5
   const totalDmg = playerArr.reduce((s,p)=>s+(p.dmg||0),0);
   if(totalDmgEl) totalDmgEl.textContent = `⚔️ Разом: ${totalDmg}`;
@@ -4289,6 +4425,12 @@ function mpUpdateLiveHud(players){
       <div style="font-size:.6rem;color:${col};font-weight:700;text-align:center;max-width:48px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.name}</div>
     </div>`;
   }).join('');
+  // Update visual HUD
+  renderBossVisualHud(
+    'math-boss-visual-hud','mbv-boss-avatar-icon','mbv-boss-hp-display','mbv-boss-hp-change','mbv-players-row',
+    players, window.bossState ? window.bossState.hp : undefined, undefined,
+    mpState ? mpState.level : 1, false
+  );
 }
 
 // ── host starts game ─────────────────────────────────────
@@ -4367,6 +4509,12 @@ function mpStartBossLocal(level){
   mpOn(`rooms/${mpState.roomCode}/players`, snap => {
     if(snap.exists()) mpUpdateLiveHud(snap.val());
   });
+
+  // Show math boss visual HUD
+  const mathVisHud = document.getElementById('math-boss-visual-hud');
+  if(mathVisHud) mathVisHud.classList.add('show');
+  const mbvBossAv = document.getElementById('mbv-boss-avatar-icon');
+  if(mbvBossAv){ const lvlIdx=Math.max(0,Math.min(level-1,BOSS_LEVEL_AVATARS.length-1)); mbvBossAv.textContent=BOSS_LEVEL_AVATARS[lvlIdx]; }
 }
 
 // ── patch checkBossAnswer to sync damage to DB ───────────
@@ -4404,6 +4552,8 @@ window.checkBossAnswer = async function(){
           await mpUpdate(`rooms/${mpState.roomCode}`, { status: 'victory' });
         }
       } catch(e) { console.warn('mp sync error', e); }
+      // Flash HP change on visual HUD
+      if(window._lastMpPlayers) renderBossVisualHud('math-boss-visual-hud','mbv-boss-avatar-icon','mbv-boss-hp-display','mbv-boss-hp-change','mbv-players-row',window._lastMpPlayers,newHp,-dmg,mpState?mpState.level:1,false);
 
       setTimeout(()=>nextBossQuestion(), 350);
     } else {
@@ -4442,6 +4592,8 @@ async function mpLeaveRoom(silent){
   // Hide live HUD
   const hud = document.getElementById('mp-boss-hud');
   if(hud) hud.classList.remove('show');
+  const mathVisHud2 = document.getElementById('math-boss-visual-hud');
+  if(mathVisHud2) mathVisHud2.classList.remove('show');
 
   if(!silent) mpShowChoose();
 }
@@ -4477,6 +4629,9 @@ window.bossEndGame = function(victory){
       document.getElementById('math-correct-count').textContent = '0/20';
       document.getElementById('math-progress-fill').style.width = '0%';
       document.getElementById('mp-boss-hud').classList.remove('show');
+      const _mathVisHud = document.getElementById('math-boss-visual-hud');
+      if(_mathVisHud) _mathVisHud.classList.remove('show');
+      window._lastMpPlayers = null;
 
       if(victory){
         const bees = lvl, stars = lvl * 1000;
@@ -4486,12 +4641,12 @@ window.bossEndGame = function(victory){
         user.stars += stars;
         saveUser(user);
         updateUI();
-
-        // Build leaderboard string
-        const sorted = Object.values(players).sort((a,b)=>(b.dmg||0)-(a.dmg||0));
-        const board = sorted.map((p,i)=>`${['🥇','🥈','🥉'][i]||'  '} ${p.avatar||'👤'} ${p.name}: ⚔️${p.dmg||0}`).join('\n');
-        document.getElementById('victory-amount').textContent = `+${bees}🐝 +${stars}⭐\n\n👥 Команда:\n${board}`;
-        document.getElementById('victory').style.display = 'flex';
+        // Show compact leaderboard overlay for 5 sec, then close math-game
+        showDmgLeaderboard(players, `🎉 ПЕРЕМОГА! Математика`, `+${bees}🐝 +${stars}⭐`);
+        setTimeout(()=>{
+          document.getElementById('math-game').classList.remove('is-open');
+          document.getElementById('main').style.display = 'block';
+        }, 5500);
       } else {
         const fb2 = document.getElementById('math-feedback');
         document.getElementById('mfb-title').textContent = '💀 ПОРАЗКА!';
