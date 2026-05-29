@@ -345,6 +345,17 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
         </div>
       </div>
       <input type="hidden" id="new-avatar-emoji-val" value="😊">
+      <!-- GENDER SELECTION -->
+      <div class="pin-title" style="margin-bottom:8px">Стать персонажу</div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;justify-content:center">
+        <button type="button" id="gender-girl-btn" onclick="selectGender('girl')" style="flex:1;padding:12px;border-radius:12px;border:2.5px solid #e91e8c;background:linear-gradient(135deg,#ffe0f3,#ffc0e8);color:#c2185b;font-size:1.05rem;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px">
+          <span style="font-size:1.4rem">👧</span> Дівчинка
+        </button>
+        <button type="button" id="gender-boy-btn" onclick="selectGender('boy')" style="flex:1;padding:12px;border-radius:12px;border:2.5px solid #1565c0;background:linear-gradient(135deg,#e0eaff,#c0d4ff);color:#1565c0;font-size:1.05rem;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px">
+          <span style="font-size:1.4rem">👦</span> Хлопчик
+        </button>
+      </div>
+      <input type="hidden" id="new-gender-val" value="girl">
       <div class="pin-title" style="margin-bottom:8px">Придумай пароль (будь-який)</div>
       <div class="pin-input-wrap" style="position:relative">
         <input class="pin-text-input" id="new-pin-input" type="password" placeholder="Пароль (необов'язково)..." autocomplete="new-password"
@@ -377,11 +388,173 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="showSyncModal()" style="background:linear-gradient(135deg,#00b4d8,#0096c7)" title="Синхронізація між пристроями">🔄 Синхронізація</button>
 <button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="БоСС-Математика">💀 БоСС-Математика</button>
 <button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
+<button class="btn" onclick="openGenderModal()" style="background:linear-gradient(135deg,#e91e8c,#1565c0);padding:11px 14px" title="Змінити стать" id="header-gender-btn">👧</button>
 <button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
 <button class="btn" onclick="logoutUser()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px">🚪</button>
 </div>
 
 <!-- Individual math and english games removed; use БоСС-Математика and БоСС-English buttons in header -->
+
+<!-- DRESSING ROOM -->
+<div id="dressing-room" style="background:rgba(255,255,255,.98);padding:20px;border-radius:18px;margin-bottom:18px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+    <h3 style="color:#764ba2;margin:0">👗 Гардероб</h3>
+    <div style="display:flex;gap:8px">
+      <button id="dress-girl-tab" onclick="setDressGender('girl')" style="padding:7px 14px;border-radius:10px;border:2px solid #e91e8c;background:linear-gradient(135deg,#ffe0f3,#ffc0e8);color:#c2185b;font-size:.9rem;font-weight:700;cursor:pointer">👧 Дівч.</button>
+      <button id="dress-boy-tab" onclick="setDressGender('boy')" style="padding:7px 14px;border-radius:10px;border:2px solid #ccc;background:#f5f5f5;color:#888;font-size:.9rem;font-weight:700;cursor:pointer">👦 Хлопч.</button>
+    </div>
+  </div>
+
+  <!-- Character SVG + click zones -->
+  <div style="display:flex;gap:16px;flex-wrap:wrap">
+    <div style="position:relative;flex-shrink:0">
+      <svg id="character-svg" viewBox="0 0 160 320" xmlns="http://www.w3.org/2000/svg" style="width:160px;height:320px;border:2px dashed #e0c8ff;border-radius:12px;background:linear-gradient(180deg,#f8f0ff 0%,#fff 100%)">
+        <!-- Head -->
+        <ellipse cx="80" cy="44" rx="26" ry="28" fill="#FFD5A8"/>
+        <!-- Hair (changes with gender) -->
+        <g id="char-hair-girl">
+          <ellipse cx="80" cy="22" rx="28" ry="14" fill="#7B3F00"/>
+          <ellipse cx="56" cy="50" rx="8" ry="18" fill="#7B3F00"/>
+          <ellipse cx="104" cy="50" rx="8" ry="18" fill="#7B3F00"/>
+        </g>
+        <g id="char-hair-boy" style="display:none">
+          <ellipse cx="80" cy="22" rx="27" ry="10" fill="#5D3A1A"/>
+        </g>
+        <!-- Eyes -->
+        <circle cx="68" cy="44" r="4" fill="white"/>
+        <circle cx="92" cy="44" r="4" fill="white"/>
+        <circle cx="69" cy="45" r="2.2" fill="#333"/>
+        <circle cx="93" cy="45" r="2.2" fill="#333"/>
+        <!-- Nose & mouth -->
+        <ellipse cx="80" cy="56" rx="3" ry="2" fill="#d4a076"/>
+        <path d="M73 63 Q80 68 87 63" fill="none" stroke="#c97b55" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Neck -->
+        <rect x="73" y="70" width="14" height="12" rx="3" fill="#FFD5A8"/>
+        <!-- BODY / Torso zone (shirt/top) -->
+        <g id="zone-shirt" class="dress-zone" data-zone="shirt" style="cursor:pointer">
+          <!-- Girl body default (undershirt) -->
+          <g id="body-girl">
+            <path d="M50 82 Q55 78 80 78 Q105 78 110 82 L116 140 Q80 145 44 140Z" fill="#fce4ec" stroke="#f48fb1" stroke-width="1.5"/>
+            <!-- Bra straps suggestion -->
+            <line x1="68" y1="78" x2="65" y2="90" stroke="#f48fb1" stroke-width="1.5"/>
+            <line x1="92" y1="78" x2="95" y2="90" stroke="#f48fb1" stroke-width="1.5"/>
+          </g>
+          <!-- Boy body default (undershirt) -->
+          <g id="body-boy" style="display:none">
+            <path d="M48 82 Q55 76 80 76 Q105 76 112 82 L118 140 Q80 148 42 140Z" fill="#e3f2fd" stroke="#90caf9" stroke-width="1.5"/>
+          </g>
+          <!-- Outfit overlay -->
+          <g id="outfit-shirt"></g>
+          <!-- Zone label -->
+          <text x="80" y="113" text-anchor="middle" fill="rgba(118,75,162,.3)" font-size="9" font-family="Segoe UI" pointer-events="none">👕 Футболка</text>
+        </g>
+
+        <!-- Belt zone -->
+        <g id="zone-belt" class="dress-zone" data-zone="belt" style="cursor:pointer">
+          <rect x="44" y="138" width="72" height="10" rx="4" fill="rgba(118,75,162,.1)" stroke="rgba(118,75,162,.2)" stroke-width="1"/>
+          <g id="outfit-belt"></g>
+          <text x="80" y="146" text-anchor="middle" fill="rgba(118,75,162,.3)" font-size="7" font-family="Segoe UI" pointer-events="none">🔗 Пасок</text>
+        </g>
+
+        <!-- Pants zone -->
+        <g id="zone-pants" class="dress-zone" data-zone="pants" style="cursor:pointer">
+          <!-- Girl pants default -->
+          <g id="pants-girl">
+            <path d="M44 148 L42 230 L75 230 L80 200 L85 230 L118 230 L116 148Z" fill="#fce4ec" stroke="#f48fb1" stroke-width="1.5"/>
+          </g>
+          <!-- Boy pants default -->
+          <g id="pants-boy" style="display:none">
+            <path d="M42 148 L40 230 L75 230 L80 198 L85 230 L120 230 L118 148Z" fill="#e3f2fd" stroke="#90caf9" stroke-width="1.5"/>
+          </g>
+          <g id="outfit-pants"></g>
+          <text x="80" y="195" text-anchor="middle" fill="rgba(118,75,162,.3)" font-size="9" font-family="Segoe UI" pointer-events="none">👖 Штани</text>
+        </g>
+
+        <!-- Socks zone -->
+        <g id="zone-socks" class="dress-zone" data-zone="socks" style="cursor:pointer">
+          <rect x="42" y="230" width="33" height="16" rx="4" fill="rgba(118,75,162,.08)" stroke="rgba(118,75,162,.15)" stroke-width="1"/>
+          <rect x="85" y="230" width="33" height="16" rx="4" fill="rgba(118,75,162,.08)" stroke="rgba(118,75,162,.15)" stroke-width="1"/>
+          <g id="outfit-socks"></g>
+          <text x="58" y="241" text-anchor="middle" fill="rgba(118,75,162,.3)" font-size="7" font-family="Segoe UI" pointer-events="none">🧦</text>
+          <text x="101" y="241" text-anchor="middle" fill="rgba(118,75,162,.3)" font-size="7" font-family="Segoe UI" pointer-events="none">🧦</text>
+        </g>
+
+        <!-- Shoes zone -->
+        <g id="zone-shoes" class="dress-zone" data-zone="shoes" style="cursor:pointer">
+          <ellipse cx="58" cy="256" rx="20" ry="10" fill="rgba(118,75,162,.08)" stroke="rgba(118,75,162,.15)" stroke-width="1"/>
+          <ellipse cx="102" cy="256" rx="20" ry="10" fill="rgba(118,75,162,.08)" stroke="rgba(118,75,162,.15)" stroke-width="1"/>
+          <g id="outfit-shoes"></g>
+          <text x="80" y="258" text-anchor="middle" fill="rgba(118,75,162,.3)" font-size="8" font-family="Segoe UI" pointer-events="none">👟 Взуття</text>
+        </g>
+
+        <!-- Hat zone (top of head) -->
+        <g id="zone-hat" class="dress-zone" data-zone="hat" style="cursor:pointer">
+          <ellipse cx="80" cy="16" rx="30" ry="10" fill="rgba(118,75,162,.08)" stroke="rgba(118,75,162,.2)" stroke-width="1" stroke-dasharray="3 2"/>
+          <g id="outfit-hat"></g>
+          <text x="80" y="19" text-anchor="middle" fill="rgba(118,75,162,.35)" font-size="7.5" font-family="Segoe UI" pointer-events="none">🎩 Шапка</text>
+        </g>
+
+        <!-- Glasses zone -->
+        <g id="zone-glasses" class="dress-zone" data-zone="glasses" style="cursor:pointer">
+          <rect x="58" y="39" width="15" height="11" rx="5" fill="none" stroke="rgba(118,75,162,.25)" stroke-width="1" stroke-dasharray="2 2"/>
+          <rect x="87" y="39" width="15" height="11" rx="5" fill="none" stroke="rgba(118,75,162,.25)" stroke-width="1" stroke-dasharray="2 2"/>
+          <line x1="73" y1="44" x2="87" y2="44" stroke="rgba(118,75,162,.25)" stroke-width="1"/>
+          <g id="outfit-glasses"></g>
+        </g>
+
+        <!-- Scarf zone -->
+        <g id="zone-scarf" class="dress-zone" data-zone="scarf" style="cursor:pointer">
+          <rect x="62" y="70" width="36" height="10" rx="4" fill="rgba(118,75,162,.08)" stroke="rgba(118,75,162,.2)" stroke-width="1" stroke-dasharray="2 2"/>
+          <g id="outfit-scarf"></g>
+          <text x="80" y="79" text-anchor="middle" fill="rgba(118,75,162,.3)" font-size="7" font-family="Segoe UI" pointer-events="none">🧣</text>
+        </g>
+
+        <!-- Bracelets zone (wrists) -->
+        <g id="zone-bracelets" class="dress-zone" data-zone="bracelets" style="cursor:pointer">
+          <!-- Arms default -->
+          <rect x="28" y="82" width="16" height="64" rx="7" fill="#FFD5A8"/>
+          <rect x="116" y="82" width="16" height="64" rx="7" fill="#FFD5A8"/>
+          <!-- Bracelet slots -->
+          <rect x="24" y="133" width="20" height="8" rx="4" fill="rgba(255,215,0,.2)" stroke="rgba(255,180,0,.4)" stroke-width="1" stroke-dasharray="2 2"/>
+          <rect x="116" y="133" width="20" height="8" rx="4" fill="rgba(255,215,0,.2)" stroke="rgba(255,180,0,.4)" stroke-width="1" stroke-dasharray="2 2"/>
+          <g id="outfit-bracelets"></g>
+        </g>
+
+        <!-- Gloves zone -->
+        <g id="zone-gloves" class="dress-zone" data-zone="gloves" style="cursor:pointer">
+          <ellipse cx="36" cy="152" rx="12" ry="9" fill="rgba(118,75,162,.08)" stroke="rgba(118,75,162,.2)" stroke-width="1" stroke-dasharray="2 2"/>
+          <ellipse cx="124" cy="152" rx="12" ry="9" fill="rgba(118,75,162,.08)" stroke="rgba(118,75,162,.2)" stroke-width="1" stroke-dasharray="2 2"/>
+          <g id="outfit-gloves"></g>
+          <text x="36" y="155" text-anchor="middle" fill="rgba(118,75,162,.3)" font-size="7" pointer-events="none">🧤</text>
+          <text x="124" y="155" text-anchor="middle" fill="rgba(118,75,162,.3)" font-size="7" pointer-events="none">🧤</text>
+        </g>
+      </svg>
+      <!-- Equipped indicators -->
+      <div id="equipped-tags" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;max-width:160px"></div>
+    </div>
+
+    <!-- Inventory panel -->
+    <div style="flex:1;min-width:200px">
+      <div style="color:#764ba2;font-weight:700;font-size:.95rem;margin-bottom:8px">🎒 Інвентар</div>
+      <!-- Zone filter tabs -->
+      <div id="inv-zone-tabs" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
+        <button class="inv-tab active" onclick="filterInventory('all')" data-zone="all">Всі</button>
+        <button class="inv-tab" onclick="filterInventory('hat')" data-zone="hat">🎩</button>
+        <button class="inv-tab" onclick="filterInventory('glasses')" data-zone="glasses">👓</button>
+        <button class="inv-tab" onclick="filterInventory('scarf')" data-zone="scarf">🧣</button>
+        <button class="inv-tab" onclick="filterInventory('shirt')" data-zone="shirt">👕</button>
+        <button class="inv-tab" onclick="filterInventory('belt')" data-zone="belt">🔗</button>
+        <button class="inv-tab" onclick="filterInventory('pants')" data-zone="pants">👖</button>
+        <button class="inv-tab" onclick="filterInventory('socks')" data-zone="socks">🧦</button>
+        <button class="inv-tab" onclick="filterInventory('shoes')" data-zone="shoes">👟</button>
+        <button class="inv-tab" onclick="filterInventory('bracelets')" data-zone="bracelets">📿</button>
+        <button class="inv-tab" onclick="filterInventory('gloves')" data-zone="gloves">🧤</button>
+      </div>
+      <!-- Item grid -->
+      <div id="inventory-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px;max-height:250px;overflow-y:auto;padding:4px"></div>
+    </div>
+  </div>
+</div>
 
 <div class="dog-area">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
@@ -2230,6 +2403,8 @@ function loginShowNewProfile(){
   document.getElementById('new-pin-error').textContent='';
   const inp=document.getElementById('new-pin-input');
   if(inp){inp.value='';setTimeout(()=>inp.focus(),100);}
+  // Reset gender selection to girl by default
+  setTimeout(()=>selectGender('girl'), 50);
 }
 
 function createProfile(){
@@ -2241,9 +2416,13 @@ function createProfile(){
   const profiles=loadAllProfiles();
   const id='p_'+Date.now();
   const avatarInfo = typeof getNewProfileAvatarData === 'function' ? getNewProfileAvatarData() : {type:'emoji', data: PROFILE_AVATARS[Object.keys(profiles).length % PROFILE_AVATARS.length]};
+  const genderVal=(document.getElementById('new-gender-val')||{}).value||'girl';
   const newData={stars:0,seeds:0,bees:0,threads:0,guzuky:0,tree:null,
     dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
-    english:{},customWords:[],games:{}};
+    english:{},customWords:[],games:{},
+    gender:genderVal,
+    equipped:{}
+  };
   if(avatarInfo.type === 'photo') newData.photoDataUrl = avatarInfo.data;
   const emojiAvatar = avatarInfo.type === 'emoji' ? avatarInfo.data : (PROFILE_AVATARS[Object.keys(profiles).length % PROFILE_AVATARS.length]);
   profiles[id]={id,name,pin:pwd,avatar:avatarInfo.type==='photo'?'📷':emojiAvatar,data:newData};
@@ -2275,6 +2454,7 @@ document.getElementById('login-screen').style.display='none';
 document.getElementById('main').style.display='block';
 updateUI();
 updateDog();
+setTimeout(initDressingRoom, 50);
 }
 
 function updateUI(){
@@ -4842,5 +5022,360 @@ window.bossEndGame = function(victory){
   </div>
 </div>
 
+<!-- GENDER CHANGE MODAL -->
+<div id="gender-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9900;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:22px;padding:28px 24px;max-width:360px;width:92%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.3)">
+    <div style="font-size:2rem;margin-bottom:8px">⚧️</div>
+    <h2 style="color:#764ba2;font-size:1.4rem;margin-bottom:16px">Стать персонажу</h2>
+    <p style="color:#666;font-size:.95rem;margin-bottom:20px">Оберіть стать для вашого персонажу в гардеробі</p>
+    <div style="display:flex;gap:12px;margin-bottom:16px">
+      <button onclick="changeGenderTo('girl')" id="modal-gender-girl" style="flex:1;padding:16px;border-radius:14px;border:2.5px solid #e91e8c;background:linear-gradient(135deg,#ffe0f3,#ffc0e8);color:#c2185b;font-size:1rem;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+        <span style="font-size:2rem">👧</span>Дівчинка
+      </button>
+      <button onclick="changeGenderTo('boy')" id="modal-gender-boy" style="flex:1;padding:16px;border-radius:14px;border:2.5px solid #1565c0;background:linear-gradient(135deg,#e0eaff,#c0d4ff);color:#1565c0;font-size:1rem;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+        <span style="font-size:2rem">👦</span>Хлопчик
+      </button>
+    </div>
+    <button onclick="document.getElementById('gender-modal').style.display='none'" style="width:100%;padding:11px;background:rgba(0,0,0,.08);border:none;border-radius:12px;font-size:1rem;cursor:pointer;color:#666">← Скасувати</button>
+  </div>
+</div>
+
+<style>
+/* Dressing room styles */
+.dress-zone { transition: opacity .15s; }
+.dress-zone:hover { opacity: .85; }
+.inv-tab {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1.5px solid #c9a8f0;
+  background: #f8f0ff;
+  color: #5b2d9e;
+  font-size: .85rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: .15s;
+}
+.inv-tab.active, .inv-tab:hover {
+  background: linear-gradient(135deg,#764ba2,#667eea);
+  color: #fff;
+  border-color: #764ba2;
+}
+.inv-item {
+  background: linear-gradient(135deg,#f8f0ff,#ede0ff);
+  border: 2px solid #c9a8f0;
+  border-radius: 12px;
+  padding: 8px 4px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: .15s;
+  position: relative;
+  user-select: none;
+}
+.inv-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(118,75,162,.2); }
+.inv-item.equipped { border-color: #27ae60; background: linear-gradient(135deg,#d4edda,#a8e6bb); }
+.inv-item .item-emoji { font-size: 1.8rem; display: block; }
+.inv-item .item-name { font-size: .62rem; color: #5b2d9e; font-weight: 600; margin-top: 2px; display: block; line-height: 1.2; }
+.inv-item.equipped .item-name { color: #155724; }
+.inv-item .equipped-badge {
+  position: absolute; top: -5px; right: -5px;
+  background: #27ae60; color: #fff;
+  border-radius: 50%; width: 16px; height: 16px;
+  font-size: .6rem; display: flex; align-items: center; justify-content: center;
+  display: none;
+}
+.inv-item.equipped .equipped-badge { display: flex; }
+#equipped-tags .etag {
+  background: linear-gradient(135deg,#764ba2,#667eea);
+  color: #fff; font-size: .7rem; padding: 3px 7px;
+  border-radius: 8px; cursor: pointer;
+  white-space: nowrap;
+}
+#equipped-tags .etag:hover { opacity: .8; }
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DRESSING ROOM + GENDER SYSTEM
+// ═══════════════════════════════════════════════════
+
+// All clothing items — zone, emoji, SVG path, name, forGender (girl/boy/both)
+const CLOTHING_ITEMS = [
+  // Hats
+  { id:'hat_cap_g',    zone:'hat', emoji:'🧢', name:'Кепка',        gender:'girl',
+    svg:`<rect x="52" y="3" width="56" height="10" rx="5" fill="#e91e8c"/><ellipse cx="80" cy="5" rx="28" ry="7" fill="#ff4081"/><rect x="56" y="11" width="48" height="5" rx="2" fill="#c2185b"/>` },
+  { id:'hat_cap_b',    zone:'hat', emoji:'🧢', name:'Кепка',        gender:'boy',
+    svg:`<rect x="52" y="3" width="56" height="10" rx="5" fill="#1565c0"/><ellipse cx="80" cy="5" rx="28" ry="7" fill="#1976d2"/><rect x="56" y="11" width="48" height="5" rx="2" fill="#0d47a1"/>` },
+  { id:'hat_bow',      zone:'hat', emoji:'🎀', name:'Бантик',       gender:'girl',
+    svg:`<path d="M65 8 Q80 2 95 8 Q80 14 65 8Z" fill="#ff4081"/><circle cx="80" cy="8" r="4" fill="#f06292"/>` },
+  { id:'hat_crown',    zone:'hat', emoji:'👑', name:'Корона',       gender:'both',
+    svg:`<polygon points="55,15 60,3 70,12 80,1 90,12 100,3 105,15" fill="#FFD700" stroke="#FFA000" stroke-width="1.5"/><rect x="55" y="14" width="50" height="5" rx="2" fill="#FFB300"/>` },
+  { id:'hat_beanie',   zone:'hat', emoji:'🎓', name:'Шапка',        gender:'both',
+    svg:`<ellipse cx="80" cy="10" rx="28" ry="12" fill="#7B3F00"/><circle cx="80" cy="2" r="4" fill="#A0522D"/>` },
+  { id:'hat_tiara',    zone:'hat', emoji:'💎', name:'Діадема',      gender:'girl',
+    svg:`<path d="M58 14 L64 5 L72 11 L80 2 L88 11 L96 5 L102 14" fill="none" stroke="#FFD700" stroke-width="2.5"/><circle cx="80" cy="2" r="3" fill="#E3F2FD"/>` },
+  { id:'hat_helmet',   zone:'hat', emoji:'⛑️', name:'Шолом',        gender:'boy',
+    svg:`<ellipse cx="80" cy="10" rx="27" ry="12" fill="#E53935"/><rect x="62" y="16" width="36" height="4" rx="2" fill="#B71C1C"/>` },
+
+  // Glasses
+  { id:'gl_round',     zone:'glasses', emoji:'👓', name:'Окуляри',    gender:'both',
+    svg:`<circle cx="67" cy="44" r="7" fill="none" stroke="#333" stroke-width="2"/><circle cx="93" cy="44" r="7" fill="none" stroke="#333" stroke-width="2"/><line x1="74" y1="44" x2="86" y2="44" stroke="#333" stroke-width="1.5"/>` },
+  { id:'gl_heart',     zone:'glasses', emoji:'🩷', name:'Серця',       gender:'girl',
+    svg:`<path d="M61 44 Q64 40 67 44 Q70 40 73 44 Q67 50 61 44Z" fill="#e91e8c"/><path d="M87 44 Q90 40 93 44 Q96 40 99 44 Q93 50 87 44Z" fill="#e91e8c"/>` },
+  { id:'gl_sungl',     zone:'glasses', emoji:'🕶️', name:'Сонцезах.',   gender:'both',
+    svg:`<rect x="59" y="40" width="16" height="10" rx="5" fill="#1a1a2e" opacity=".85"/><rect x="85" y="40" width="16" height="10" rx="5" fill="#1a1a2e" opacity=".85"/><line x1="75" y1="44" x2="85" y2="44" stroke="#333" stroke-width="1.5"/>` },
+
+  // Scarves
+  { id:'sc_pink',      zone:'scarf', emoji:'🧣', name:'Шарф рожевий', gender:'girl',
+    svg:`<rect x="60" y="68" width="40" height="12" rx="5" fill="#f48fb1"/><path d="M75 80 Q80 88 85 80" fill="none" stroke="#f06292" stroke-width="2"/>` },
+  { id:'sc_blue',      zone:'scarf', emoji:'🧣', name:'Шарф синій',   gender:'boy',
+    svg:`<rect x="60" y="68" width="40" height="12" rx="5" fill="#64b5f6"/><path d="M75 80 Q80 88 85 80" fill="none" stroke="#1976d2" stroke-width="2"/>` },
+  { id:'sc_rainbow',   zone:'scarf', emoji:'🌈', name:'Шарф веселка', gender:'both',
+    svg:`<rect x="60" y="68" width="10" height="12" rx="2" fill="#e53935"/><rect x="70" y="68" width="8" height="12" fill="#fb8c00"/><rect x="78" y="68" width="8" height="12" fill="#fdd835"/><rect x="86" y="68" width="8" height="12" fill="#43a047"/><rect x="94" y="68" width="6" height="12" rx="2" fill="#1e88e5"/>` },
+
+  // Shirts
+  { id:'sh_dress_g',   zone:'shirt', emoji:'👗', name:'Сукня',        gender:'girl',
+    svg:`<path d="M50 82 Q55 78 80 78 Q105 78 110 82 L118 200 Q80 210 42 200Z" fill="#f48fb1" stroke="#e91e8c" stroke-width="1.5"/><path d="M62 78 L55 95 M98 78 L105 95" stroke="#e91e8c" stroke-width="2"/><line x1="56" y1="100" x2="104" y2="100" stroke="#f06292" stroke-width="1" stroke-dasharray="4 2"/>` },
+  { id:'sh_tshirt_g',  zone:'shirt', emoji:'👕', name:'Футболка',      gender:'girl',
+    svg:`<path d="M50 82 Q55 78 80 78 Q105 78 110 82 L114 145 Q80 150 46 145Z" fill="#ce93d8" stroke="#ab47bc" stroke-width="1.5"/><path d="M62 78 L52 88 M98 78 L108 88" stroke="#ab47bc" stroke-width="1.5"/>` },
+  { id:'sh_tshirt_b',  zone:'shirt', emoji:'👕', name:'Футболка',      gender:'boy',
+    svg:`<path d="M48 82 Q55 76 80 76 Q105 76 112 82 L118 145 Q80 150 42 145Z" fill="#64b5f6" stroke="#1976d2" stroke-width="1.5"/><path d="M60 76 L46 90 M100 76 L114 90" stroke="#1976d2" stroke-width="1.5"/>` },
+  { id:'sh_hoodie_b',  zone:'shirt', emoji:'🧥', name:'Худі',          gender:'boy',
+    svg:`<path d="M46 82 Q53 74 80 74 Q107 74 114 82 L120 148 Q80 155 40 148Z" fill="#37474f" stroke="#263238" stroke-width="1.5"/><path d="M58 74 L44 92 M102 74 L116 92" stroke="#263238" stroke-width="2"/><path d="M70 74 Q80 82 90 74" fill="none" stroke="#546e7a" stroke-width="2"/>` },
+  { id:'sh_raincoat',  zone:'shirt', emoji:'🧥', name:'Плащ',          gender:'both',
+    svg:`<path d="M48 80 Q55 75 80 75 Q105 75 112 80 L120 148 Q80 155 40 148Z" fill="#ffee58" stroke="#f9a825" stroke-width="1.5"/><path d="M58 75 L42 92 M102 75 L118 92" stroke="#f9a825" stroke-width="2"/>` },
+
+  // Belts
+  { id:'belt_pink',    zone:'belt', emoji:'🔗', name:'Пасок рожевий', gender:'girl',
+    svg:`<rect x="44" y="138" width="72" height="9" rx="4" fill="#e91e8c"/><rect x="77" y="136" width="6" height="13" rx="2" fill="#FFD700"/>` },
+  { id:'belt_brown',   zone:'belt', emoji:'🔗', name:'Пасок коричн.', gender:'both',
+    svg:`<rect x="44" y="138" width="72" height="9" rx="4" fill="#6D4C41"/><rect x="77" y="136" width="6" height="13" rx="2" fill="#FFD700"/>` },
+  { id:'belt_stars',   zone:'belt', emoji:'⭐', name:'Пасок зірки',   gender:'girl',
+    svg:`<rect x="44" y="138" width="72" height="9" rx="4" fill="#7B1FA2"/><text x="58" y="146" font-size="7" fill="#FFD700">★★★★★</text>` },
+
+  // Pants
+  { id:'pt_jeans_g',   zone:'pants', emoji:'👖', name:'Джинси',       gender:'girl',
+    svg:`<path d="M44 148 L42 230 L74 230 L80 200 L86 230 L118 230 L116 148Z" fill="#1565c0" stroke="#0d47a1" stroke-width="1.5"/><line x1="80" y1="148" x2="80" y2="230" stroke="#0d47a1" stroke-width="1"/>` },
+  { id:'pt_jeans_b',   zone:'pants', emoji:'👖', name:'Джинси',       gender:'boy',
+    svg:`<path d="M42 148 L40 232 L74 232 L80 200 L86 232 L120 232 L118 148Z" fill="#1976d2" stroke="#1565c0" stroke-width="1.5"/><line x1="80" y1="148" x2="80" y2="232" stroke="#1565c0" stroke-width="1"/>` },
+  { id:'pt_skirt',     zone:'pants', emoji:'🩱', name:'Спідниця',     gender:'girl',
+    svg:`<path d="M44 148 Q62 180 80 200 Q98 180 116 148Z" fill="#f48fb1" stroke="#e91e8c" stroke-width="1.5"/><path d="M44 148 L116 148" stroke="#e91e8c" stroke-width="2"/>` },
+  { id:'pt_shorts_b',  zone:'pants', emoji:'🩳', name:'Шорти',        gender:'boy',
+    svg:`<path d="M42 148 L40 198 L74 198 L80 185 L86 198 L120 198 L118 148Z" fill="#0d47a1" stroke="#1a237e" stroke-width="1.5"/><line x1="80" y1="148" x2="80" y2="198" stroke="#1a237e" stroke-width="1"/>` },
+  { id:'pt_leggings',  zone:'pants', emoji:'🩲', name:'Леґінси',      gender:'girl',
+    svg:`<path d="M46 148 L44 232 L76 232 L80 200 L84 232 L116 232 L114 148Z" fill="#7B1FA2" stroke="#6A1B9A" stroke-width="1.5"/>` },
+  { id:'pt_camo',      zone:'pants', emoji:'🪖', name:'Камуфляж',     gender:'boy',
+    svg:`<path d="M42 148 L40 232 L74 232 L80 200 L86 232 L120 232 L118 148Z" fill="#558B2F"/><rect x="46" y="158" width="8" height="6" rx="1" fill="#33691E"/><rect x="72" y="170" width="6" height="8" rx="1" fill="#33691E"/><rect x="100" y="160" width="8" height="5" rx="1" fill="#33691E"/>` },
+
+  // Socks
+  { id:'so_frills',    zone:'socks', emoji:'🧦', name:'З рюшами',     gender:'girl',
+    svg:`<rect x="43" y="230" width="33" height="15" rx="5" fill="#f48fb1"/><path d="M43 230 Q52 225 60 230 Q68 225 76 230" fill="none" stroke="#e91e8c" stroke-width="1.5"/><rect x="85" y="230" width="33" height="15" rx="5" fill="#f48fb1"/><path d="M85 230 Q94 225 102 230 Q110 225 118 230" fill="none" stroke="#e91e8c" stroke-width="1.5"/>` },
+  { id:'so_stripe_b',  zone:'socks', emoji:'🧦', name:'Смугасті',     gender:'boy',
+    svg:`<rect x="43" y="230" width="33" height="15" rx="5" fill="#1565c0"/><line x1="43" y1="235" x2="76" y2="235" stroke="white" stroke-width="2"/><line x1="43" y1="239" x2="76" y2="239" stroke="white" stroke-width="2"/><rect x="85" y="230" width="33" height="15" rx="5" fill="#1565c0"/><line x1="85" y1="235" x2="118" y2="235" stroke="white" stroke-width="2"/><line x1="85" y1="239" x2="118" y2="239" stroke="white" stroke-width="2"/>` },
+  { id:'so_white',     zone:'socks', emoji:'⬜', name:'Білі',          gender:'both',
+    svg:`<rect x="43" y="230" width="33" height="15" rx="5" fill="white" stroke="#ddd" stroke-width="1"/><rect x="85" y="230" width="33" height="15" rx="5" fill="white" stroke="#ddd" stroke-width="1"/>` },
+
+  // Shoes
+  { id:'sh_heels',     zone:'shoes', emoji:'👠', name:'Підбори',      gender:'girl',
+    svg:`<ellipse cx="58" cy="254" rx="18" ry="7" fill="#e91e8c"/><line x1="67" y1="255" x2="70" y2="265" stroke="#c2185b" stroke-width="2.5"/><ellipse cx="102" cy="254" rx="18" ry="7" fill="#e91e8c"/><line x1="111" y1="255" x2="114" y2="265" stroke="#c2185b" stroke-width="2.5"/>` },
+  { id:'sh_sneaker_b', zone:'shoes', emoji:'👟', name:'Кросівки',     gender:'boy',
+    svg:`<ellipse cx="58" cy="256" rx="20" ry="9" fill="#1565c0"/><rect x="40" y="248" width="36" height="8" rx="4" fill="#1976d2"/><ellipse cx="102" cy="256" rx="20" ry="9" fill="#1565c0"/><rect x="84" y="248" width="36" height="8" rx="4" fill="#1976d2"/>` },
+  { id:'sh_boot',      zone:'shoes', emoji:'👢', name:'Чоботи',       gender:'girl',
+    svg:`<rect x="38" y="230" width="36" height="28" rx="6" fill="#6D4C41"/><rect x="84" y="230" width="36" height="28" rx="6" fill="#6D4C41"/>` },
+  { id:'sh_sport_g',   zone:'shoes', emoji:'👟', name:'Кросівки',     gender:'girl',
+    svg:`<ellipse cx="58" cy="256" rx="20" ry="9" fill="#f48fb1"/><rect x="40" y="248" width="36" height="8" rx="4" fill="#e91e8c"/><ellipse cx="102" cy="256" rx="20" ry="9" fill="#f48fb1"/><rect x="84" y="248" width="36" height="8" rx="4" fill="#e91e8c"/>` },
+  { id:'sh_flip',      zone:'shoes', emoji:'🩴', name:'Шльопки',      gender:'both',
+    svg:`<ellipse cx="58" cy="258" rx="20" ry="6" fill="#FFD700"/><line x1="58" y1="252" x2="50" y2="245" stroke="#FFA000" stroke-width="2"/><line x1="58" y1="252" x2="66" y2="245" stroke="#FFA000" stroke-width="2"/><ellipse cx="102" cy="258" rx="20" ry="6" fill="#FFD700"/><line x1="102" y1="252" x2="94" y2="245" stroke="#FFA000" stroke-width="2"/><line x1="102" y1="252" x2="110" y2="245" stroke="#FFA000" stroke-width="2"/>` },
+
+  // Bracelets
+  { id:'br_beads_g',   zone:'bracelets', emoji:'📿', name:'Намисто',    gender:'girl',
+    svg:`<rect x="22" y="133" width="22" height="7" rx="3" fill="#e91e8c"/><circle cx="26" cy="136" r="2.5" fill="white"/><circle cx="33" cy="136" r="2.5" fill="#FFD700"/><circle cx="40" cy="136" r="2.5" fill="white"/><rect x="116" y="133" width="22" height="7" rx="3" fill="#e91e8c"/><circle cx="120" cy="136" r="2.5" fill="white"/><circle cx="127" cy="136" r="2.5" fill="#FFD700"/><circle cx="134" cy="136" r="2.5" fill="white"/>` },
+  { id:'br_rubber',    zone:'bracelets', emoji:'🟢', name:'Гумки',       gender:'both',
+    svg:`<rect x="22" y="133" width="22" height="5" rx="2" fill="#43a047"/><rect x="22" y="140" width="22" height="5" rx="2" fill="#fdd835"/><rect x="116" y="133" width="22" height="5" rx="2" fill="#43a047"/><rect x="116" y="140" width="22" height="5" rx="2" fill="#fdd835"/>` },
+  { id:'br_metal',     zone:'bracelets', emoji:'⚙️', name:'Металеві',    gender:'boy',
+    svg:`<rect x="22" y="133" width="22" height="9" rx="4" fill="silver" stroke="#9E9E9E" stroke-width="1"/><rect x="116" y="133" width="22" height="9" rx="4" fill="silver" stroke="#9E9E9E" stroke-width="1"/>` },
+
+  // Gloves
+  { id:'gv_mitten_g',  zone:'gloves', emoji:'🧤', name:'Рукавиці',    gender:'girl',
+    svg:`<ellipse cx="36" cy="152" rx="11" ry="8" fill="#f48fb1" stroke="#e91e8c" stroke-width="1.5"/><ellipse cx="124" cy="152" rx="11" ry="8" fill="#f48fb1" stroke="#e91e8c" stroke-width="1.5"/>` },
+  { id:'gv_mitten_b',  zone:'gloves', emoji:'🧤', name:'Рукавиці',    gender:'boy',
+    svg:`<ellipse cx="36" cy="152" rx="11" ry="8" fill="#64b5f6" stroke="#1976d2" stroke-width="1.5"/><ellipse cx="124" cy="152" rx="11" ry="8" fill="#64b5f6" stroke="#1976d2" stroke-width="1.5"/>` },
+  { id:'gv_white',     zone:'gloves', emoji:'🫳', name:'Білі',         gender:'both',
+    svg:`<ellipse cx="36" cy="152" rx="11" ry="8" fill="white" stroke="#ddd" stroke-width="1.5"/><ellipse cx="124" cy="152" rx="11" ry="8" fill="white" stroke="#ddd" stroke-width="1.5"/>` },
+];
+
+const ZONE_ORDER = ['hat','glasses','scarf','shirt','belt','pants','socks','shoes','bracelets','gloves'];
+
+let _dressGender = 'girl'; // current gender for dressing room display
+let _equipped = {}; // { zone: itemId }
+let _invFilter = 'all';
+
+function initDressingRoom() {
+  const user = getUser();
+  if (!user.gender) user.gender = 'girl';
+  if (!user.equipped) user.equipped = {};
+  _dressGender = user.gender;
+  _equipped = Object.assign({}, user.equipped);
+  applyCharacterGender();
+  renderInventory();
+  renderEquipped();
+  updateGenderBtns();
+  updateHeaderGenderBtn();
+}
+
+function applyCharacterGender() {
+  const isGirl = _dressGender === 'girl';
+  document.getElementById('char-hair-girl').style.display = isGirl ? '' : 'none';
+  document.getElementById('char-hair-boy').style.display = isGirl ? 'none' : '';
+  document.getElementById('body-girl').style.display = isGirl ? '' : 'none';
+  document.getElementById('body-boy').style.display = isGirl ? 'none' : '';
+  document.getElementById('pants-girl').style.display = isGirl ? '' : 'none';
+  document.getElementById('pants-boy').style.display = isGirl ? 'none' : '';
+}
+
+function updateGenderBtns() {
+  const g = document.getElementById('dress-girl-tab');
+  const b = document.getElementById('dress-boy-tab');
+  if (!g || !b) return;
+  const isGirl = _dressGender === 'girl';
+  if (isGirl) {
+    g.style.borderColor = '#e91e8c'; g.style.background = 'linear-gradient(135deg,#ffe0f3,#ffc0e8)'; g.style.color = '#c2185b';
+    b.style.borderColor = '#ccc'; b.style.background = '#f5f5f5'; b.style.color = '#888';
+  } else {
+    b.style.borderColor = '#1565c0'; b.style.background = 'linear-gradient(135deg,#e0eaff,#c0d4ff)'; b.style.color = '#1565c0';
+    g.style.borderColor = '#ccc'; g.style.background = '#f5f5f5'; g.style.color = '#888';
+  }
+}
+
+function updateHeaderGenderBtn() {
+  const btn = document.getElementById('header-gender-btn');
+  if (!btn) return;
+  btn.textContent = _dressGender === 'girl' ? '👧' : '👦';
+}
+
+function setDressGender(g) {
+  _dressGender = g;
+  // Clear equipped items that don't match new gender
+  ZONE_ORDER.forEach(zone => {
+    const id = _equipped[zone];
+    if (id) {
+      const item = CLOTHING_ITEMS.find(i => i.id === id);
+      if (item && item.gender !== 'both' && item.gender !== g) {
+        delete _equipped[zone];
+      }
+    }
+  });
+  applyCharacterGender();
+  updateGenderBtns();
+  updateHeaderGenderBtn();
+  renderInventory();
+  renderEquipped();
+  saveEquipped();
+}
+
+function selectGender(g) {
+  // During profile creation
+  _dressGender = g;
+  document.getElementById('new-gender-val').value = g;
+  const gb = document.getElementById('gender-girl-btn');
+  const bb = document.getElementById('gender-boy-btn');
+  if (g === 'girl') {
+    gb.style.boxShadow = '0 0 0 3px #e91e8c60'; gb.style.transform = 'scale(1.03)';
+    bb.style.boxShadow = ''; bb.style.transform = '';
+  } else {
+    bb.style.boxShadow = '0 0 0 3px #1565c060'; bb.style.transform = 'scale(1.03)';
+    gb.style.boxShadow = ''; gb.style.transform = '';
+  }
+}
+
+function openGenderModal() {
+  document.getElementById('gender-modal').style.display = 'flex';
+}
+
+function changeGenderTo(g) {
+  setDressGender(g);
+  // Persist
+  const user = getUser();
+  user.gender = g;
+  saveUser(user);
+  document.getElementById('gender-modal').style.display = 'none';
+}
+
+function renderInventory() {
+  const grid = document.getElementById('inventory-grid');
+  if (!grid) return;
+  const items = CLOTHING_ITEMS.filter(item => {
+    const zoneOk = _invFilter === 'all' || item.zone === _invFilter;
+    const genderOk = item.gender === 'both' || item.gender === _dressGender;
+    return zoneOk && genderOk;
+  });
+  grid.innerHTML = items.map(item => {
+    const isEq = _equipped[item.zone] === item.id;
+    return `<div class="inv-item${isEq?' equipped':''}" onclick="toggleItem('${item.id}')" title="${item.name}">
+      <div class="equipped-badge">✓</div>
+      <span class="item-emoji">${item.emoji}</span>
+      <span class="item-name">${item.name}</span>
+    </div>`;
+  }).join('') || '<div style="color:#aaa;font-size:.85rem;text-align:center;padding:20px;grid-column:1/-1">Немає предметів</div>';
+}
+
+function filterInventory(zone) {
+  _invFilter = zone;
+  document.querySelectorAll('.inv-tab').forEach(t => t.classList.remove('active'));
+  const tab = document.querySelector(`.inv-tab[data-zone="${zone}"]`);
+  if (tab) tab.classList.add('active');
+  renderInventory();
+}
+
+function toggleItem(itemId) {
+  const item = CLOTHING_ITEMS.find(i => i.id === itemId);
+  if (!item) return;
+  if (_equipped[item.zone] === itemId) {
+    // Unequip
+    delete _equipped[item.zone];
+  } else {
+    _equipped[item.zone] = itemId;
+  }
+  renderEquipped();
+  renderInventory();
+  saveEquipped();
+}
+
+function renderEquipped() {
+  // Apply SVG overlays
+  ZONE_ORDER.forEach(zone => {
+    const el = document.getElementById('outfit-' + zone);
+    if (!el) return;
+    const id = _equipped[zone];
+    if (id) {
+      const item = CLOTHING_ITEMS.find(i => i.id === id);
+      el.innerHTML = item ? item.svg : '';
+    } else {
+      el.innerHTML = '';
+    }
+  });
+  // Equipped tags below character
+  const tags = document.getElementById('equipped-tags');
+  if (!tags) return;
+  const tagItems = ZONE_ORDER.filter(z => _equipped[z]).map(z => {
+    const item = CLOTHING_ITEMS.find(i => i.id === _equipped[z]);
+    return item ? `<span class="etag" onclick="toggleItem('${item.id}')" title="Зняти">${item.emoji} ${item.name} ✕</span>` : '';
+  }).join('');
+  tags.innerHTML = tagItems || '<span style="color:#ccc;font-size:.75rem">Нічого не надіто</span>';
+}
+
+function saveEquipped() {
+  const user = getUser();
+  user.equipped = Object.assign({}, _equipped);
+  user.gender = _dressGender;
+  saveUser(user);
+}
+
+// ── Init on page load if already logged in ──────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('main') && document.getElementById('main').style.display !== 'none') {
+    initDressingRoom();
+  }
+});
+</script>
 </body>
 </html>
