@@ -416,6 +416,14 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
         <g transform="translate(0,36)">
         <!-- Head -->
         <ellipse cx="80" cy="44" rx="26" ry="28" fill="#FFD5A8"/>
+        <!-- Avatar face overlay (photo or emoji) -->
+        <defs>
+          <clipPath id="face-clip">
+            <ellipse cx="80" cy="44" rx="22" ry="23"/>
+          </clipPath>
+        </defs>
+        <image id="char-avatar-img" x="58" y="21" width="44" height="46" clip-path="url(#face-clip)" preserveAspectRatio="xMidYMid slice" style="display:none"/>
+        <text id="char-avatar-emoji" x="80" y="56" text-anchor="middle" font-size="32" style="display:none" clip-path="url(#face-clip)">😊</text>
         <!-- Hair (changes with gender) -->
         <g id="char-hair-girl">
           <ellipse cx="80" cy="22" rx="28" ry="14" fill="#7B3F00"/>
@@ -1540,10 +1548,18 @@ function showEnBossFeedback(isCorrect, word, dmg){
   document.getElementById('en-boss-fb-dmg').textContent = isCorrect?`⚔️ Урон: -${dmg}`:'';
   speak(word.uk,'uk-UA');
   setTimeout(()=>speak(word.en,'en-US'),1500);
-  setTimeout(()=>{
-    fb.className='en-boss-feedback';
-    if(enBossState) nextEnBossWord();
-  }, 2500);
+  if(!isCorrect){
+    // Show correct answer for 1 second, then hide and go to next word
+    setTimeout(()=>{
+      fb.className='en-boss-feedback';
+      if(enBossState) nextEnBossWord();
+    }, 1000);
+  } else {
+    setTimeout(()=>{
+      fb.className='en-boss-feedback';
+      if(enBossState) nextEnBossWord();
+    }, 2500);
+  }
 }
 
 function renderEnBossMonster(level){
@@ -2196,8 +2212,28 @@ function saveAvatarModal(){
   saveAllProfiles(profiles);
   closeAvatarModal();
   updateHeaderAvatar();
+  updateCharacterFace();
   alert('✅ Аватарку оновлено!');
 }
+function updateCharacterFace(){
+  const profiles = loadAllProfiles();
+  const p = profiles[_activeProfileId];
+  if(!p) return;
+  const imgEl = document.getElementById('char-avatar-img');
+  const emojiEl = document.getElementById('char-avatar-emoji');
+  if(!imgEl || !emojiEl) return;
+  if(p.data && p.data.photoDataUrl){
+    imgEl.setAttribute('href', p.data.photoDataUrl);
+    imgEl.style.display = '';
+    emojiEl.style.display = 'none';
+  } else {
+    const av = p.avatar || '😊';
+    emojiEl.textContent = av;
+    emojiEl.style.display = '';
+    imgEl.style.display = 'none';
+  }
+}
+
 function updateHeaderAvatar(){
   const profiles = loadAllProfiles();
   const p = profiles[_activeProfileId];
@@ -5452,6 +5488,7 @@ function initDressingRoom() {
   updateGenderBtns();
   updateHeaderGenderBtn();
   updateCharLabel();
+  updateCharacterFace();
 }
 
 function applyCharacterGender() {
@@ -5540,6 +5577,8 @@ function renderInventory() {
     const genderOk = item.gender === 'both' || item.gender === _dressGender;
     return zoneOk && genderOk;
   });
+  const now = Date.now();
+  const LIFETIME_DAYS = 50;
   grid.innerHTML = items.map(item => {
     const isEq = _equipped[item.zone] === item.id;
     const isSelected = _selectedItemId === item.id;
@@ -5550,11 +5589,21 @@ function renderInventory() {
     const symStr = (mods.symbols && mods.symbols.count>0) ? (symIcons[mods.symbols.type]||'').repeat(mods.symbols.count) : '';
     const modStr = dyedIcon + symStr;
     const modPct = (mods.dyed?1:0) + (mods.symbols?mods.symbols.count:0);
-    return `<div class="inv-item${isEq?' equipped':''}${isSelected?' selected-for-mod':''}" onclick="toggleItem('${item.id}')" title="${item.name}">
+    // Lifetime counter
+    let lifetimeHtml = '';
+    if(mods.firstUsed){
+      const elapsed = (now - mods.firstUsed) / (1000*60*60*24);
+      const remaining = Math.max(0, Math.ceil(LIFETIME_DAYS - elapsed));
+      const pct = Math.round(elapsed / LIFETIME_DAYS * 100);
+      const col = remaining > 20 ? '#27ae60' : remaining > 7 ? '#f39c12' : '#e74c3c';
+      lifetimeHtml = `<div style="position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:.45rem;font-weight:700;color:${col};background:rgba(0,0,0,.18);border-radius:0 0 10px 10px;padding:1px 2px;line-height:1.3;opacity:.85">${remaining}д / +${pct}%</div>`;
+    }
+    return `<div class="inv-item${isEq?' equipped':''}${isSelected?' selected-for-mod':''}" onclick="toggleItem('${item.id}')" title="${item.name}" style="position:relative">
       <div class="equipped-badge">✓</div>
       <span class="item-emoji">${item.emoji}</span>
       <span class="item-name">${item.name}</span>
       ${modStr ? `<div style="font-size:.55rem;line-height:1;margin-top:1px">${modStr}${modPct>0?' +'+modPct+'%':''}</div>` : ''}
+      ${lifetimeHtml}
     </div>`;
   }).join('') || '<div style="color:#aaa;font-size:.85rem;text-align:center;padding:20px;grid-column:1/-1">Немає предметів</div>';
 }
@@ -5576,6 +5625,14 @@ function toggleItem(itemId) {
     if(_selectedItemId === itemId){ _selectedItemId = null; renderClothingModPanel(); }
   } else {
     _equipped[item.zone] = itemId;
+    // Stamp first-use date if not yet stamped
+    const user = getUser();
+    if(!user.clothingMods) user.clothingMods = {};
+    if(!user.clothingMods[itemId]) user.clothingMods[itemId] = {};
+    if(!user.clothingMods[itemId].firstUsed){
+      user.clothingMods[itemId].firstUsed = Date.now();
+      saveUser(user);
+    }
     // Open customization panel for selected item
     _selectedItemId = itemId;
     renderClothingModPanel();
@@ -5599,8 +5656,12 @@ function renderEquipped() {
         const mods = clothingMods[id] || {};
         let svgHtml = item.svg;
         if (mods.dyed && mods.dyeColor) {
-          // Apply dye color: replace the first fill attribute value in SVG
-          svgHtml = applyDyeToSvg(svgHtml, mods.dyeColor);
+          // Apply dye color to BOTH occurrences (paired items like socks, shoes, bracelets, gloves)
+          svgHtml = applyDyeToBothSvg(svgHtml, mods.dyeColor);
+        }
+        // Append symbol decorations on top of clothing
+        if(mods.symbols && mods.symbols.count > 0){
+          svgHtml += buildSymbolOverlaySvg(zone, mods.symbols.type, mods.symbols.count);
         }
         el.innerHTML = svgHtml;
       } else {
@@ -5630,6 +5691,54 @@ function applyDyeToSvg(svgHtml, color){
     replaced = true;
     return `fill="${color}"`;
   });
+}
+
+function applyDyeToBothSvg(svgHtml, color){
+  // Replace ALL dominant fill colors for paired items (socks, shoes, bracelets, gloves)
+  // Skips fill="none", white, rgba, url
+  let firstColor = null;
+  return svgHtml.replace(/fill="([^"]+)"/g, (match, val) => {
+    if(val === 'none' || val === 'white' || val === '#fff' || val === '#ffffff' || val.startsWith('rgba') || val.startsWith('url')) return match;
+    if(firstColor === null){ firstColor = val; return `fill="${color}"`; }
+    if(val === firstColor) return `fill="${color}"`;
+    return match;
+  });
+}
+
+// Zone reference points for symbol placement (SVG coords within outfit-* group, relative to character SVG transform)
+const ZONE_SYMBOL_POSITIONS = {
+  hat:        [ {x:80, y:8}  ],
+  glasses:    [ {x:67, y:44}, {x:93, y:44} ],
+  scarf:      [ {x:80, y:75} ],
+  shirt:      [ {x:68, y:105}, {x:92, y:105} ],
+  belt:       [ {x:80, y:143} ],
+  pants:      [ {x:65, y:175}, {x:95, y:175} ],
+  socks:      [ {x:59, y:237}, {x:101, y:237} ],
+  shoes:      [ {x:58, y:256}, {x:102, y:256} ],
+  bracelets:  [ {x:33, y:137}, {x:127, y:137} ],
+  gloves:     [ {x:36, y:152}, {x:124, y:152} ],
+};
+const SYMBOL_SHAPES = {
+  star: (cx,cy,r)=>`<polygon points="${[0,1,2,3,4].map(i=>{const a=i*72-90;const ar=a*Math.PI/180;const ir=(a+36)*Math.PI/180;return `${cx+r*Math.cos(ar)},${cy+r*Math.sin(ar)} ${cx+r*.4*Math.cos(ir)},${cy+r*.4*Math.sin(ir)}`}).join(' ')}" fill="#FFD700" stroke="#FFA000" stroke-width=".5" opacity=".92"/>`,
+  heart: (cx,cy,r)=>`<path d="M${cx},${cy+r*.4} C${cx},${cy} ${cx-r*1.1},${cy} ${cx-r*1.1},${cy-r*.5} C${cx-r*1.1},${cy-r*1.2} ${cx},${cy-r*.8} ${cx},${cy-r*.5} C${cx},${cy-r*.8} ${cx+r*1.1},${cy-r*1.2} ${cx+r*1.1},${cy-r*.5} C${cx+r*1.1},${cy} ${cx},${cy} ${cx},${cy+r*.4}Z" fill="#ff4081" opacity=".92"/>`,
+  bat: (cx,cy,r)=>`<path d="M${cx},${cy} L${cx-r},${cy-r*.4} Q${cx-r*.6},${cy-r*.9} ${cx-r*.2},${cy-r*.3} L${cx},${cy-r*.6} L${cx+r*.2},${cy-r*.3} Q${cx+r*.6},${cy-r*.9} ${cx+r},${cy-r*.4}Z" fill="#7B1FA2" opacity=".9"/>`,
+};
+
+function buildSymbolOverlaySvg(zone, symType, count){
+  const positions = ZONE_SYMBOL_POSITIONS[zone];
+  if(!positions || !SYMBOL_SHAPES[symType]) return '';
+  const drawFn = SYMBOL_SHAPES[symType];
+  let out = '';
+  // Distribute symbols across the available positions
+  const spread = Math.min(count, positions.length * 3);
+  for(let i = 0; i < spread && i < count; i++){
+    const pos = positions[i % positions.length];
+    // Offset slightly for multiple symbols at same anchor
+    const offX = positions.length > 1 ? 0 : (i - Math.floor(count/2)) * 7;
+    const r = 3.5;
+    out += drawFn(pos.x + offX, pos.y, r);
+  }
+  return out;
 }
 
 function saveEquipped() {
