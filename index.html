@@ -408,7 +408,12 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <!-- Character SVG + click zones -->
   <div style="display:flex;gap:16px;flex-wrap:wrap">
     <div style="position:relative;flex-shrink:0">
-      <svg id="character-svg" viewBox="0 0 160 320" xmlns="http://www.w3.org/2000/svg" style="width:160px;height:320px;border:2px dashed #e0c8ff;border-radius:12px;background:linear-gradient(180deg,#f8f0ff 0%,#fff 100%)">
+      <svg id="character-svg" viewBox="0 0 160 358" xmlns="http://www.w3.org/2000/svg" style="width:160px;height:358px;border:2px dashed #e0c8ff;border-radius:12px;background:linear-gradient(180deg,#f8f0ff 0%,#fff 100%)">
+        <!-- Nickname + damage label above character -->
+        <rect x="4" y="2" width="152" height="32" rx="8" fill="#764ba2" opacity=".93"/>
+        <text id="char-label-name" x="80" y="15" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="700" font-family="Segoe UI,sans-serif">Гравець</text>
+        <text id="char-label-dmg" x="80" y="29" text-anchor="middle" fill="#FFD700" font-size="9.5" font-weight="900" font-family="Segoe UI,sans-serif">⚔️ 100%</text>
+        <g transform="translate(0,36)">
         <!-- Head -->
         <ellipse cx="80" cy="44" rx="26" ry="28" fill="#FFD5A8"/>
         <!-- Hair (changes with gender) -->
@@ -528,6 +533,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
           <text x="36" y="155" text-anchor="middle" fill="rgba(118,75,162,.3)" font-size="7" pointer-events="none">🧤</text>
           <text x="124" y="155" text-anchor="middle" fill="rgba(118,75,162,.3)" font-size="7" pointer-events="none">🧤</text>
         </g>
+        </g><!-- end transform group -->
       </svg>
       <!-- Equipped indicators -->
       <div id="equipped-tags" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;max-width:160px"></div>
@@ -552,6 +558,31 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       </div>
       <!-- Item grid -->
       <div id="inventory-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px;max-height:250px;overflow-y:auto;padding:4px"></div>
+      <!-- Clothing customization panel -->
+      <div id="clothing-mod-panel" style="margin-top:10px;padding:10px;background:linear-gradient(135deg,#f8f0ff,#ede0ff);border-radius:12px;border:1.5px solid #c9a8f0;display:none">
+        <div style="font-weight:700;color:#764ba2;font-size:.88rem;margin-bottom:6px">🎨 Кастомізація: <span id="cmod-item-name" style="color:#5b2d9e"></span></div>
+        <div style="font-size:.75rem;color:#888;margin-bottom:8px">🧵<span id="cmod-threads">0</span> 🔘<span id="cmod-guzuky">0</span></div>
+        <!-- Dye -->
+        <div style="margin-bottom:6px">
+          <span id="cmod-dye-status" style="font-size:.8rem;color:#555"></span>
+          <button id="cmod-dye-btn" onclick="dyeClothingItem()" style="margin-left:6px;padding:4px 10px;background:linear-gradient(135deg,#764ba2,#667eea);color:#fff;border:none;border-radius:8px;font-size:.78rem;cursor:pointer">🎨 Фарбувати −50🧵−50🔘 +1%</button>
+        </div>
+        <!-- Color picker -->
+        <div id="cmod-color-row" style="margin-bottom:8px;display:none">
+          <div style="font-size:.75rem;color:#555;margin-bottom:4px">🎨 Обери колір:</div>
+          <div id="cmod-color-swatches" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+        </div>
+        <!-- Symbol type selector -->
+        <div style="margin-bottom:6px">
+          <div style="font-size:.78rem;color:#555;margin-bottom:4px">Малюнок (один тип на предмет):</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="cmod-symbol-btns">
+            <button onclick="addSymbol('star')" style="padding:4px 8px;border-radius:8px;border:1.5px solid #f9a825;background:#fffde7;font-size:.8rem;cursor:pointer">⭐ зірочка −50🧵−50🔘 +1%</button>
+            <button onclick="addSymbol('heart')" style="padding:4px 8px;border-radius:8px;border:1.5px solid #e91e8c;background:#fce4ec;font-size:.8rem;cursor:pointer">💗 серце −50🧵−50🔘 +1%</button>
+            <button onclick="addSymbol('bat')" style="padding:4px 8px;border-radius:8px;border:1.5px solid #333;background:#ede7f6;font-size:.8rem;cursor:pointer">🦇 кажан −50🧵−50🔘 +1%</button>
+          </div>
+        </div>
+        <div id="cmod-symbols-display" style="font-size:.82rem;color:#555"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -577,8 +608,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <polygon points="5,68 75,10 145,68" fill="none" stroke="#922B21" stroke-width="2.5"/>
   <!-- Дах — деталь (друга лінія) -->
   <polygon points="15,68 75,18 135,68" fill="#E74C3C"/>
-  <!-- Урон гравця на даху -->
-  <text id="dog-house-dmg" x="75" y="52" text-anchor="middle" fill="#FFD700" font-size="9" font-weight="bold" font-family="Segoe UI,sans-serif">100%</text>
+  <!-- Урон від собаки на даху -->
+  <text id="dog-house-dmg" x="75" y="52" text-anchor="middle" fill="#FFD700" font-size="9" font-weight="bold" font-family="Segoe UI,sans-serif">(0)%</text>
   <!-- Вентиляційний отвір на даху прибрано (закривав урон) -->
   <!-- Дошки стін (горизонтальні лінії) -->
   <line x1="15" y1="85" x2="135" y2="85" stroke="#B8B8B8" stroke-width="1"/>
@@ -1497,8 +1528,7 @@ async function checkEnBossAnswer(){
 }
 
 function getUserBossDmgMod(){
-  const user = getUser();
-  return 1 + (user.bossDmgBonus||0)/100;
+  return getTotalDmgMod();
 }
 
 function showEnBossFeedback(isCorrect, word, dmg){
@@ -1925,10 +1955,44 @@ function updateDogHouseDmg(){
   const user=getUser();
   const dmgEl=document.getElementById('dog-house-dmg');
   if(dmgEl){
-    const pct=100+(user.bossDmgBonus||0);
-    dmgEl.textContent=pct+'%';
-    dmgEl.style.fill=pct>100?'#00e676':'#FFD700';
+    const dogBonus=user.bossDmgBonus||0;
+    dmgEl.textContent='('+dogBonus+')%';
+    dmgEl.style.fill=dogBonus>0?'#00e676':'#FFD700';
   }
+}
+
+// ─── Clothing damage bonus ──────────────────────────────
+function getClothingDmgBonus(){
+  const user=getUser();
+  const mods=user.clothingMods||{};
+  let total=0;
+  Object.values(mods).forEach(m=>{
+    if(m.dyed) total+=1;
+    if(m.symbols && m.symbols.count) total += m.symbols.count;
+  });
+  return total;
+}
+
+function getTotalDmgMod(){
+  const user=getUser();
+  const dogBonus=user.bossDmgBonus||0;
+  const clothingBonus=getClothingDmgBonus();
+  return (100+dogBonus+clothingBonus)/100;
+}
+
+function updateCharLabel(){
+  const profiles=loadAllProfiles();
+  const p=profiles[_activeProfileId];
+  const nameEl=document.getElementById('char-label-name');
+  const dmgEl=document.getElementById('char-label-dmg');
+  if(!nameEl||!dmgEl) return;
+  if(p) nameEl.textContent=p.name||'Гравець';
+  const user=getUser();
+  const dogBonus=user.bossDmgBonus||0;
+  const clothingBonus=getClothingDmgBonus();
+  const total=100+clothingBonus+dogBonus;
+  dmgEl.textContent=`⚔️ (100+${clothingBonus}+${dogBonus})% = ${total}%`;
+  dmgEl.style.fill=total>100?'#00e676':'#FFD700';
 }
 
 
@@ -2474,6 +2538,7 @@ const gzc=document.getElementById('guzuk-count');
 if(gzc)gzc.textContent=user.guzuky||0;
 if(typeof updateTreeUI==='function')updateTreeUI();
 updateDogHouseDmg();
+updateCharLabel();
 }
 
 function updateDog(){
@@ -2989,6 +3054,7 @@ checkEnglishAnswer(true); // timeout
 }
 
 function checkEnglishAnswer(timeout=false){
+if(!englishState) return;
 clearInterval(englishState.timerInterval);
 
 const inp=document.getElementById('en-answer');
@@ -4805,7 +4871,12 @@ window.checkBossAnswer = async function(){
   const correct = window.bossState.currentQ.a;
 
   if(answer === correct){
-    const baseDmg2 = MATH_LEVELS[window.bossState.currentLvl].reward;
+    let baseDmg2;
+    if(window.bossState.currentQ && window.bossState.currentQ.multDmg){
+      baseDmg2 = window.bossState.currentQ.multDmg;
+    } else {
+      baseDmg2 = window.bossState.currentLvl ? MATH_LEVELS[window.bossState.currentLvl].reward : 100;
+    }
     const dmg = Math.round(baseDmg2 * getUserBossDmgMod());
 
     if(mpState && mpState.roomCode){
@@ -5084,6 +5155,7 @@ window.bossEndGame = function(victory){
   display: none;
 }
 .inv-item.equipped .equipped-badge { display: flex; }
+.inv-item.selected-for-mod { outline: 2px solid #ffd700; }
 #equipped-tags .etag {
   background: linear-gradient(135deg,#764ba2,#667eea);
   color: #fff; font-size: .7rem; padding: 3px 7px;
@@ -5205,6 +5277,165 @@ const CLOTHING_ITEMS = [
 
 const ZONE_ORDER = ['hat','glasses','scarf','shirt','belt','pants','socks','shoes','bracelets','gloves'];
 
+// ─── Currently selected item for customization ──────────
+let _selectedItemId = null;
+
+function selectItemForMod(itemId){
+  _selectedItemId = itemId;
+  renderClothingModPanel();
+}
+
+function renderClothingModPanel(){
+  const panel = document.getElementById('clothing-mod-panel');
+  if(!panel) return;
+  const user = getUser();
+  if(!user.clothingMods) user.clothingMods = {};
+
+  if(!_selectedItemId){
+    panel.style.display = 'none';
+    return;
+  }
+  const item = CLOTHING_ITEMS.find(i => i.id === _selectedItemId);
+  if(!item){ panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+
+  document.getElementById('cmod-item-name').textContent = item.emoji + ' ' + item.name;
+  document.getElementById('cmod-threads').textContent = user.threads||0;
+  document.getElementById('cmod-guzuky').textContent = user.guzuky||0;
+
+  const mods = user.clothingMods[_selectedItemId] || {};
+
+  // Dye status
+  const dyeStatus = document.getElementById('cmod-dye-status');
+  const dyeBtn = document.getElementById('cmod-dye-btn');
+  const colorRow = document.getElementById('cmod-color-row');
+  if(mods.dyed){
+    dyeStatus.textContent = '✅ Пофарбовано (+1%) ' + (mods.dyeColor ? '' : '');
+    dyeBtn.style.display = 'none';
+    // Show color picker to re-color (no extra cost)
+    if(colorRow){
+      colorRow.style.display = 'block';
+      renderDyeColorSwatches(_selectedItemId, mods.dyeColor||null);
+    }
+  } else {
+    dyeStatus.textContent = '○ Не фарбовано';
+    dyeBtn.style.display = '';
+    // Show color picker before dyeing
+    if(colorRow){
+      colorRow.style.display = 'block';
+      renderDyeColorSwatches(_selectedItemId, mods.dyeColor||null);
+    }
+  }
+
+  // Symbols display
+  const symDisplay = document.getElementById('cmod-symbols-display');
+  const symBtns = document.getElementById('cmod-symbol-btns');
+  const sym = mods.symbols;
+  if(sym && sym.count > 0){
+    const icons = {'star':'⭐','heart':'💗','bat':'🦇'};
+    const icon = icons[sym.type] || sym.type;
+    symDisplay.textContent = icon.repeat(sym.count) + ' (+'+sym.count+'%) — тип: '+(sym.type==='star'?'зірочка':sym.type==='heart'?'сердечко':'кажан');
+    // Show only the matching symbol button, disable if maxed
+    symBtns.querySelectorAll('button').forEach(b => {
+      const t = b.getAttribute('onclick').match(/'(.+)'/)[1];
+      b.style.display = t === sym.type ? '' : 'none';
+      if(t === sym.type && sym.count >= 5){
+        b.disabled = true;
+        b.style.opacity = '.5';
+      }
+    });
+  } else {
+    symDisplay.textContent = 'Малюнків немає';
+    symBtns.querySelectorAll('button').forEach(b => { b.style.display=''; b.disabled=false; b.style.opacity='1'; });
+  }
+}
+
+function dyeClothingItem(){
+  if(!_selectedItemId) return;
+  const user = getUser();
+  if((user.threads||0) < 50 || (user.guzuky||0) < 50){
+    alert('Потрібно 50🧵 і 50🔘!');
+    return;
+  }
+  if(!user.clothingMods) user.clothingMods = {};
+  const mods = user.clothingMods[_selectedItemId] || {};
+  if(mods.dyed){ alert('Вже пофарбовано!'); return; }
+  user.threads -= 50;
+  user.guzuky -= 50;
+  mods.dyed = true;
+  // Pick selected color or default
+  mods.dyeColor = window._selectedDyeColor || '#e91e8c';
+  user.clothingMods[_selectedItemId] = mods;
+  saveUser(user);
+  updateUI();
+  renderClothingModPanel();
+  renderEquipped();
+}
+
+const DYE_COLORS = [
+  '#e91e8c','#e53935','#ff6d00','#ffd600','#43a047',
+  '#00acc1','#1e88e5','#5e35b1','#ffffff','#212121',
+  '#8d6e63','#f06292','#a5d6a7','#80deea','#ce93d8'
+];
+
+function renderDyeColorSwatches(itemId, currentColor){
+  const container = document.getElementById('cmod-color-swatches');
+  if(!container) return;
+  container.innerHTML = DYE_COLORS.map(c => {
+    const sel = c === (currentColor || window._selectedDyeColor || '#e91e8c');
+    return `<div onclick="selectDyeColor('${c}','${itemId}')" title="${c}"
+      style="width:22px;height:22px;border-radius:50%;background:${c};cursor:pointer;flex-shrink:0;
+      border:${sel?'3px solid #333':'2px solid rgba(0,0,0,.18)'};
+      box-shadow:${sel?'0 0 0 2px #fff inset':'none'};transition:.15s"></div>`;
+  }).join('');
+}
+
+function selectDyeColor(color, itemId){
+  window._selectedDyeColor = color;
+  // If already dyed — just change color (no cost)
+  const user = getUser();
+  if(!user.clothingMods) user.clothingMods = {};
+  const mods = user.clothingMods[itemId] || {};
+  if(mods.dyed){
+    mods.dyeColor = color;
+    user.clothingMods[itemId] = mods;
+    saveUser(user);
+    renderEquipped();
+  }
+  renderDyeColorSwatches(itemId, color);
+}
+
+function addSymbol(type){
+  if(!_selectedItemId) return;
+  const user = getUser();
+  if((user.threads||0) < 50 || (user.guzuky||0) < 50){
+    alert('Потрібно 50🧵 і 50🔘!');
+    return;
+  }
+  if(!user.clothingMods) user.clothingMods = {};
+  const mods = user.clothingMods[_selectedItemId] || {};
+  const sym = mods.symbols;
+  // Only one type allowed
+  if(sym && sym.count > 0 && sym.type !== type){
+    const names = {star:'зірочка',heart:'сердечко',bat:'кажан'};
+    alert('На цьому предметі вже є тип: ' + (names[sym.type]||sym.type) + '!\nОдин предмет — один тип символів.');
+    return;
+  }
+  if(sym && sym.count >= 5){ alert('Максимум 5 символів на предмет!'); return; }
+  user.threads -= 50;
+  user.guzuky -= 50;
+  if(!mods.symbols || mods.symbols.count === 0){
+    mods.symbols = { type, count: 1 };
+  } else {
+    mods.symbols.count += 1;
+  }
+  user.clothingMods[_selectedItemId] = mods;
+  saveUser(user);
+  updateUI();
+  renderClothingModPanel();
+  updateCharLabel();
+}
+
 let _dressGender = 'girl'; // current gender for dressing room display
 let _equipped = {}; // { zone: itemId }
 let _invFilter = 'all';
@@ -5220,6 +5451,7 @@ function initDressingRoom() {
   renderEquipped();
   updateGenderBtns();
   updateHeaderGenderBtn();
+  updateCharLabel();
 }
 
 function applyCharacterGender() {
@@ -5310,10 +5542,19 @@ function renderInventory() {
   });
   grid.innerHTML = items.map(item => {
     const isEq = _equipped[item.zone] === item.id;
-    return `<div class="inv-item${isEq?' equipped':''}" onclick="toggleItem('${item.id}')" title="${item.name}">
+    const isSelected = _selectedItemId === item.id;
+    const user = getUser();
+    const mods = (user.clothingMods||{})[item.id]||{};
+    const dyedIcon = mods.dyed ? '🎨' : '';
+    const symIcons = {'star':'⭐','heart':'💗','bat':'🦇'};
+    const symStr = (mods.symbols && mods.symbols.count>0) ? (symIcons[mods.symbols.type]||'').repeat(mods.symbols.count) : '';
+    const modStr = dyedIcon + symStr;
+    const modPct = (mods.dyed?1:0) + (mods.symbols?mods.symbols.count:0);
+    return `<div class="inv-item${isEq?' equipped':''}${isSelected?' selected-for-mod':''}" onclick="toggleItem('${item.id}')" title="${item.name}">
       <div class="equipped-badge">✓</div>
       <span class="item-emoji">${item.emoji}</span>
       <span class="item-name">${item.name}</span>
+      ${modStr ? `<div style="font-size:.55rem;line-height:1;margin-top:1px">${modStr}${modPct>0?' +'+modPct+'%':''}</div>` : ''}
     </div>`;
   }).join('') || '<div style="color:#aaa;font-size:.85rem;text-align:center;padding:20px;grid-column:1/-1">Немає предметів</div>';
 }
@@ -5332,8 +5573,12 @@ function toggleItem(itemId) {
   if (_equipped[item.zone] === itemId) {
     // Unequip
     delete _equipped[item.zone];
+    if(_selectedItemId === itemId){ _selectedItemId = null; renderClothingModPanel(); }
   } else {
     _equipped[item.zone] = itemId;
+    // Open customization panel for selected item
+    _selectedItemId = itemId;
+    renderClothingModPanel();
   }
   renderEquipped();
   renderInventory();
@@ -5342,13 +5587,25 @@ function toggleItem(itemId) {
 
 function renderEquipped() {
   // Apply SVG overlays
+  const user = getUser();
+  const clothingMods = user.clothingMods || {};
   ZONE_ORDER.forEach(zone => {
     const el = document.getElementById('outfit-' + zone);
     if (!el) return;
     const id = _equipped[zone];
     if (id) {
       const item = CLOTHING_ITEMS.find(i => i.id === id);
-      el.innerHTML = item ? item.svg : '';
+      if (item) {
+        const mods = clothingMods[id] || {};
+        let svgHtml = item.svg;
+        if (mods.dyed && mods.dyeColor) {
+          // Apply dye color: replace the first fill attribute value in SVG
+          svgHtml = applyDyeToSvg(svgHtml, mods.dyeColor);
+        }
+        el.innerHTML = svgHtml;
+      } else {
+        el.innerHTML = '';
+      }
     } else {
       el.innerHTML = '';
     }
@@ -5363,11 +5620,24 @@ function renderEquipped() {
   tags.innerHTML = tagItems || '<span style="color:#ccc;font-size:.75rem">Нічого не надіто</span>';
 }
 
+function applyDyeToSvg(svgHtml, color){
+  // Replace the first (main) fill color — typically the dominant color of the item
+  // We replace fill="#..." or fill='...' with the dye color, skipping fill="none", fill="white", fill="rgba..."
+  let replaced = false;
+  return svgHtml.replace(/fill="([^"]+)"/g, (match, val) => {
+    if(replaced) return match;
+    if(val === 'none' || val === 'white' || val === '#fff' || val === '#ffffff' || val.startsWith('rgba') || val.startsWith('url')) return match;
+    replaced = true;
+    return `fill="${color}"`;
+  });
+}
+
 function saveEquipped() {
   const user = getUser();
   user.equipped = Object.assign({}, _equipped);
   user.gender = _dressGender;
   saveUser(user);
+  updateCharLabel();
 }
 
 // ── Init on page load if already logged in ──────────────
