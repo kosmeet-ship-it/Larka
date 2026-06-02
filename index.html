@@ -400,6 +400,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
     <h3 style="color:#764ba2;margin:0">👗 Гардероб</h3>
     <div style="display:flex;gap:8px">
+      <button onclick="openTailorRoom()" style="padding:7px 14px;border-radius:10px;border:2px solid #e65100;background:linear-gradient(135deg,#fff3e0,#ffe0b2);color:#e65100;font-size:.9rem;font-weight:700;cursor:pointer">🪡 Пошивка</button>
       <button id="dress-girl-tab" onclick="setDressGender('girl')" style="padding:7px 14px;border-radius:10px;border:2px solid #e91e8c;background:linear-gradient(135deg,#ffe0f3,#ffc0e8);color:#c2185b;font-size:.9rem;font-weight:700;cursor:pointer">👧 Дівч.</button>
       <button id="dress-boy-tab" onclick="setDressGender('boy')" style="padding:7px 14px;border-radius:10px;border:2px solid #ccc;background:#f5f5f5;color:#888;font-size:.9rem;font-weight:700;cursor:pointer">👦 Хлопч.</button>
     </div>
@@ -1975,10 +1976,19 @@ function updateDogHouseDmg(){
 function getClothingDmgBonus(){
   const user=getUser();
   const mods=user.clothingMods||{};
+  const equipped=user.equipped||{};
+  const equippedIds=new Set(Object.values(equipped));
   let total=0;
-  Object.values(mods).forEach(m=>{
-    if(m.dyed) total+=1;
-    if(m.symbols && m.symbols.count) total += m.symbols.count;
+  Object.entries(mods).forEach(([itemId,m])=>{
+    // Only count bonus if item is currently equipped
+    if(!equippedIds.has(itemId)) return;
+    if(m.isCustom){
+      // Custom item: base +1% creation + dyed parts bonus
+      total += m.bonusDmg || 1;
+    } else {
+      if(m.dyed) total+=1;
+      if(m.symbols && m.symbols.count) total += m.symbols.count;
+    }
   });
   return total;
 }
@@ -5117,7 +5127,129 @@ window.bossEndGame = function(victory){
   </div>
 </div>
 
-<!-- EMOJI PICKER MODAL -->
+<!-- TAILOR ROOM MODAL -->
+<div id="tailor-room-modal">
+  <div class="tailor-box">
+    <div class="tailor-title">🪡 Кімната для пошиття одягу</div>
+    <div style="text-align:center;font-size:.82rem;color:#888;margin-bottom:10px">Намалюй одяг на силуеті → вибери зону → збережи в інвентар (−100🧵 −100🔘 +1% урон)</div>
+
+    <div class="tailor-body">
+      <!-- Canvas area -->
+      <div class="tailor-canvas-wrap">
+        <canvas id="tailor-canvas" width="160" height="290"></canvas>
+        <!-- SVG silhouette overlay -->
+        <svg class="tailor-silhouette" viewBox="0 0 160 290" width="160" height="290" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;pointer-events:none;opacity:.18">
+          <!-- head -->
+          <ellipse cx="80" cy="44" rx="26" ry="28" fill="none" stroke="#764ba2" stroke-width="1.5"/>
+          <!-- neck -->
+          <rect x="73" y="70" width="14" height="12" rx="3" fill="none" stroke="#764ba2" stroke-width="1.2"/>
+          <!-- torso -->
+          <path d="M50 82 Q55 78 80 78 Q105 78 110 82 L116 148 Q80 153 44 148Z" fill="none" stroke="#764ba2" stroke-width="1.5"/>
+          <!-- arms -->
+          <rect x="28" y="82" width="16" height="64" rx="7" fill="none" stroke="#764ba2" stroke-width="1.2"/>
+          <rect x="116" y="82" width="16" height="64" rx="7" fill="none" stroke="#764ba2" stroke-width="1.2"/>
+          <!-- pants -->
+          <path d="M44 148 L42 232 L75 232 L80 200 L85 232 L118 232 L116 148Z" fill="none" stroke="#764ba2" stroke-width="1.5"/>
+          <!-- feet -->
+          <ellipse cx="58" cy="244" rx="20" ry="9" fill="none" stroke="#764ba2" stroke-width="1.2"/>
+          <ellipse cx="102" cy="244" rx="20" ry="9" fill="none" stroke="#764ba2" stroke-width="1.2"/>
+        </svg>
+        <!-- Zone highlight overlay -->
+        <svg id="tailor-zone-hint" viewBox="0 0 160 290" width="160" height="290" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;pointer-events:none;opacity:0;transition:opacity .2s"></svg>
+        <!-- Part boundary overlay -->
+        <canvas id="tailor-parts-canvas" width="160" height="290" style="position:absolute;top:0;left:0;pointer-events:none;opacity:.55"></canvas>
+      </div>
+
+      <!-- Tools panel -->
+      <div class="tailor-tools">
+        <!-- Draw tools -->
+        <div>
+          <div class="tailor-section-title">🖊 Інструменти</div>
+          <div class="tailor-brush-row">
+            <button class="tailor-brush-btn active" onclick="setTailorTool('pen')" id="tailor-btn-pen">✏️ Олівець</button>
+            <button class="tailor-brush-btn" onclick="setTailorTool('fill')" id="tailor-btn-fill">🪣 Заливка</button>
+            <button class="tailor-brush-btn" onclick="setTailorTool('eraser')" id="tailor-btn-eraser">🧹 Ластик</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+            <span style="font-size:.75rem;color:#555">Розмір:</span>
+            <input type="range" id="tailor-brush-size" min="2" max="18" value="5" style="flex:1" oninput="tailorBrushSize=+this.value;document.getElementById('tailor-size-lbl').textContent=this.value">
+            <span id="tailor-size-lbl" style="font-size:.75rem;color:#555;min-width:20px">5</span>
+          </div>
+        </div>
+
+        <!-- Draw color -->
+        <div>
+          <div class="tailor-section-title">🎨 Колір олівця</div>
+          <div class="tailor-color-row" id="tailor-draw-colors"></div>
+        </div>
+
+        <!-- Parts for dyeing -->
+        <div>
+          <div class="tailor-section-title">🎨 Частини для фарбування (макс. 5 кольорів)</div>
+          <div style="font-size:.72rem;color:#888;margin-bottom:4px">Спочатку намалюй. Потім: вибери частину → вибери колір → натисни «Фарбувати»</div>
+          <div class="tailor-part-row" id="tailor-parts-list">
+            <!-- part 1-5 buttons generated by JS -->
+          </div>
+          <div id="tailor-part-color-section" style="display:none;margin-top:4px">
+            <div class="tailor-section-title" style="margin-bottom:2px">Колір для частини <span id="tailor-active-part-lbl"></span>:</div>
+            <div class="tailor-part-colors" id="tailor-part-colors"></div>
+            <button onclick="applyPartDye()" style="margin-top:6px;padding:5px 12px;background:linear-gradient(135deg,#7b1fa2,#ab47bc);color:#fff;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer">🎨 Фарбувати −50🧵 −50🔘 +1%</button>
+          </div>
+        </div>
+
+        <!-- Zone selection -->
+        <div>
+          <div class="tailor-section-title">📍 Зона одягу</div>
+          <div class="tailor-zone-row" id="tailor-zone-select">
+            <button class="tailor-zone-btn" data-zone="hat"       onclick="selectTailorZone('hat')">🎩 Шапка</button>
+            <button class="tailor-zone-btn" data-zone="scarf"     onclick="selectTailorZone('scarf')">🧣 Шарф</button>
+            <button class="tailor-zone-btn active" data-zone="shirt"     onclick="selectTailorZone('shirt')">👕 Сорочка</button>
+            <button class="tailor-zone-btn" data-zone="belt"      onclick="selectTailorZone('belt')">🔗 Пасок</button>
+            <button class="tailor-zone-btn" data-zone="pants"     onclick="selectTailorZone('pants')">👖 Штани</button>
+            <button class="tailor-zone-btn" data-zone="socks"     onclick="selectTailorZone('socks')">🧦 Шкарпетки</button>
+            <button class="tailor-zone-btn" data-zone="shoes"     onclick="selectTailorZone('shoes')">👟 Взуття</button>
+            <button class="tailor-zone-btn" data-zone="bracelets" onclick="selectTailorZone('bracelets')">📿 Браслети</button>
+            <button class="tailor-zone-btn" data-zone="gloves"    onclick="selectTailorZone('gloves')">🧤 Рукавиці</button>
+          </div>
+        </div>
+
+        <!-- Item name -->
+        <div>
+          <div class="tailor-section-title">🏷️ Назва предмету</div>
+          <input id="tailor-item-name" type="text" maxlength="20" placeholder="Мій одяг..." style="width:100%;padding:7px 10px;border-radius:8px;border:1.5px solid #ff8f00;font-size:.88rem;outline:none;background:#fffde7">
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <button class="tailor-action-btn" onclick="saveTailorItem()" style="background:linear-gradient(135deg,#e65100,#f57c00);flex:1">💾 В інвентар −100🧵 −100🔘</button>
+          <button class="tailor-action-btn" onclick="clearTailorCanvas()" style="background:linear-gradient(135deg,#757575,#9e9e9e)">🗑️ Очистити</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="tailor-action-btn" onclick="closeTailorRoom()" style="background:linear-gradient(135deg,#546e7a,#78909c);width:100%">← Назад</button>
+        </div>
+
+        <!-- Cost display -->
+        <div id="tailor-resources" style="font-size:.78rem;color:#555;background:rgba(255,255,255,.7);padding:5px 8px;border-radius:8px;text-align:center;margin-top:4px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tailor item preview modal (save confirm) -->
+<div id="tailor-save-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9700;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:20px;padding:24px;max-width:340px;width:92%;text-align:center">
+    <div style="font-size:1.3rem;font-weight:800;color:#e65100;margin-bottom:10px">💾 Зберегти предмет?</div>
+    <canvas id="tailor-preview-canvas" width="80" height="145" style="border-radius:8px;border:1.5px solid #ff8f00;margin:0 auto 10px;display:block"></canvas>
+    <div id="tailor-save-info" style="font-size:.88rem;color:#555;margin-bottom:14px"></div>
+    <div id="tailor-save-warning" style="color:#e53935;font-size:.82rem;margin-bottom:10px;display:none"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="confirmSaveTailorItem()" style="flex:1;padding:11px;background:linear-gradient(135deg,#e65100,#f57c00);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer">✅ Зберегти</button>
+      <button onclick="document.getElementById('tailor-save-modal').style.display='none'" style="flex:1;padding:11px;background:rgba(0,0,0,.08);border:none;border-radius:12px;font-size:1rem;cursor:pointer;color:#666">← Скасувати</button>
+    </div>
+  </div>
+</div>
+
+
 <div id="emoji-picker-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9950;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:18px;padding:20px;max-width:360px;width:92%;max-height:70vh;overflow-y:auto">
     <div style="font-size:1.2rem;font-weight:700;color:#764ba2;margin-bottom:14px;text-align:center">Обери аватарку</div>
@@ -5163,6 +5295,35 @@ window.bossEndGame = function(victory){
 </div>
 
 <style>
+/* ── Tailor Room ─────────────────────────────────── */
+#tailor-room-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9600;align-items:flex-start;justify-content:center;overflow-y:auto;padding:10px}
+#tailor-room-modal.show{display:flex}
+.tailor-box{background:linear-gradient(160deg,#fff9f0,#fff3e0);border:2px solid #ff8f00;border-radius:22px;padding:20px 16px 16px;max-width:700px;width:100%;color:#333;position:relative;margin:auto}
+.tailor-title{font-size:1.4rem;font-weight:900;color:#e65100;text-align:center;margin-bottom:14px}
+.tailor-body{display:flex;gap:14px;flex-wrap:wrap}
+.tailor-canvas-wrap{position:relative;flex-shrink:0}
+#tailor-canvas{border:2px dashed #ff8f00;border-radius:12px;background:#fff;cursor:crosshair;touch-action:none;display:block}
+.tailor-silhouette{position:absolute;top:0;left:0;pointer-events:none}
+.tailor-tools{flex:1;min-width:180px;display:flex;flex-direction:column;gap:8px}
+.tailor-section-title{font-size:.82rem;font-weight:700;color:#bf360c;margin-bottom:2px}
+.tailor-color-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.tailor-color-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:.12s}
+.tailor-color-swatch.selected{border-color:#333;box-shadow:0 0 0 2px #fff inset}
+.tailor-brush-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.tailor-brush-btn{padding:4px 10px;border-radius:8px;border:1.5px solid #ff8f00;background:#fff3e0;color:#e65100;font-size:.78rem;font-weight:700;cursor:pointer;transition:.12s}
+.tailor-brush-btn.active{background:#e65100;color:#fff;border-color:#e65100}
+.tailor-part-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.tailor-part-btn{padding:4px 8px;border-radius:8px;border:1.5px solid #7b1fa2;background:#f3e5f5;color:#6a1b9a;font-size:.75rem;font-weight:700;cursor:pointer;transition:.12s}
+.tailor-part-btn.active{background:#7b1fa2;color:#fff;border-color:#7b1fa2}
+.tailor-part-btn.dyed{border-color:#43a047}
+.tailor-zone-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.tailor-zone-btn{padding:5px 9px;border-radius:8px;border:1.5px solid #1565c0;background:#e8eaf6;color:#1a237e;font-size:.78rem;font-weight:700;cursor:pointer;transition:.12s}
+.tailor-zone-btn.active{background:#1565c0;color:#fff;border-color:#1565c0}
+.tailor-action-btn{padding:9px 14px;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;color:#fff;transition:.15s}
+.tailor-action-btn:hover{opacity:.88}
+.tailor-part-colors{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.tailor-part-color-swatch{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0}
+.tailor-part-color-swatch.selected{border-color:#333;box-shadow:0 0 0 1.5px #fff inset}
 /* Dressing room styles */
 .dress-zone { transition: opacity .15s; }
 .dress-zone:hover { opacity: .85; }
@@ -5348,6 +5509,19 @@ function renderClothingModPanel(){
   }
   const item = CLOTHING_ITEMS.find(i => i.id === _selectedItemId);
   if(!item){ panel.style.display = 'none'; return; }
+  // Custom drawn items: show simplified info
+  if(item.isCustom){
+    panel.style.display = 'block';
+    document.getElementById('cmod-item-name').textContent = '🪡 ' + item.name + ' (власний пошив)';
+    document.getElementById('cmod-threads').textContent = user.threads||0;
+    document.getElementById('cmod-guzuky').textContent = user.guzuky||0;
+    document.getElementById('cmod-dye-status').textContent = `✨ Власний пошив (+${item.customBonusDmg||1}% урон)`;
+    document.getElementById('cmod-dye-btn').style.display = 'none';
+    document.getElementById('cmod-color-row').style.display = 'none';
+    document.getElementById('cmod-symbol-btns').style.display = 'none';
+    document.getElementById('cmod-symbols-display').textContent = '';
+    return;
+  }
   panel.style.display = 'block';
 
   document.getElementById('cmod-item-name').textContent = item.emoji + ' ' + item.name;
@@ -5602,8 +5776,13 @@ function renderInventory() {
     const dyedIcon = mods.dyed ? '🎨' : '';
     const symIcons = {'star':'⭐','heart':'💗','bat':'🦇'};
     const symStr = (mods.symbols && mods.symbols.count>0) ? (symIcons[mods.symbols.type]||'').repeat(mods.symbols.count) : '';
-    const modStr = dyedIcon + symStr;
-    const modPct = (mods.dyed?1:0) + (mods.symbols?mods.symbols.count:0);
+    let modStr = dyedIcon + symStr;
+    let modPct = (mods.dyed?1:0) + (mods.symbols?mods.symbols.count:0);
+    // Custom item
+    if(item.isCustom){
+      modStr = '🪡';
+      modPct = item.customBonusDmg || (mods.bonusDmg || 1);
+    }
     // Lifetime counter
     let lifetimeHtml = '';
     if(mods.firstUsed){
@@ -5763,6 +5942,513 @@ function saveEquipped() {
   saveUser(user);
   updateCharLabel();
 }
+
+// ═══════════════════════════════════════════════════════
+// TAILOR ROOM
+// ═══════════════════════════════════════════════════════
+(function(){
+
+const TAILOR_DRAW_COLORS = [
+  '#212121','#ffffff','#e53935','#ff6d00','#fdd835','#43a047',
+  '#1e88e5','#7b1fa2','#f48fb1','#80cbc4','#8d6e63','#546e7a',
+  '#ff4081','#64ffda','#ffab40','#ea80fc'
+];
+
+const ZONE_HINTS = {
+  hat:       `<ellipse cx="80" cy="16" rx="30" ry="12" fill="#667eea" opacity=".35" stroke="#667eea" stroke-width="1.5"/>`,
+  glasses:   `<rect x="57" y="39" width="16" height="12" rx="5" fill="#667eea" opacity=".25"/><rect x="87" y="39" width="16" height="12" rx="5" fill="#667eea" opacity=".25"/>`,
+  scarf:     `<rect x="60" y="68" width="40" height="13" rx="5" fill="#667eea" opacity=".35"/>`,
+  shirt:     `<path d="M50 82 Q55 78 80 78 Q105 78 110 82 L116 148 Q80 152 44 148Z" fill="#667eea" opacity=".25"/>`,
+  belt:      `<rect x="44" y="138" width="72" height="10" rx="4" fill="#667eea" opacity=".35"/>`,
+  pants:     `<path d="M44 148 L42 232 L75 232 L80 200 L85 232 L118 232 L116 148Z" fill="#667eea" opacity=".25"/>`,
+  socks:     `<rect x="42" y="230" width="34" height="16" rx="4" fill="#667eea" opacity=".35"/><rect x="84" y="230" width="34" height="16" rx="4" fill="#667eea" opacity=".35"/>`,
+  shoes:     `<ellipse cx="58" cy="248" rx="21" ry="10" fill="#667eea" opacity=".35"/><ellipse cx="102" cy="248" rx="21" ry="10" fill="#667eea" opacity=".35"/>`,
+  bracelets: `<rect x="22" y="131" width="22" height="9" rx="4" fill="#667eea" opacity=".35"/><rect x="116" y="131" width="22" height="9" rx="4" fill="#667eea" opacity=".35"/>`,
+  gloves:    `<ellipse cx="36" cy="152" rx="12" ry="9" fill="#667eea" opacity=".35"/><ellipse cx="124" cy="152" rx="12" ry="9" fill="#667eea" opacity=".35"/>`,
+};
+
+let tailorTool = 'pen';
+let tailorBrushSize = 5;
+let tailorDrawColor = '#e53935';
+let tailorZone = 'shirt';
+let _tailorParts = []; // array of {color, pixels(ImageData), dyed:bool}
+let _activePart = -1; // index of part being colored
+let _tailorPartColor = '#e91e8c';
+let _tailorDrawing = false;
+let _tailorLastX = 0, _tailorLastY = 0;
+// make brushsize accessible globally for slider
+window.tailorBrushSize = 5;
+
+function openTailorRoom(){
+  document.getElementById('tailor-room-modal').classList.add('show');
+  initTailorRoom();
+}
+window.openTailorRoom = openTailorRoom;
+
+function closeTailorRoom(){
+  document.getElementById('tailor-room-modal').classList.remove('show');
+}
+window.closeTailorRoom = closeTailorRoom;
+
+function initTailorRoom(){
+  // Draw color swatches
+  const dcc = document.getElementById('tailor-draw-colors');
+  if(dcc) dcc.innerHTML = TAILOR_DRAW_COLORS.map(c=>{
+    const sel = c === tailorDrawColor;
+    return `<div class="tailor-color-swatch${sel?' selected':''}" style="background:${c}" onclick="setTailorDrawColor('${c}')"></div>`;
+  }).join('');
+
+  // Parts list
+  renderTailorPartsList();
+
+  // Zone select
+  selectTailorZone(tailorZone);
+
+  // Resources
+  updateTailorResources();
+
+  // Canvas setup
+  const canvas = document.getElementById('tailor-canvas');
+  if(!canvas._tailorInit){
+    canvas._tailorInit = true;
+    canvas.addEventListener('pointerdown', tailorPointerDown);
+    canvas.addEventListener('pointermove', tailorPointerMove);
+    canvas.addEventListener('pointerup', tailorPointerUp);
+    canvas.addEventListener('pointerleave', tailorPointerUp);
+    canvas.addEventListener('contextmenu', e=>e.preventDefault());
+  }
+  clearTailorCanvas();
+}
+
+function updateTailorResources(){
+  const el = document.getElementById('tailor-resources');
+  if(!el) return;
+  const user = getUser();
+  el.innerHTML = `🧵 ${user.threads||0} &nbsp; 🔘 ${user.guzuky||0}`;
+}
+
+function renderTailorPartsList(){
+  const container = document.getElementById('tailor-parts-list');
+  if(!container) return;
+  let html = '';
+  for(let i=0;i<5;i++){
+    const p = _tailorParts[i];
+    const dyed = p && p.dyed;
+    const col = p && p.color ? p.color : '';
+    const active = i === _activePart;
+    html += `<button class="tailor-part-btn${active?' active':''}${dyed?' dyed':''}" 
+      onclick="selectTailorPart(${i})"
+      style="${col?'border-color:'+col+';':''}"
+    >${i+1}${dyed?'🎨':'○'}</button>`;
+  }
+  container.innerHTML = html;
+}
+
+function selectTailorPart(idx){
+  _activePart = idx;
+  renderTailorPartsList();
+  const sec = document.getElementById('tailor-part-color-section');
+  document.getElementById('tailor-active-part-lbl').textContent = (idx+1);
+  sec.style.display = 'block';
+  renderTailorPartColors();
+}
+window.selectTailorPart = selectTailorPart;
+
+function renderTailorPartColors(){
+  const c = document.getElementById('tailor-part-colors');
+  if(!c) return;
+  c.innerHTML = TAILOR_DRAW_COLORS.map(col=>{
+    const sel = col === _tailorPartColor;
+    return `<div class="tailor-part-color-swatch${sel?' selected':''}" style="background:${col}" onclick="setPartColor('${col}')"></div>`;
+  }).join('');
+}
+
+function setPartColor(col){
+  _tailorPartColor = col;
+  renderTailorPartColors();
+}
+window.setPartColor = setPartColor;
+
+function applyPartDye(){
+  if(_activePart < 0){ alert('Обери частину (1-5)!'); return; }
+  const user = getUser();
+  if((user.threads||0) < 50 || (user.guzuky||0) < 50){
+    alert('Потрібно 50🧵 і 50🔘!'); return;
+  }
+  // Capture current canvas state as part snapshot
+  const canvas = document.getElementById('tailor-canvas');
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+  if(!_tailorParts[_activePart]){
+    // Create new part — fill selected area with part color
+    alert('Намалюй щось спочатку, потім зафарбуй частину!');
+    return;
+  }
+  const part = _tailorParts[_activePart];
+  if(part.dyed){ alert('Ця частина вже пофарбована! (+1% вже нараховано)'); return; }
+
+  // Charge resources
+  user.threads -= 50;
+  user.guzuky -= 50;
+  saveUser(user);
+  updateUI();
+  updateTailorResources();
+
+  // Mark as dyed and recolor
+  part.dyed = true;
+  const prevColor = part.color;
+  part.color = _tailorPartColor;
+
+  // Recolor pixels of this part on canvas
+  applyPartColorToCanvas(prevColor, _tailorPartColor, imageData, canvas, ctx);
+
+  renderTailorPartsList();
+  drawTailorPartsOverlay();
+}
+window.applyPartDye = applyPartDye;
+
+function applyPartColorToCanvas(fromColor, toColor, imageData, canvas, ctx){
+  // Convert fromColor and toColor hex to rgb
+  const fr = parseHex(fromColor), tr = parseHex(toColor);
+  const data = imageData.data;
+  const tol = 30;
+  for(let i=0; i<data.length; i+=4){
+    const dr = Math.abs(data[i]-fr.r), dg = Math.abs(data[i+1]-fr.g), db = Math.abs(data[i+2]-fr.b);
+    if(data[i+3]>100 && dr<tol && dg<tol && db<tol){
+      data[i]=tr.r; data[i+1]=tr.g; data[i+2]=tr.b;
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
+
+function parseHex(hex){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  return {r:parseInt(hex.slice(0,2),16),g:parseInt(hex.slice(2,4),16),b:parseInt(hex.slice(4,6),16)};
+}
+
+function setTailorDrawColor(c){
+  tailorDrawColor = c;
+  document.querySelectorAll('#tailor-draw-colors .tailor-color-swatch').forEach(el=>{
+    el.classList.toggle('selected', el.style.background === c || el.style.backgroundColor === c);
+  });
+}
+window.setTailorDrawColor = setTailorDrawColor;
+
+function setTailorTool(t){
+  tailorTool = t;
+  ['pen','fill','eraser'].forEach(bt=>{
+    const btn = document.getElementById('tailor-btn-'+bt);
+    if(btn) btn.classList.toggle('active', bt===t);
+  });
+}
+window.setTailorTool = setTailorTool;
+
+function selectTailorZone(zone){
+  tailorZone = zone;
+  document.querySelectorAll('.tailor-zone-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.zone === zone);
+  });
+  // Show zone hint
+  const hintSvg = document.getElementById('tailor-zone-hint');
+  if(hintSvg){
+    hintSvg.innerHTML = ZONE_HINTS[zone] || '';
+    hintSvg.style.opacity = ZONE_HINTS[zone] ? '1' : '0';
+  }
+}
+window.selectTailorZone = selectTailorZone;
+
+function clearTailorCanvas(){
+  const canvas = document.getElementById('tailor-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  _tailorParts = [];
+  _activePart = -1;
+  renderTailorPartsList();
+  drawTailorPartsOverlay();
+  document.getElementById('tailor-part-color-section').style.display = 'none';
+}
+window.clearTailorCanvas = clearTailorCanvas;
+
+// ── Drawing events ─────────────────────────────────────
+function getTailorPos(e){
+  const canvas = document.getElementById('tailor-canvas');
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const client = e.touches ? e.touches[0] : e;
+  return { x: (client.clientX - rect.left) * scaleX, y: (client.clientY - rect.top) * scaleY };
+}
+
+function tailorPointerDown(e){
+  e.preventDefault();
+  _tailorDrawing = true;
+  const p = getTailorPos(e);
+  _tailorLastX = p.x; _tailorLastY = p.y;
+  const canvas = document.getElementById('tailor-canvas');
+  const ctx = canvas.getContext('2d');
+  if(tailorTool === 'fill'){
+    floodFill(ctx, Math.round(p.x), Math.round(p.y), tailorDrawColor, canvas);
+    // Register as new part (if not yet part of existing)
+    registerPartPixel(tailorDrawColor);
+    drawTailorPartsOverlay();
+    return;
+  }
+  tailorDraw(ctx, p.x, p.y, p.x, p.y);
+}
+
+function tailorPointerMove(e){
+  if(!_tailorDrawing) return;
+  e.preventDefault();
+  const p = getTailorPos(e);
+  const canvas = document.getElementById('tailor-canvas');
+  const ctx = canvas.getContext('2d');
+  tailorDraw(ctx, _tailorLastX, _tailorLastY, p.x, p.y);
+  _tailorLastX = p.x; _tailorLastY = p.y;
+}
+
+function tailorPointerUp(e){
+  if(_tailorDrawing){
+    _tailorDrawing = false;
+    if(tailorTool !== 'eraser') registerPartPixel(tailorDrawColor);
+    drawTailorPartsOverlay();
+  }
+}
+
+function tailorDraw(ctx, x0, y0, x1, y1){
+  const bs = window.tailorBrushSize || tailorBrushSize;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  if(tailorTool === 'eraser'){
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+    ctx.lineWidth = bs * 2.5;
+  } else {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = tailorDrawColor;
+    ctx.lineWidth = bs;
+  }
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.lineTo(x1, y1);
+  ctx.stroke();
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// Register a drawn color as a part (up to 5)
+function registerPartPixel(color){
+  // Check if this color already registered
+  const existing = _tailorParts.findIndex(p=>p && p.color===color);
+  if(existing >= 0) return;
+  // Find free slot
+  const free = _tailorParts.findIndex(p=>!p);
+  if(free >= 0 || _tailorParts.length < 5){
+    const idx = free >= 0 ? free : _tailorParts.length;
+    if(idx < 5) _tailorParts[idx] = {color, dyed: false};
+  }
+  renderTailorPartsList();
+}
+
+function drawTailorPartsOverlay(){
+  const oc = document.getElementById('tailor-parts-canvas');
+  if(!oc) return;
+  const ctx = oc.getContext('2d');
+  ctx.clearRect(0,0,oc.width,oc.height);
+  // Draw thin outlines around each part color
+  _tailorParts.forEach((p,i)=>{
+    if(!p) return;
+    if(p.dyed){
+      // Draw a small numbered label
+      ctx.font = 'bold 9px sans-serif';
+      ctx.fillStyle = p.color;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.strokeText(String(i+1)+'🎨', 4 + i*22, 12);
+      ctx.fillText(String(i+1)+'🎨', 4 + i*22, 12);
+    }
+  });
+}
+
+// ── Flood fill ─────────────────────────────────────────
+function floodFill(ctx, startX, startY, fillColor, canvas){
+  const width = canvas.width, height = canvas.height;
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+  const fc = parseHex(fillColor);
+
+  const idx = (startY * width + startX) * 4;
+  const tr = data[idx], tg = data[idx+1], tb = data[idx+2], ta = data[idx+3];
+
+  if(fc.r===tr && fc.g===tg && fc.b===tb && ta===255) return;
+
+  function match(i){ 
+    if(data[i+3]<10) return ta<10; // both transparent
+    return Math.abs(data[i]-tr)<35 && Math.abs(data[i+1]-tg)<35 && Math.abs(data[i+2]-tb)<35 && Math.abs(data[i+3]-ta)<35;
+  }
+
+  const stack = [[startX, startY]];
+  const visited = new Uint8Array(width * height);
+  visited[startY*width+startX] = 1;
+
+  while(stack.length){
+    const [x,y] = stack.pop();
+    const i = (y*width+x)*4;
+    data[i]=fc.r; data[i+1]=fc.g; data[i+2]=fc.b; data[i+3]=255;
+    const neighbors = [[x-1,y],[x+1,y],[x,y-1],[x,y+1]];
+    for(const [nx,ny] of neighbors){
+      if(nx<0||nx>=width||ny<0||ny>=height) continue;
+      const ni = ny*width+nx;
+      if(!visited[ni] && match(ni*4)){
+        visited[ni]=1;
+        stack.push([nx,ny]);
+      }
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
+
+// ── Save item ──────────────────────────────────────────
+function saveTailorItem(){
+  const canvas = document.getElementById('tailor-canvas');
+  const ctx = canvas.getContext('2d');
+  // Check if canvas has any pixels
+  const imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  const hasContent = imageData.data.some((v,i)=>i%4===3 && v>10);
+  if(!hasContent){ alert('Спочатку намалюй щось!'); return; }
+
+  const user = getUser();
+  if((user.threads||0) < 100 || (user.guzuky||0) < 100){
+    alert('Потрібно 100🧵 і 100🔘!'); return;
+  }
+
+  const name = (document.getElementById('tailor-item-name').value.trim()) || 'Мій одяг';
+  const zoneName = {hat:'Шапка',glasses:'Окуляри',scarf:'Шарф',shirt:'Сорочка',belt:'Пасок',pants:'Штани',socks:'Шкарпетки',shoes:'Взуття',bracelets:'Браслети',gloves:'Рукавиці'}[tailorZone];
+
+  // Build preview
+  const prev = document.getElementById('tailor-preview-canvas');
+  const pctx = prev.getContext('2d');
+  pctx.clearRect(0,0,prev.width,prev.height);
+  pctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, prev.width, prev.height);
+
+  document.getElementById('tailor-save-info').innerHTML = `<b>${name}</b><br>Зона: ${zoneName} (${tailorZone})<br>Вартість: −100🧵 −100🔘 +1% урон`;
+
+  const dyedCount = _tailorParts.filter(p=>p&&p.dyed).length;
+  const warn = document.getElementById('tailor-save-warning');
+  if(dyedCount > 0){
+    warn.textContent = `Зафарбовано частин: ${dyedCount} (кожна +1% урон)`;
+    warn.style.display='';
+  } else {
+    warn.style.display='none';
+  }
+
+  document.getElementById('tailor-save-modal').style.display = 'flex';
+}
+window.saveTailorItem = saveTailorItem;
+
+function confirmSaveTailorItem(){
+  const user = getUser();
+  if((user.threads||0) < 100 || (user.guzuky||0) < 100){
+    alert('Потрібно 100🧵 і 100🔘!'); return;
+  }
+  user.threads -= 100;
+  user.guzuky -= 100;
+
+  // Generate unique id
+  const id = 'custom_' + Date.now();
+  const name = (document.getElementById('tailor-item-name').value.trim()) || 'Мій одяг';
+
+  // Capture canvas as dataURL for SVG embed
+  const canvas = document.getElementById('tailor-canvas');
+  const dataUrl = canvas.toDataURL('image/png');
+
+  // Build SVG that embeds the drawn image
+  const svgImg = `<image href="${dataUrl}" x="0" y="-36" width="160" height="290" preserveAspectRatio="xMidYMid meet" opacity=".95"/>`;
+
+  // Count bonus damage
+  const dyedCount = _tailorParts.filter(p=>p&&p.dyed).length;
+  const bonusDmg = 1 + dyedCount; // base +1% from creation + 1% per dyed part
+
+  // Add to CLOTHING_ITEMS (runtime only — local to this session)
+  const newItem = {
+    id, zone: tailorZone, emoji: '✨', name, gender: 'both',
+    svg: svgImg,
+    customDrawing: dataUrl,
+    customBonusDmg: bonusDmg,
+    isCustom: true
+  };
+  CLOTHING_ITEMS.push(newItem);
+
+  // Save to user data
+  if(!user.customClothingItems) user.customClothingItems = {};
+  user.customClothingItems[id] = {
+    id, zone: tailorZone, emoji: '✨', name, gender: 'both',
+    customDrawing: dataUrl,
+    customBonusDmg: bonusDmg,
+    isCustom: true,
+    createdAt: Date.now()
+  };
+  // Init mods
+  if(!user.clothingMods) user.clothingMods = {};
+  user.clothingMods[id] = { isCustom: true, bonusDmg };
+
+  saveUser(user);
+  updateUI();
+
+  document.getElementById('tailor-save-modal').style.display = 'none';
+  closeTailorRoom();
+  renderInventory();
+  updateTailorResources();
+
+  // Show success
+  setTimeout(()=>alert(`✅ Предмет «${name}» додано в інвентар!\n+${bonusDmg}% урон (коли надітий)`), 100);
+}
+window.confirmSaveTailorItem = confirmSaveTailorItem;
+
+// ── Load custom items from user data on init ───────────
+function loadCustomClothingItems(){
+  const user = getUser();
+  const customs = user.customClothingItems || {};
+  Object.values(customs).forEach(item=>{
+    if(CLOTHING_ITEMS.find(i=>i.id===item.id)) return; // already loaded
+    const svgImg = `<image href="${item.customDrawing}" x="0" y="-36" width="160" height="290" preserveAspectRatio="xMidYMid meet" opacity=".95"/>`;
+    CLOTHING_ITEMS.push({
+      id: item.id, zone: item.zone, emoji: '✨', name: item.name,
+      gender: 'both', svg: svgImg,
+      customDrawing: item.customDrawing,
+      customBonusDmg: item.customBonusDmg || 1,
+      isCustom: true
+    });
+  });
+}
+
+// Patch getUserBossDmgMod to include custom clothing bonus
+const _origGetUserBossDmgMod = typeof getUserBossDmgMod !== 'undefined' ? getUserBossDmgMod : null;
+window._tailorGetUserBossDmgMod = function(){
+  const user = getUser();
+  const clothingMods = user.clothingMods || {};
+  let extraPct = 0;
+  // Sum up custom item bonuses when equipped
+  const equipped = user.equipped || {};
+  Object.values(equipped).forEach(itemId=>{
+    const item = CLOTHING_ITEMS.find(i=>i.id===itemId);
+    if(item && item.isCustom && item.customBonusDmg){
+      extraPct += item.customBonusDmg;
+    }
+  });
+  return extraPct / 100;
+};
+
+// Hook into initDressingRoom
+const _origInit = window.initDressingRoom || (()=>{});
+window.initDressingRoom = function(){
+  loadCustomClothingItems();
+  _origInit();
+};
+
+})();
+
+
 
 // ── Init on page load if already logged in ──────────────
 document.addEventListener('DOMContentLoaded', () => {
