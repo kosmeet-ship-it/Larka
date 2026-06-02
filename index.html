@@ -423,7 +423,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
           </clipPath>
         </defs>
         <image id="char-avatar-img" x="58" y="21" width="44" height="46" clip-path="url(#face-clip)" preserveAspectRatio="xMidYMid slice" style="display:none"/>
-        <text id="char-avatar-emoji" x="80" y="56" text-anchor="middle" font-size="32" style="display:none" clip-path="url(#face-clip)">😊</text>
+        <text id="char-avatar-emoji" x="80" y="56" text-anchor="middle" font-size="32" clip-path="url(#face-clip)">😊</text>
         <!-- Hair (changes with gender) -->
         <g id="char-hair-girl">
           <ellipse cx="80" cy="22" rx="28" ry="14" fill="#7B3F00"/>
@@ -433,14 +433,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
         <g id="char-hair-boy" style="display:none">
           <ellipse cx="80" cy="22" rx="27" ry="10" fill="#5D3A1A"/>
         </g>
-        <!-- Eyes -->
-        <circle cx="68" cy="44" r="4" fill="white"/>
-        <circle cx="92" cy="44" r="4" fill="white"/>
-        <circle cx="69" cy="45" r="2.2" fill="#333"/>
-        <circle cx="93" cy="45" r="2.2" fill="#333"/>
-        <!-- Nose & mouth -->
-        <ellipse cx="80" cy="56" rx="3" ry="2" fill="#d4a076"/>
-        <path d="M73 63 Q80 68 87 63" fill="none" stroke="#c97b55" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Eyes removed — face = avatar only -->
+        <!-- Nose & mouth removed — face = avatar only -->
         <!-- Neck -->
         <rect x="73" y="70" width="14" height="12" rx="3" fill="#FFD5A8"/>
         <!-- BODY / Torso zone (shirt/top) -->
@@ -3146,9 +3140,9 @@ user.english[englishState.theme][en].correct++;
 user.english[englishState.theme][en].lastSeen=Date.now();
 // SRS: after 3 correct in this game session — schedule nextReview
 if((englishState.progress[en])>=3){
-  const srsDelays=[0,1,3,5,10,30,60,120];
+  const srsDelays=[1,3,5,10,30,60,120,360];
   const totalCorrect=user.english[englishState.theme][en].correct;
-  const delayIdx=Math.min(totalCorrect,srsDelays.length-1);
+  const delayIdx=Math.min(Math.max(totalCorrect-1,0),srsDelays.length-1);
   user.english[englishState.theme][en].nextReview=Date.now()+srsDelays[delayIdx]*24*3600000;
 }
 saveUser(user);
@@ -3194,14 +3188,16 @@ words.innerHTML=`<div style="color:${isCorrect?'#00ff88':'#ff4444'}">${allV}</di
 
 // Speak: ukrainian -> english
 speak(word.uk,'uk-UA');
-setTimeout(()=>speak(word.en,'en-US'),1500);
+if(!isCorrect) setTimeout(()=>speak(word.en,'en-US'),1500);
 
+// Correct: 1s then immediately next word; Wrong: 3s
+const delay = isCorrect ? 1000 : 3000;
 setTimeout(()=>{
 fb.classList.remove('show');
 if(englishState.hearts>0){
-setTimeout(nextEnglishWord,500);
+setTimeout(nextEnglishWord, isCorrect ? 0 : 300);
 }
-},3000);
+}, delay);
 }
 
 function speak(text,lang){
@@ -3224,8 +3220,8 @@ function englishVictory(){
 const bonus=10*20*20;
 const total=englishState.stars+bonus;
 
-// Apply SRS nextReview only on VICTORY — delays: 1,3,5,10,30,60,120 days
-const srsDelays=[0,1,3,5,10,30,60,120]; // index = total correct answers
+// Apply SRS nextReview only on VICTORY — delays: 1,3,5,10,30,60,120,360 days
+const srsDelays=[1,3,5,10,30,60,120,360]; // index = total correct answers - 1
 const user=getUser();
 if(!user.english[englishState.theme]) user.english[englishState.theme]={};
 
@@ -3234,7 +3230,7 @@ Object.entries(englishState.progress||{}).forEach(([en,gameProg])=>{
 if(gameProg>=3){
 if(!user.english[englishState.theme][en]) user.english[englishState.theme][en]={correct:0,lastSeen:0};
 const totalCorrect=user.english[englishState.theme][en].correct||0;
-const delayIdx=Math.min(totalCorrect,srsDelays.length-1);
+const delayIdx=Math.min(Math.max(totalCorrect-1,0),srsDelays.length-1);
 const delayDays=srsDelays[delayIdx];
 user.english[englishState.theme][en].nextReview=Date.now()+delayDays*24*3600000;
 }
@@ -3410,6 +3406,24 @@ if(t)b.dataset.theme=t;
 
 const html=filtered.map((w,i)=>{
 const variants=(w.ukVariants&&w.ukVariants.length>1)?w.ukVariants.join(' / '):w.uk;
+// SRS status
+const progData=user.english[w.theme]&&user.english[w.theme][w.en]?user.english[w.theme][w.en]:null;
+const now=Date.now();
+let srsStatusHtml='';
+if(progData&&progData.nextReview&&progData.nextReview>now){
+  // Word is locked — show days remaining
+  const daysLeft=Math.ceil((progData.nextReview-now)/(24*3600000));
+  srsStatusHtml=`<div style="font-size:.78rem;color:#e67e22;font-weight:600;margin-top:3px">⏳ Повернеться через ${daysLeft} ${daysLeft===1?'день':daysLeft<5?'дні':'днів'}</div>`;
+} else {
+  // Available — show correct answers remaining (need 3 per session)
+  const gameCorrect=Math.min(w.progress,3);
+  const left=3-gameCorrect;
+  if(left>0){
+    srsStatusHtml=`<div style="font-size:.78rem;color:#27ae60;font-weight:600;margin-top:3px">✅ Залишилось відповідей: ${left}</div>`;
+  } else {
+    srsStatusHtml=`<div style="font-size:.78rem;color:#764ba2;font-weight:600;margin-top:3px">🎯 Готове до гри</div>`;
+  }
+}
 return `
 <div class="dict-word">
 <div style="flex:1">
@@ -3418,6 +3432,7 @@ return `
 <div class="dict-progress">
 ${[0,1,2].map(j=>`<div class="dict-dot ${w.progress>j?'done':''}"></div>`).join('')}
 </div>
+${srsStatusHtml}
 </div>
 <div style="display:flex;gap:8px">
 ${w.custom?`
