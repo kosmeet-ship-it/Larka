@@ -5380,6 +5380,11 @@ window.bossEndGame = function(victory){
           <input id="tailor-item-name" type="text" maxlength="20" placeholder="Мій одяг..." style="width:100%;padding:7px 10px;border-radius:8px;border:1.5px solid #ff8f00;font-size:.88rem;outline:none;background:#fffde7">
         </div>
 
+        <!-- Symbol info -->
+        <div style="background:#fff3e0;border-radius:8px;padding:6px 8px;font-size:.75rem;color:#bf360c">
+          <b>✨ Символи</b> додаються після збереження предмету — в інвентарі обери предмет і натисни символ у панелі «Кастомізація». Кожен: −50🧵 −50🔘 +1% урон (до 5 шт.)
+        </div>
+
         <!-- Actions -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
           <button class="tailor-action-btn" onclick="saveTailorItem()" style="background:linear-gradient(135deg,#e65100,#f57c00);flex:1">💾 В інвентар −100🧵 −100🔘</button>
@@ -6557,9 +6562,10 @@ function confirmSaveTailorItem(){
   const dataUrl = canvas.toDataURL('image/png');
 
   // Build SVG that embeds the drawn image
-  const svgImg = `<image href="${dataUrl}" x="0" y="-36" width="160" height="290" preserveAspectRatio="xMidYMid meet" opacity=".95"/>`;
+  // Note: character SVG has translate(0,36) group, so custom clothing must use y="0" to align correctly
+  const svgImg = `<image href="${dataUrl}" x="0" y="0" width="160" height="290" preserveAspectRatio="xMidYMid meet" opacity=".95"/>`;
 
-  // Count bonus damage
+  // Count bonus damage from dyed parts (each dyed part costs -50🧵 -50🔘 and gives +1%)
   const dyedCount = _tailorParts.filter(p=>p&&p.dyed).length;
   const bonusDmg = 1 + dyedCount; // base +1% from creation + 1% per dyed part
 
@@ -6582,9 +6588,16 @@ function confirmSaveTailorItem(){
     isCustom: true,
     createdAt: Date.now()
   };
-  // Init mods
+  // Init mods — include dye info so inventory shows mod indicators
+  const dyedParts = _tailorParts.filter(p=>p&&p.dyed);
+  const dyeModsEntry = {};
+  if(dyedParts.length > 0){
+    dyeModsEntry.dyed = true;
+    dyeModsEntry.dyeColor = dyedParts[0].color || '#e53935';
+    dyeModsEntry.dyedCount = dyedParts.length;
+  }
   if(!user.clothingMods) user.clothingMods = {};
-  user.clothingMods[id] = { isCustom: true, bonusDmg };
+  user.clothingMods[id] = { isCustom: true, bonusDmg, ...dyeModsEntry };
 
   saveUser(user);
   updateUI();
@@ -6594,8 +6607,9 @@ function confirmSaveTailorItem(){
   renderInventory();
   updateTailorResources();
 
-  // Show success
-  setTimeout(()=>alert(`✅ Предмет «${name}» додано в інвентар!\n+${bonusDmg}% урон (коли надітий)`), 100);
+  // Show success — tell user about symbol customization
+  const dyeNote2 = dyedParts.length > 0 ? `\nФарбувань: ${dyedParts.length} (+${dyedParts.length}%)` : '';
+  setTimeout(()=>alert(`✅ Предмет «${name}» додано в інвентар!\n+${bonusDmg}% урон (коли надітий)${dyeNote2}\n\nДля символів: одягни предмет → натисни на нього в інвентарі → «Кастомізація»`), 100);
 }
 window.confirmSaveTailorItem = confirmSaveTailorItem;
 
@@ -6605,7 +6619,7 @@ function loadCustomClothingItems(){
   const customs = user.customClothingItems || {};
   Object.values(customs).forEach(item=>{
     if(CLOTHING_ITEMS.find(i=>i.id===item.id)) return; // already loaded
-    const svgImg = `<image href="${item.customDrawing}" x="0" y="-36" width="160" height="290" preserveAspectRatio="xMidYMid meet" opacity=".95"/>`;
+    const svgImg = `<image href="${item.customDrawing}" x="0" y="0" width="160" height="290" preserveAspectRatio="xMidYMid meet" opacity=".95"/>`;
     CLOTHING_ITEMS.push({
       id: item.id, zone: item.zone, emoji: '✨', name: item.name,
       gender: 'both', svg: svgImg,
