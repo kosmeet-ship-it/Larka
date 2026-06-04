@@ -718,7 +718,10 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div id="dictionary">
 <div class="header">
 <h2 style="color:#764ba2;margin:0">📚 Словник</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn danger" onclick="resetAllDictProgress()" style="font-size:.85rem;padding:8px 14px">🗑 Скинути прогрес</button>
 <button class="btn" onclick="closeDictionary()">← Назад</button>
+</div>
 </div>
 <div class="theme-select" id="dict-theme-filter">
 <button class="theme-btn active" onclick="filterDictionary('all',this)">Всі</button>
@@ -761,7 +764,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="math-level-btn" onclick="startMathLevel('C')"><span>🅲 Рівень C — 0–9 та 10–19</span><span class="math-level-badge">+50⭐</span></button>
 <button class="math-level-btn" onclick="startMathLevel('D')"><span>🅳 Рівень D — 10–99 та 10–99</span><span class="math-level-badge">+70⭐</span></button>
 <button class="math-level-btn" onclick="startMathLevel('E')"><span>🅴 Рівень E — 10–19 та 100–199</span><span class="math-level-badge">+100⭐</span></button>
-<button class="math-level-btn" onclick="startMathLevel('F')"><span>🅵 Рівень F — 10–99 та 10–99</span><span class="math-level-badge">+200⭐</span></button>
+<button class="math-level-btn" onclick="startMathLevel('F')"><span>🅵 Рівень F — три числа 10–99</span><span class="math-level-badge">+200⭐</span></button>
 <div style="border-top:2px solid rgba(255,255,255,.2);margin:10px 0"></div>
 <button class="math-level-btn" style="background:linear-gradient(135deg,rgba(180,0,0,.35),rgba(80,0,0,.55));border-color:#ff4444" onclick="showBossSelect()">
   <span>💀 BOSS — всі рівні A–F</span>
@@ -809,10 +812,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       <div id="boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#ff5252,#b71c1c);border-radius:5px;transition:width .4s;width:50%"></div>
     </div>
   </div>
-  <!-- Math Boss Visual HUD (players with damage) — same as English boss -->
-  <div id="math-boss-visual-hud" style="flex-shrink:0;position:relative;z-index:6;padding:4px 3% 6px;background:rgba(0,0,0,.88);border-bottom:2px solid #ff4444;display:none">
-    <div class="mbv-players-row" id="mbv-players-row"></div>
-  </div>
+  <!-- Math Boss Visual HUD placeholder (rendered by renderBossVisualHud into math-boss-visual-hud-outer) -->
   <!-- Question — компактний -->
   <div id="boss-question" style="flex-shrink:0;text-align:center;background:rgba(0,0,0,.75);color:#fff;font-size:2.2rem;font-weight:700;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.1);letter-spacing:1px">? = ?</div>
   <!-- Input + Button row — разом, компактно -->
@@ -917,16 +917,16 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 </div>
 
 <!-- MATH BOSS VISUAL HUD (boss avatar + players with cumulative damage) -->
-<div id="math-boss-visual-hud">
+<div id="math-boss-visual-hud-outer">
   <div class="mbv-boss-row">
-    <div class="mbv-boss-avatar" id="mbv-boss-avatar-icon">💀</div>
+    <div class="mbv-boss-avatar" id="mbv-boss-avatar-icon-outer">💀</div>
     <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">
       <div style="color:#ff4444;font-size:.7rem;font-weight:700;margin-bottom:1px">💀 BOSS HP</div>
-      <div id="mbv-boss-hp-display" style="color:#fff;font-size:1rem;font-weight:900;text-shadow:0 0 8px #ff4444">—</div>
+      <div id="mbv-boss-hp-display-outer" style="color:#fff;font-size:1rem;font-weight:900;text-shadow:0 0 8px #ff4444">—</div>
     </div>
-    <div class="mbv-boss-hp-change" id="mbv-boss-hp-change"> </div>
+    <div class="mbv-boss-hp-change" id="mbv-boss-hp-change-outer"> </div>
   </div>
-  <div class="mbv-players-row" id="mbv-players-row"></div>
+  <div class="mbv-players-row" id="mbv-players-row-outer"></div>
 </div>
 
 <!-- SYNC MODAL -->
@@ -984,15 +984,15 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
         <div class="mp-code-val" id="en-boss-room-code-display" style="font-size:2.4rem;font-weight:900;color:#ffd700;letter-spacing:6px">----</div>
         <button onclick="enBossCopyCode()" style="margin-top:8px;padding:6px 18px;border:none;border-radius:8px;background:#ffd700;color:#000;font-weight:700;cursor:pointer;font-size:.9rem">📋 Скопіювати</button>
       </div>
-      <div style="color:#aaa;font-size:.85rem;margin-bottom:6px">Тема:</div>
-      <select id="en-boss-theme-select" style="width:100%;padding:9px;border-radius:9px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;margin-bottom:10px">
-        <option value="verbs">🏃 Дієслова</option>
-        <option value="home">🏠 Дім</option>
-        <option value="nature">🌳 Природа</option>
-        <option value="pronouns">👤 Займенники</option>
-        <option value="interrogative">❓ Питальні</option>
-        <option value="food">🍕 Їжа</option>
-      </select>
+      <div style="color:#aaa;font-size:.85rem;margin-bottom:6px">Теми (можна кілька):</div>
+      <div id="en-boss-mp-theme-checkboxes" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid #667eea;border-radius:9px;padding:6px 10px;cursor:pointer;color:#fff;font-size:.88rem;font-weight:600"><input type="checkbox" value="verbs" style="width:15px;height:15px"> 🏃 Дієслова</label>
+        <label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid #667eea;border-radius:9px;padding:6px 10px;cursor:pointer;color:#fff;font-size:.88rem;font-weight:600"><input type="checkbox" value="home" style="width:15px;height:15px"> 🏠 Дім</label>
+        <label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid #667eea;border-radius:9px;padding:6px 10px;cursor:pointer;color:#fff;font-size:.88rem;font-weight:600"><input type="checkbox" value="nature" style="width:15px;height:15px"> 🌳 Природа</label>
+        <label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid #667eea;border-radius:9px;padding:6px 10px;cursor:pointer;color:#fff;font-size:.88rem;font-weight:600"><input type="checkbox" value="pronouns" style="width:15px;height:15px"> 👤 Займенники</label>
+        <label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid #667eea;border-radius:9px;padding:6px 10px;cursor:pointer;color:#fff;font-size:.88rem;font-weight:600"><input type="checkbox" value="interrogative" style="width:15px;height:15px"> ❓ Питальні</label>
+        <label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid #667eea;border-radius:9px;padding:6px 10px;cursor:pointer;color:#fff;font-size:.88rem;font-weight:600"><input type="checkbox" value="food" style="width:15px;height:15px"> 🍕 Їжа</label>
+      </div>
       <div style="color:#aaa;font-size:.85rem;margin-bottom:6px">Рівень БоСС:</div>
       <select id="en-boss-level-select" style="width:100%;padding:9px;border-radius:9px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;margin-bottom:12px">
         <option value="1">💀 Рівень 1 — +50/10с</option>
@@ -1208,9 +1208,19 @@ function enBossListenRoom(){
     enBossRenderPlayerList(room.players||{});
     if(!enBossMpState.isHost && room.level) enBossMpState.level = room.level;
     if(!enBossMpState.isHost && room.theme) enBossMpState.theme = room.theme;
+    if(!enBossMpState.isHost && room.themes) enBossMpState.themes = room.themes.split(',').filter(Boolean);
     if(room.status==='playing' && !enBossState){
       closeEnBossModal();
-      enBossStartLocal(room.level||1, room.theme||'verbs');
+      const mpThemes = (room.themes||'').split(',').filter(Boolean);
+      if(mpThemes.length > 1){
+        const user = getUser();
+        let allWords = [];
+        mpThemes.forEach(t=>{ (EN_WORDS[t]||[]).concat((user.customWords||[]).filter(w=>w.theme===t)).forEach(w=>allWords.push({...w,theme:t})); });
+        if(allWords.length < 10){ alert('Недостатньо слів!'); return; }
+        enBossStartLocalMulti(room.level||1, mpThemes, allWords);
+      } else {
+        enBossStartLocal(room.level||1, room.theme||'verbs');
+      }
     }
     if(room.status==='playing' && enBossState){
       enBossMpState.bossHp = room.bossHp;
@@ -1279,12 +1289,16 @@ function enBossUpdateMpHud(players){
 async function enBossHostStart(){
   if(!enBossMpState||!enBossMpState.isHost) return;
   const lvl = parseInt(document.getElementById('en-boss-level-select').value)||1;
-  const theme = document.getElementById('en-boss-theme-select').value||'verbs';
+  const cbs = document.querySelectorAll('#en-boss-mp-theme-checkboxes input[type=checkbox]:checked');
+  const themes = Array.from(cbs).map(c=>c.value);
+  if(themes.length===0){ alert('Обери хоча б одну тему!'); return; }
+  const theme = themes[0]; // primary for compat
   enBossMpState.level = lvl;
   enBossMpState.theme = theme;
+  enBossMpState.themes = themes;
   try {
     await mpUpdate(`en_rooms/${enBossMpState.roomCode}`, {
-      level: lvl, theme, status: 'playing', bossHp: EN_BOSS_START_HP
+      level: lvl, theme, themes: themes.join(','), status: 'playing', bossHp: EN_BOSS_START_HP
     });
   } catch(e){ alert('❌ '+e.message); }
 }
@@ -1728,7 +1742,6 @@ async function enBossEndGame(victory){
     if(_enVisHudSolo) _enVisHudSolo.classList.remove('show');
     window._lastEnMpPlayers = null;
     if(victory){
-      const enLvlSolo = 1; // solo always level from enBossState before null (capture before)
       const _capturedEnLvl = window._enBossLastLevel||1;
       const earnedEnThreadsSolo=_capturedEnLvl*1, earnedEnGuzukySolo=_capturedEnLvl*10;
       const user=getUser();
@@ -1751,17 +1764,14 @@ async function enBossEndGame(victory){
 }
 
 function showEnBossDefeat(){
-  const fb2=document.getElementById('math-feedback');
+  const fb2=document.getElementById('en-boss-feedback');
   if(fb2){
-    document.getElementById('mfb-title').textContent='💀 ПОРАЗКА!';
-    document.getElementById('mfb-detail').textContent='БоСС English виживає… Спробуйте ще!';
-    fb2.className='math-feedback show wrong';
-    document.getElementById('math-game').classList.add('is-open');
-    document.getElementById('main').style.display='none';
+    document.getElementById('en-boss-fb-title').textContent='💀 ПОРАЗКА!';
+    document.getElementById('en-boss-fb-words').textContent='БоСС English виживає… Спробуйте ще!';
+    document.getElementById('en-boss-fb-dmg').textContent='';
+    fb2.className='en-boss-feedback show wrong';
     setTimeout(()=>{
-      fb2.className='math-feedback';
-      document.getElementById('math-game').classList.remove('is-open');
-      document.getElementById('main').style.display='block';
+      fb2.className='en-boss-feedback';
     },2500);
   }
 }
@@ -3434,7 +3444,24 @@ renderDictionary('all');
 
 function closeDictionary(){
 document.getElementById('dictionary').style.display='none';
-document.getElementById('main').style.display='block';
+}
+
+function resetAllDictProgress(){
+  if(!confirm('Скинути весь прогрес правильних відповідей у словнику? Це видалить усю історію вивчення слів.')) return;
+  const user = getUser();
+  // Reset correct count for all themes and words
+  for(const theme in user.english){
+    for(const word in user.english[theme]){
+      user.english[theme][word].correct = 0;
+      user.english[theme][word].srsStep = 0;
+      user.english[theme][word].nextReview = 0;
+      user.english[theme][word].lastSeen = 0;
+    }
+  }
+  saveUser(user);
+  const filterTheme = document.querySelector('.theme-btn.active')?.dataset?.theme || 'all';
+  renderDictionary(filterTheme);
+  alert('✅ Прогрес скинуто!');
 }
 
 function filterDictionary(theme, btn){
@@ -5286,6 +5313,13 @@ window.bossEndGame = function(victory){
         <!-- Part boundary overlay -->
         <canvas id="tailor-parts-canvas" width="160" height="290" style="position:absolute;top:0;left:0;pointer-events:none;opacity:.55"></canvas>
       </div>
+      <!-- Zoom controls -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px">
+        <button onclick="tailorZoomOut()" style="width:30px;height:30px;border-radius:8px;border:1.5px solid #ff8f00;background:#fff3e0;color:#e65100;font-size:1.1rem;font-weight:900;cursor:pointer;line-height:1">−</button>
+        <span id="tailor-zoom-lbl" style="font-size:.8rem;color:#e65100;font-weight:700;min-width:36px;text-align:center">100%</span>
+        <button onclick="tailorZoomIn()" style="width:30px;height:30px;border-radius:8px;border:1.5px solid #ff8f00;background:#fff3e0;color:#e65100;font-size:1.1rem;font-weight:900;cursor:pointer;line-height:1">+</button>
+        <button onclick="tailorZoomReset()" style="padding:4px 8px;border-radius:8px;border:1.5px solid #ff8f00;background:#fff3e0;color:#e65100;font-size:.75rem;font-weight:700;cursor:pointer">↺</button>
+      </div>
 
       <!-- Tools panel -->
       <div class="tailor-tools">
@@ -6105,6 +6139,37 @@ let _tailorDrawing = false;
 let _tailorLastX = 0, _tailorLastY = 0;
 // make brushsize accessible globally for slider
 window.tailorBrushSize = 5;
+// zoom state
+let _tailorZoom = 1.0;
+const TAILOR_ZOOM_STEPS = [0.5, 0.75, 1.0, 1.5, 2.0, 3.0];
+
+function tailorZoomIn(){
+  const idx = TAILOR_ZOOM_STEPS.indexOf(_tailorZoom);
+  const next = idx < TAILOR_ZOOM_STEPS.length-1 ? TAILOR_ZOOM_STEPS[idx+1] : _tailorZoom;
+  _setTailorZoom(next);
+}
+function tailorZoomOut(){
+  const idx = TAILOR_ZOOM_STEPS.indexOf(_tailorZoom);
+  const next = idx > 0 ? TAILOR_ZOOM_STEPS[idx-1] : _tailorZoom;
+  _setTailorZoom(next);
+}
+function tailorZoomReset(){ _setTailorZoom(1.0); }
+function _setTailorZoom(z){
+  _tailorZoom = z;
+  const canvas = document.getElementById('tailor-canvas');
+  const partsCanvas = document.getElementById('tailor-parts-canvas');
+  const silSvgs = document.querySelectorAll('.tailor-silhouette, #tailor-zone-hint');
+  const px = Math.round(160 * z) + 'px';
+  const py = Math.round(290 * z) + 'px';
+  if(canvas){ canvas.style.width=px; canvas.style.height=py; }
+  if(partsCanvas){ partsCanvas.style.width=px; partsCanvas.style.height=py; }
+  silSvgs.forEach(s=>{ s.setAttribute('width',Math.round(160*z)); s.setAttribute('height',Math.round(290*z)); });
+  const lbl = document.getElementById('tailor-zoom-lbl');
+  if(lbl) lbl.textContent = Math.round(z*100)+'%';
+}
+window.tailorZoomIn = tailorZoomIn;
+window.tailorZoomOut = tailorZoomOut;
+window.tailorZoomReset = tailorZoomReset;
 
 function openTailorRoom(){
   document.getElementById('tailor-room-modal').classList.add('show');
@@ -6122,7 +6187,7 @@ function initTailorRoom(){
   const dcc = document.getElementById('tailor-draw-colors');
   if(dcc) dcc.innerHTML = TAILOR_DRAW_COLORS.map(c=>{
     const sel = c === tailorDrawColor;
-    return `<div class="tailor-color-swatch${sel?' selected':''}" style="background:${c}" onclick="setTailorDrawColor('${c}')"></div>`;
+    return `<div class="tailor-color-swatch${sel?' selected':''}" data-color="${c}" style="background:${c}" onclick="setTailorDrawColor('${c}')"></div>`;
   }).join('');
 
   // Parts list
@@ -6186,13 +6251,15 @@ function renderTailorPartColors(){
   if(!c) return;
   c.innerHTML = TAILOR_DRAW_COLORS.map(col=>{
     const sel = col === _tailorPartColor;
-    return `<div class="tailor-part-color-swatch${sel?' selected':''}" style="background:${col}" onclick="setPartColor('${col}')"></div>`;
+    return `<div class="tailor-part-color-swatch${sel?' selected':''}" data-color="${col}" style="background:${col}" onclick="setPartColor('${col}')"></div>`;
   }).join('');
 }
 
 function setPartColor(col){
   _tailorPartColor = col;
-  renderTailorPartColors();
+  document.querySelectorAll('#tailor-part-colors .tailor-part-color-swatch').forEach(el=>{
+    el.classList.toggle('selected', el.dataset.color === col);
+  });
 }
 window.setPartColor = setPartColor;
 
@@ -6258,7 +6325,7 @@ function parseHex(hex){
 function setTailorDrawColor(c){
   tailorDrawColor = c;
   document.querySelectorAll('#tailor-draw-colors .tailor-color-swatch').forEach(el=>{
-    el.classList.toggle('selected', el.style.background === c || el.style.backgroundColor === c);
+    el.classList.toggle('selected', el.dataset.color === c);
   });
 }
 window.setTailorDrawColor = setTailorDrawColor;
