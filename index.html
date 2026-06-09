@@ -697,6 +697,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.13);border:2px solid #667eea;border-radius:12px;padding:10px 16px;cursor:pointer;color:#fff;font-size:1rem;font-weight:600;user-select:none"><input type="checkbox" value="pronouns" onchange="toggleEnTheme(this)" style="width:18px;height:18px;cursor:pointer"> 👤 Займенники</label>
 <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.13);border:2px solid #667eea;border-radius:12px;padding:10px 16px;cursor:pointer;color:#fff;font-size:1rem;font-weight:600;user-select:none"><input type="checkbox" value="interrogative" onchange="toggleEnTheme(this)" style="width:18px;height:18px;cursor:pointer"> ❓ Питальні</label>
 <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.13);border:2px solid #667eea;border-radius:12px;padding:10px 16px;cursor:pointer;color:#fff;font-size:1rem;font-weight:600;user-select:none"><input type="checkbox" value="food" onchange="toggleEnTheme(this)" style="width:18px;height:18px;cursor:pointer"> 🍕 Їжа</label>
+<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.13);border:2px solid #667eea;border-radius:12px;padding:10px 16px;cursor:pointer;color:#fff;font-size:1rem;font-weight:600;user-select:none"><input type="checkbox" value="games" onchange="toggleEnTheme(this)" style="width:18px;height:18px;cursor:pointer"> 🎮 Ігри</label>
+<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.13);border:2px solid #667eea;border-radius:12px;padding:10px 16px;cursor:pointer;color:#fff;font-size:1rem;font-weight:600;user-select:none"><input type="checkbox" value="body" onchange="toggleEnTheme(this)" style="width:18px;height:18px;cursor:pointer"> 🫀 Тіло</label>
 </div>
 <button class="btn" style="padding:14px 30px;font-size:1.1rem;margin-bottom:14px;width:100%" onclick="startEnglishThemeMulti()">▶️ Грати (звичайний)</button>
 <div style="border-top:2px solid rgba(255,255,255,.2);margin:10px 0"></div>
@@ -744,6 +746,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="theme-btn" onclick="filterDictionary('pronouns',this)">Займенники</button>
 <button class="theme-btn" onclick="filterDictionary('interrogative',this)">Питальні</button>
 <button class="theme-btn" onclick="filterDictionary('food',this)">🍕 Їжа</button>
+<button class="theme-btn" onclick="filterDictionary('games',this)">🎮 Ігри</button>
+<button class="theme-btn" onclick="filterDictionary('body',this)">🫀 Тіло</button>
 </div>
 <div style="margin:20px 0">
 <input type="text" placeholder="English" id="dict-en" style="padding:10px;border-radius:8px;border:2px solid #ddd;margin-right:10px;width:200px">
@@ -755,6 +759,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <option value="pronouns">Займенники</option>
 <option value="interrogative">Питальні</option>
 <option value="food">🍕 Їжа</option>
+<option value="games">🎮 Ігри</option>
+<option value="body">🫀 Тіло</option>
 </select>
 <button class="btn success" onclick="addWord()">➕ Додати</button>
 </div>
@@ -1005,6 +1011,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
         <label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid #667eea;border-radius:9px;padding:6px 10px;cursor:pointer;color:#fff;font-size:.88rem;font-weight:600"><input type="checkbox" value="pronouns" style="width:15px;height:15px"> 👤 Займенники</label>
         <label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid #667eea;border-radius:9px;padding:6px 10px;cursor:pointer;color:#fff;font-size:.88rem;font-weight:600"><input type="checkbox" value="interrogative" style="width:15px;height:15px"> ❓ Питальні</label>
         <label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid #667eea;border-radius:9px;padding:6px 10px;cursor:pointer;color:#fff;font-size:.88rem;font-weight:600"><input type="checkbox" value="food" style="width:15px;height:15px"> 🍕 Їжа</label>
+        <label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid #667eea;border-radius:9px;padding:6px 10px;cursor:pointer;color:#fff;font-size:.88rem;font-weight:600"><input type="checkbox" value="games" style="width:15px;height:15px"> 🎮 Ігри</label>
+        <label style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1.5px solid #667eea;border-radius:9px;padding:6px 10px;cursor:pointer;color:#fff;font-size:.88rem;font-weight:600"><input type="checkbox" value="body" style="width:15px;height:15px"> 🫀 Тіло</label>
       </div>
       <div style="color:#aaa;font-size:.85rem;margin-bottom:6px">Рівень БоСС:</div>
       <select id="en-boss-level-select" style="width:100%;padding:9px;border-radius:9px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;margin-bottom:12px">
@@ -2065,15 +2073,19 @@ function getClothingDmgBonus(){
   const equipped=user.equipped||{};
   const equippedIds=new Set(Object.values(equipped));
   let total=0;
-  Object.entries(mods).forEach(([itemId,m])=>{
-    // Only count bonus if item is currently equipped
-    if(!equippedIds.has(itemId)) return;
-    if(m.isCustom){
-      // Custom item: base +1% creation + dyed parts bonus
-      total += m.bonusDmg || 1;
+  equippedIds.forEach(function(itemId){
+    if(!itemId) return;
+    const m = mods[itemId] || {};
+    const item = (typeof CLOTHING_ITEMS !== 'undefined') ? CLOTHING_ITEMS.find(function(i){return i.id===itemId;}) : null;
+    if(item && item.isCustom){
+      total += m.bonusDmg || (item.customBonusDmg || 1);
     } else {
-      if(m.dyed) total+=1;
+      total += 1;
+      if(m.dyed) total += 1;
       if(m.symbols && m.symbols.count) total += m.symbols.count;
+    }
+    if(item && item.isCustom && m.symbols && m.symbols.count){
+      total += m.symbols.count;
     }
   });
   return total;
@@ -2405,6 +2417,30 @@ food:[ // Їжа — 50 слів
 {en:'mushroom',uk:'гриб'},{en:'cucumber',uk:'огірок'},{en:'pepper',uk:'перець'},{en:'lemon',uk:'лимон'},{en:'grape',uk:'виноград'},
 {en:'yogurt',uk:'йогурт'},{en:'sausage',uk:'ковбаса'},{en:'pancake',uk:'млинець'},{en:'porridge',uk:'каша'},{en:'broth',uk:'бульйон'},
 {en:'vinegar',uk:'оцет'},{en:'oil',uk:'олія'},{en:'cream',uk:'вершки'},{en:'flour',uk:'борошно'},{en:'corn',uk:'кукурудза'}
+],
+games:[ // Комп'ютерні ігри — 50 слів
+{en:'game',uk:'гра'},{en:'player',uk:'гравець'},{en:'level',uk:'рівень'},{en:'score',uk:'рахунок'},{en:'boss',uk:'бос'},
+{en:'health',uk:'здоров\'я'},{en:'lives',uk:'життя'},{en:'shield',uk:'щит'},{en:'weapon',uk:'зброя'},{en:'sword',uk:'меч'},
+{en:'armor',uk:'броня'},{en:'enemy',uk:'ворог'},{en:'hero',uk:'герой'},{en:'quest',uk:'квест'},{en:'mission',uk:'місія'},
+{en:'map',uk:'карта'},{en:'chest',uk:'скриня'},{en:'coin',uk:'монета'},{en:'gem',uk:'коштовний камінь'},{en:'key',uk:'ключ'},
+{en:'door',uk:'двері'},{en:'castle',uk:'замок'},{en:'dungeon',uk:'підземелля'},{en:'dragon',uk:'дракон'},{en:'monster',uk:'монстр'},
+{en:'spell',uk:'заклинання'},{en:'magic',uk:'магія'},{en:'power',uk:'сила'},{en:'speed',uk:'швидкість'},{en:'jump',uk:'стрибок'},
+{en:'run',uk:'бігти'},{en:'shoot',uk:'стріляти'},{en:'attack',uk:'атакувати'},{en:'defend',uk:'захищатись'},{en:'win',uk:'перемагати'},
+{en:'lose',uk:'програвати'},{en:'save',uk:'зберегти'},{en:'load',uk:'завантажити'},{en:'pause',uk:'пауза'},{en:'restart',uk:'перезапустити'},
+{en:'controller',uk:'контролер'},{en:'keyboard',uk:'клавіатура'},{en:'mouse',uk:'миша'},{en:'screen',uk:'екран'},{en:'graphics',uk:'графіка'},
+{en:'sound',uk:'звук'},{en:'multiplayer',uk:'мультиплеєр'},{en:'team',uk:'команда'},{en:'loot',uk:'здобич'},{en:'respawn',uk:'відродження'}
+],
+body:[ // Частини тіла — 50 слів
+{en:'head',uk:'голова'},{en:'face',uk:'обличчя'},{en:'hair',uk:'волосся'},{en:'eye',uk:'око'},{en:'ear',uk:'вухо'},
+{en:'nose',uk:'ніс'},{en:'mouth',uk:'рот'},{en:'lip',uk:'губа'},{en:'tooth',uk:'зуб'},{en:'tongue',uk:'язик'},
+{en:'chin',uk:'підборіддя'},{en:'cheek',uk:'щока'},{en:'forehead',uk:'лоб'},{en:'neck',uk:'шия'},{en:'shoulder',uk:'плече'},
+{en:'arm',uk:'рука (від плеча)'},{en:'elbow',uk:'лікоть'},{en:'wrist',uk:'зап\'ясток'},{en:'hand',uk:'кисть руки'},{en:'finger',uk:'палець'},
+{en:'thumb',uk:'великий палець'},{en:'nail',uk:'ніготь'},{en:'chest',uk:'груди'},{en:'back',uk:'спина'},{en:'stomach',uk:'живіт'},
+{en:'waist',uk:'талія'},{en:'hip',uk:'стегно'},{en:'leg',uk:'нога'},{en:'knee',uk:'коліно'},{en:'ankle',uk:'щиколотка'},
+{en:'foot',uk:'ступня'},{en:'toe',uk:'палець ноги'},{en:'heel',uk:'п\'ята'},{en:'skin',uk:'шкіра'},{en:'bone',uk:'кістка'},
+{en:'muscle',uk:'м\'яз'},{en:'heart',uk:'серце'},{en:'lung',uk:'легеня'},{en:'brain',uk:'мозок'},{en:'blood',uk:'кров'},
+{en:'spine',uk:'хребет'},{en:'rib',uk:'ребро'},{en:'throat',uk:'горло'},{en:'eyebrow',uk:'брова'},{en:'eyelash',uk:'вія'},
+{en:'palm',uk:'долоня'},{en:'fist',uk:'кулак'},{en:'sole',uk:'підошва'},{en:'calf',uk:'литка'},{en:'thigh',uk:'стегно (нога)'}
 ]
 };
 
@@ -5404,6 +5440,9 @@ window.bossEndGame = function(victory){
           <button class="tailor-action-btn" onclick="clearTailorCanvas()" style="background:linear-gradient(135deg,#757575,#9e9e9e)">🗑️ Очистити</button>
         </div>
         <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="tailor-action-btn" onclick="tailorUndo()" id="tailor-undo-btn" style="background:linear-gradient(135deg,#1565c0,#1976d2);width:100%">↩️ Скасувати дію</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
           <button class="tailor-action-btn" onclick="closeTailorRoom()" style="background:linear-gradient(135deg,#546e7a,#78909c);width:100%">← Назад</button>
         </div>
 
@@ -5534,6 +5573,9 @@ window.bossEndGame = function(victory){
   user-select: none;
 }
 .inv-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(118,75,162,.2); }
+.inv-sym-btns { display: flex; gap: 2px; justify-content: center; flex-wrap: wrap; margin-top: 2px; }
+.inv-sym-btn { font-size: .55rem; padding: 1px 3px; border-radius: 5px; border: 1px solid #c9a8f0; background: rgba(118,75,162,.12); color: #5b2d9e; cursor: pointer; font-weight: 700; line-height: 1.4; transition: .1s; }
+.inv-sym-btn:hover:not(:disabled) { background: rgba(118,75,162,.28); }
 .inv-item.equipped { border-color: #27ae60; background: linear-gradient(135deg,#d4edda,#a8e6bb); }
 .inv-item .item-emoji { font-size: 1.8rem; display: block; }
 .inv-item .item-name { font-size: .62rem; color: #5b2d9e; font-weight: 600; margin-top: 2px; display: block; line-height: 1.2; }
@@ -5807,6 +5849,37 @@ function selectDyeColor(color, itemId){
     renderEquipped();
   }
   renderDyeColorSwatches(itemId, color);
+}
+
+function invAddSymbol(itemId, type) {
+  const user = getUser();
+  if ((user.threads || 0) < 50 || (user.guzuky || 0) < 50) {
+    alert('Потрібно 50🧵 і 50🔘!');
+    return;
+  }
+  if (!user.clothingMods) user.clothingMods = {};
+  const mods = user.clothingMods[itemId] || {};
+  const sym = mods.symbols;
+  if (sym && sym.count > 0 && sym.type !== type) {
+    const names = {star:'зірочка', heart:'сердечко', bat:'кажан'};
+    alert('На цьому предметі вже є тип: ' + (names[sym.type] || sym.type) + '!\nОдин предмет — один тип символів.');
+    return;
+  }
+  if (sym && sym.count >= 5) { alert('Максимум 5 символів на предмет!'); return; }
+  user.threads -= 50;
+  user.guzuky -= 50;
+  if (!mods.symbols || mods.symbols.count === 0) {
+    mods.symbols = { type, count: 1 };
+  } else {
+    mods.symbols.count += 1;
+  }
+  user.clothingMods[itemId] = mods;
+  saveUser(user);
+  updateUI();
+  renderEquipped();
+  renderInventory();
+  renderClothingModPanel();
+  updateCharLabel();
 }
 
 function addSymbol(type){
@@ -6084,37 +6157,71 @@ function renderInventory() {
     return zoneOk && genderOk;
   });
   const now = Date.now();
-  const LIFETIME_DAYS = 50;
+  const LIFETIME_MS = 50 * 24 * 60 * 60 * 1000;
   grid.innerHTML = items.map(item => {
     const isEq = _equipped[item.zone] === item.id;
     const isSelected = _selectedItemId === item.id;
     const user = getUser();
     const mods = (user.clothingMods||{})[item.id]||{};
-    const dyedIcon = mods.dyed ? '🎨' : '';
-    const symIcons = {'star':'⭐','heart':'💗','bat':'🦇'};
-    const symStr = (mods.symbols && mods.symbols.count>0) ? (symIcons[mods.symbols.type]||'').repeat(mods.symbols.count) : '';
-    let modStr = dyedIcon + symStr;
-    let modPct = (mods.dyed?1:0) + (mods.symbols?mods.symbols.count:0);
-    // Custom item
+
+    // --- Damage modifier ---
+    let modPct = 1; // base +1% for every item
     if(item.isCustom){
-      modStr = '🪡';
-      modPct = item.customBonusDmg || (mods.bonusDmg || 1);
+      modPct = mods.bonusDmg || item.customBonusDmg || 1;
+      if(mods.symbols && mods.symbols.count) modPct += mods.symbols.count;
+    } else {
+      if(mods.dyed) modPct += 1;
+      if(mods.symbols && mods.symbols.count) modPct += mods.symbols.count;
     }
-    // Lifetime counter
+
+    // --- Symbols display ---
+    const symIcons = {'star':'⭐','heart':'💗','bat':'🦇'};
+    const symStr = (mods.symbols && mods.symbols.count > 0)
+      ? (symIcons[mods.symbols.type]||'').repeat(mods.symbols.count)
+      : '';
+    const dyedIcon = mods.dyed ? '🎨' : '';
+    const customIcon = item.isCustom ? '🪡' : '';
+
+    // --- Lifetime ---
     let lifetimeHtml = '';
     if(mods.firstUsed){
-      const elapsed = (now - mods.firstUsed) / (1000*60*60*24);
-      const remaining = Math.max(0, Math.ceil(LIFETIME_DAYS - elapsed));
-      const pct = Math.round(elapsed / LIFETIME_DAYS * 100);
+      const elapsed = now - mods.firstUsed;
+      const remainingMs = Math.max(0, LIFETIME_MS - elapsed);
+      const remaining = Math.ceil(remainingMs / (1000*60*60*24));
       const col = remaining > 20 ? '#27ae60' : remaining > 7 ? '#f39c12' : '#e74c3c';
-      lifetimeHtml = `<div style="position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:.45rem;font-weight:700;color:${col};background:rgba(0,0,0,.18);border-radius:0 0 10px 10px;padding:1px 2px;line-height:1.3;opacity:.85">${remaining}д / +${pct}%</div>`;
+      lifetimeHtml = `<div style="font-size:.45rem;font-weight:700;color:${col};text-align:center;margin-top:1px;line-height:1.3">⏳${remaining}д</div>`;
+    } else {
+      lifetimeHtml = `<div style="font-size:.42rem;color:#aaa;text-align:center;margin-top:1px">⏳50д</div>`;
     }
+
+    // --- Symbol quick buttons (all items including custom) ---
+    let symBtnsHtml = '';
+    {
+      const sym = mods.symbols;
+      const symCount = sym ? sym.count : 0;
+      const symType = sym ? sym.type : null;
+      const atMax = symCount >= 5;
+      const showTypes = symType ? [symType] : ['star','heart','bat'];
+      symBtnsHtml = `<div class="inv-sym-btns" onclick="event.stopPropagation()">`;
+      showTypes.forEach(t=>{
+        const icon = symIcons[t];
+        const blocked = symType && symType !== t;
+        if(blocked) return;
+        const label = atMax ? `${icon}✕` : `${icon}+`;
+        const disabled = atMax ? 'disabled style="opacity:.45;cursor:default"' : '';
+        symBtnsHtml += `<button ${disabled} onclick="invAddSymbol('${item.id}','${t}')" class="inv-sym-btn" title="${t==='star'?'Зірочка':t==='heart'?'Сердечко':'Кажан'} −50🧵−50🔘 +1%">${label}</button>`;
+      });
+      symBtnsHtml += `</div>`;
+    }
+
     return `<div class="inv-item${isEq?' equipped':''}${isSelected?' selected-for-mod':''}" onclick="toggleItem('${item.id}')" title="${item.name}" style="position:relative">
       <div class="equipped-badge">✓</div>
       <span class="item-emoji">${item.emoji}</span>
       <span class="item-name">${item.name}</span>
-      ${modStr ? `<div style="font-size:.55rem;line-height:1;margin-top:1px">${modStr}${modPct>0?' +'+modPct+'%':''}</div>` : ''}
+      <div style="font-size:.5rem;font-weight:700;color:#e65100;text-align:center;margin-top:1px;line-height:1.3">⚔️+${modPct}%${dyedIcon}${customIcon}</div>
+      ${symStr ? `<div style="font-size:.6rem;text-align:center;line-height:1.2">${symStr}</div>` : ''}
       ${lifetimeHtml}
+      ${symBtnsHtml}
     </div>`;
   }).join('') || '<div style="color:#aaa;font-size:.85rem;text-align:center;padding:20px;grid-column:1/-1">Немає предметів</div>';
 }
@@ -6295,6 +6402,9 @@ let _tailorDrawing = false;
 let _tailorLastX = 0, _tailorLastY = 0;
 // make brushsize accessible globally for slider
 window.tailorBrushSize = 5;
+// undo history
+let _tailorUndoStack = [];
+const TAILOR_UNDO_MAX = 30;
 // zoom state
 let _tailorZoom = 1.0;
 const TAILOR_ZOOM_STEPS = [0.5, 0.75, 1.0, 1.5, 2.0, 3.0];
@@ -6357,6 +6467,7 @@ function initTailorRoom(){
 
   // Canvas setup
   const canvas = document.getElementById('tailor-canvas');
+  _tailorUndoStack = [];
   if(!canvas._tailorInit){
     canvas._tailorInit = true;
     canvas.addEventListener('pointerdown', tailorPointerDown);
@@ -6512,6 +6623,7 @@ window.selectTailorZone = selectTailorZone;
 function clearTailorCanvas(){
   const canvas = document.getElementById('tailor-canvas');
   const ctx = canvas.getContext('2d');
+  tailorSaveUndoState();
   ctx.clearRect(0,0,canvas.width,canvas.height);
   _tailorParts = [];
   _activePart = -1;
@@ -6520,6 +6632,38 @@ function clearTailorCanvas(){
   document.getElementById('tailor-part-color-section').style.display = 'none';
 }
 window.clearTailorCanvas = clearTailorCanvas;
+
+function tailorSaveUndoState(){
+  const canvas = document.getElementById('tailor-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  // deep copy imageData
+  const copy = new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
+  const partsCopy = _tailorParts.map(p => p ? {...p} : null);
+  const activeCopy = _activePart;
+  _tailorUndoStack.push({ imageData: copy, parts: partsCopy, activePart: activeCopy });
+  if(_tailorUndoStack.length > TAILOR_UNDO_MAX) _tailorUndoStack.shift();
+}
+
+function tailorUndo(){
+  if(_tailorUndoStack.length === 0){ return; }
+  const state = _tailorUndoStack.pop();
+  const canvas = document.getElementById('tailor-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.putImageData(state.imageData, 0, 0);
+  _tailorParts = state.parts;
+  _activePart = state.activePart;
+  renderTailorPartsList();
+  drawTailorPartsOverlay();
+  if(_activePart >= 0){
+    document.getElementById('tailor-active-part-lbl').textContent = (_activePart+1);
+    document.getElementById('tailor-part-color-section').style.display = 'block';
+    renderTailorPartColors();
+  }
+}
+window.tailorUndo = tailorUndo;
 
 // ── Drawing events ─────────────────────────────────────
 function getTailorPos(e){
@@ -6536,6 +6680,7 @@ function tailorPointerDown(e){
   _tailorDrawing = true;
   const p = getTailorPos(e);
   _tailorLastX = p.x; _tailorLastY = p.y;
+  tailorSaveUndoState();
   const canvas = document.getElementById('tailor-canvas');
   const ctx = canvas.getContext('2d');
   if(tailorTool === 'fill'){
@@ -6748,7 +6893,7 @@ function confirmSaveTailorItem(){
     dyeModsEntry.dyedCount = dyedParts.length;
   }
   if(!user.clothingMods) user.clothingMods = {};
-  user.clothingMods[id] = { isCustom: true, bonusDmg, ...dyeModsEntry };
+  user.clothingMods[id] = { isCustom: true, bonusDmg, firstUsed: Date.now(), ...dyeModsEntry };
 
   saveUser(user);
   updateUI();
