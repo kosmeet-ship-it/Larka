@@ -794,6 +794,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <!-- BOSS LEVEL SELECT -->
 <div id="boss-level-select" class="math-level-select hidden">
 <h1 style="color:#ff4444;font-size:1.9rem;margin-bottom:14px">💀 BOSS — оберіть рівень</h1>
+<button class="math-level-btn" style="border-color:#44ff88" onclick="startBoss(0)"><span>🌱 Рівень 0 — +30 кожні 10с • X+X, 1X+X, X−Y</span><span class="math-level-badge" style="background:#1a5c2a;color:#fff">+500⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(1)"><span>💀 Рівень 1 — +50 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+1🐝+1000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(2)"><span>💀💀 Рівень 2 — +100 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+2🐝+2000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(3)"><span>💀💀💀 Рівень 3 — +150 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+3🐝+3000⭐</span></button>
@@ -882,6 +883,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       <div style="margin-bottom:10px">
         <label style="color:#aaa;font-size:.85rem">Рівень БоСС:</label>
         <select id="mp-level-select" style="width:100%;padding:9px;border-radius:9px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;margin-top:5px">
+          <option value="0">🌱 Рівень 0 — X+X, 1X+X, X−Y</option>
           <option value="1">💀 Рівень 1</option>
           <option value="2">💀💀 Рівень 2</option>
           <option value="3">💀💀💀 Рівень 3</option>
@@ -4131,7 +4133,8 @@ window.bossState=null;
 window.bossInterval=null;
 window.bossTimerLeft=10;
 
-const BOSS_REGEN_PER_LEVEL=[0,50,100,150,200,250,300,350,400,450,500,550,600,650];
+const BOSS_REGEN_PER_LEVEL=[30,50,100,150,200,250,300,350,400,450,500,550,600,650];
+// index 0 = level 0 (30), index 1 = level 1 (50), etc.
 const BOSS_START_HP=1500;
 const BOSS_DEFEAT_HP=3000;
 
@@ -4255,6 +4258,31 @@ const multMap={
 if(!window.bossState.qCount) window.bossState.qCount=0;
 window.bossState.qCount++;
 const qc=window.bossState.qCount;
+// Level 0: X+X, 1X+X (double-digit X), X−Y (Y<X), all single digits 0-9
+if(lvl===0){
+  const type=r(3); // 0=X+X, 1=1X+X, 2=X−Y
+  if(type===0){
+    const x=r(10); // 0-9
+    q={q:`${x} + ${x} = ?`, a:x+x, baseDmg0:50};
+  } else if(type===1){
+    const x=r(10); // 0-9
+    const tx=10+x; // 10-19
+    q={q:`${tx} + ${x} = ?`, a:tx+x, baseDmg0:50};
+  } else {
+    const x=r(9)+1; // 1-9 (so Y<X is possible)
+    const y=r(x); // 0 to x-1
+    q={q:`${x} − ${y} = ?`, a:x-y, baseDmg0:50};
+  }
+  window.bossState.currentQ=q;
+  window.bossState.currentLvl=null;
+  document.getElementById('boss-question').textContent=q.q;
+  const inp=document.getElementById('boss-answer');
+  inp.value=''; inp.className='math-input';
+  inp.style.borderColor='#667eea';
+  inp.style.background='rgba(255,255,255,.96)';
+  inp.focus();
+  return;
+}
 if(multMap[lvl]){
   const multDmgMap={2:50,3:100,4:150,5:100,6:200,7:250,8:300,9:300};
   // Check each mult rule in order of priority
@@ -4300,6 +4328,8 @@ if(answer===correct){
   let baseDmg;
   if(window.bossState.currentQ.multDmg){
     baseDmg=window.bossState.currentQ.multDmg;
+  } else if(window.bossState.currentQ.baseDmg0){
+    baseDmg=window.bossState.currentQ.baseDmg0;
   } else {
     baseDmg=window.bossState.currentLvl?MATH_LEVELS[window.bossState.currentLvl].reward:100;
   }
@@ -4339,8 +4369,8 @@ const _soloVisHud=document.getElementById('math-boss-visual-hud');
 if(_soloVisHud) _soloVisHud.classList.remove('show');
 
 if(victory){
-  const bees=lvl;
-  const stars=lvl*1000;
+  const bees=lvl>=1?lvl:0; // level 0 gives no bees
+  const stars=lvl>=1?lvl*1000:500; // level 0 gives 500⭐ (half of level 1)
   const earnedThreads=lvl*10;
   const earnedGuzuky=lvl*1;
   const user=getUser();
@@ -4645,7 +4675,8 @@ window.addEventListener('appinstalled',()=>{deferredPrompt=null;});
 
 const MP_BOSS_START_HP = 1500;
 const MP_BOSS_DEFEAT_HP = 3000;
-const MP_REGEN_PER_LEVEL = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650];
+const MP_REGEN_PER_LEVEL = [30, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650];
+// index 0=level0(30), index 1=level1(50), etc.
 const MP_ROOM_TTL_MS = 2 * 60 * 60 * 1000; // auto-clean rooms older than 2h (client-side)
 
 let mpState = null;
