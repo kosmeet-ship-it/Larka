@@ -310,6 +310,17 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
     <div id="login-profile-view">
       <div class="login-profiles" id="login-profiles-list"></div>
       <button class="login-new-btn" onclick="loginShowNewProfile()">➕ Новий профіль</button>
+      <button class="login-new-btn" onclick="loginShowExistingProfile()" style="background:linear-gradient(135deg,#27ae60,#229954);margin-top:6px">📲 Існуючий профіль</button>
+    </div>
+
+    <!-- Existing profile (sync code entry) -->
+    <div class="login-pin-screen" id="login-existing-view">
+      <div class="pin-title" style="font-size:1.2rem;margin-bottom:16px;color:#27ae60;font-weight:700">📲 Існуючий профіль</div>
+      <p style="color:#666;font-size:.9rem;margin-bottom:14px;text-align:center">Вставте код синхронізації з іншого пристрою, щоб перенести профіль</p>
+      <textarea id="existing-sync-code-in" placeholder="Вставте код синхронізації тут..." style="width:100%;height:90px;padding:10px;border-radius:10px;border:2px solid #27ae60;font-size:.78rem;font-family:monospace;resize:none;margin-bottom:10px;word-break:break-all;outline:none"></textarea>
+      <div id="existing-sync-msg" style="min-height:1.2em;font-size:.9rem;font-weight:700;text-align:center;margin-bottom:10px"></div>
+      <button class="pin-submit-btn" style="background:linear-gradient(135deg,#27ae60,#229954)" onclick="importExistingProfile()">📥 Завантажити профіль</button>
+      <div class="pin-back-link" onclick="loginShowProfiles()">← Назад до профілів</div>
     </div>
 
     <!-- Password entry -->
@@ -389,6 +400,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="БоСС-Математика">💀 БоСС-Математика</button>
 <button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
 <button class="btn" onclick="openGenderModal()" style="background:linear-gradient(135deg,#e91e8c,#1565c0);padding:11px 14px" title="Змінити стать" id="header-gender-btn">👧</button>
+<button class="btn" onclick="openGiftModal()" style="background:linear-gradient(135deg,#e67e22,#d35400);padding:11px 14px" title="Подарунок">🎁</button>
 <button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
 <button class="btn" onclick="logoutUser()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px">🚪</button>
 </div>
@@ -975,6 +987,70 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   </div>
   <div id="sync-msg" style="margin-top:12px;text-align:center;font-weight:700;font-size:.95rem;min-height:1.4em"></div>
 </div>
+</div>
+
+<!-- GIFT MODAL -->
+<div id="gift-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:8500;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:22px;padding:26px 22px;max-width:400px;width:92%;box-shadow:0 12px 40px rgba(0,0,0,.3)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 style="color:#e67e22;font-size:1.5rem;margin:0">🎁 Подарунок</h2>
+      <button onclick="closeGiftModal()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:#999">✕</button>
+    </div>
+    <p style="color:#666;font-size:.9rem;margin-bottom:16px">Передайте ресурси іншому гравцю. Одержувач повинен вставити код подарунка на своєму пристрої.</p>
+
+    <!-- Step 1: select recipient & resources -->
+    <div id="gift-step-send">
+      <div style="font-weight:700;color:#e67e22;margin-bottom:8px">Кому дарувати:</div>
+      <select id="gift-recipient-select" style="width:100%;padding:10px;border-radius:10px;border:2px solid #e67e22;font-size:1rem;margin-bottom:14px">
+        <option value="">— Оберіть гравця —</option>
+      </select>
+      <div style="font-weight:700;color:#e67e22;margin-bottom:8px">Що дарувати:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div>
+          <label style="font-size:.85rem;color:#666;display:block;margin-bottom:3px">⭐ Зірочки</label>
+          <input type="number" id="gift-stars" placeholder="0" min="0" style="width:100%;padding:8px;border-radius:8px;border:2px solid #f39c12;font-size:1rem;text-align:center">
+        </div>
+        <div>
+          <label style="font-size:.85rem;color:#666;display:block;margin-bottom:3px">🐝 Бджоли</label>
+          <input type="number" id="gift-bees" placeholder="0" min="0" style="width:100%;padding:8px;border-radius:8px;border:2px solid #f39c12;font-size:1rem;text-align:center">
+        </div>
+        <div>
+          <label style="font-size:.85rem;color:#666;display:block;margin-bottom:3px">🌱 Насіння</label>
+          <input type="number" id="gift-seeds" placeholder="0" min="0" style="width:100%;padding:8px;border-radius:8px;border:2px solid #f39c12;font-size:1rem;text-align:center">
+        </div>
+        <div>
+          <label style="font-size:.85rem;color:#666;display:block;margin-bottom:3px">🧵 Нитки</label>
+          <input type="number" id="gift-threads" placeholder="0" min="0" style="width:100%;padding:8px;border-radius:8px;border:2px solid #f39c12;font-size:1rem;text-align:center">
+        </div>
+      </div>
+      <div id="gift-send-msg" style="min-height:1.2em;font-size:.9rem;font-weight:700;text-align:center;margin-bottom:10px"></div>
+      <button onclick="createGiftCode()" style="width:100%;padding:13px;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:8px">🎁 Згенерувати код подарунка</button>
+    </div>
+
+    <!-- Step 2: show generated code -->
+    <div id="gift-step-code" style="display:none">
+      <div style="background:#fff8f0;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-weight:700;color:#e67e22;margin-bottom:8px;text-align:center">Код подарунка (передайте одержувачу):</div>
+        <textarea id="gift-code-text" readonly style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #e67e22;font-size:.75rem;font-family:monospace;resize:none;word-break:break-all;color:#333"></textarea>
+        <button onclick="copyGiftCode()" style="width:100%;padding:10px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:8px">📋 Скопіювати код</button>
+      </div>
+      <button onclick="resetGiftModal()" style="width:100%;padding:10px;background:rgba(0,0,0,.08);border:none;border-radius:10px;font-size:.95rem;cursor:pointer;color:#666">← Новий подарунок</button>
+    </div>
+
+    <!-- Step 3: receive gift -->
+    <div id="gift-step-receive" style="display:none">
+      <div style="font-weight:700;color:#27ae60;margin-bottom:8px">📥 Отримати подарунок:</div>
+      <textarea id="gift-receive-code" placeholder="Вставте код подарунка тут..." style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #27ae60;font-size:.75rem;font-family:monospace;resize:none;margin-bottom:10px;word-break:break-all"></textarea>
+      <div id="gift-receive-msg" style="min-height:1.2em;font-size:.9rem;font-weight:700;text-align:center;margin-bottom:10px"></div>
+      <button onclick="redeemGiftCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer">🎁 Отримати подарунок</button>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid #eee;padding-top:12px">
+      <button onclick="giftShowSend()" id="gift-tab-send" style="flex:1;padding:8px;border-radius:8px;border:2px solid #e67e22;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;font-size:.85rem;font-weight:700;cursor:pointer">🎁 Надіслати</button>
+      <button onclick="giftShowReceive()" id="gift-tab-receive" style="flex:1;padding:8px;border-radius:8px;border:2px solid #27ae60;background:#fff;color:#27ae60;font-size:.85rem;font-weight:700;cursor:pointer">📥 Отримати</button>
+    </div>
+  </div>
 </div>
 
 <!-- VICTORY -->
@@ -2635,6 +2711,40 @@ function loginShowNewProfile(){
   setTimeout(()=>selectGender('girl'), 50);
 }
 
+function loginShowExistingProfile(){
+  document.getElementById('login-profile-view').style.display='none';
+  document.getElementById('login-existing-view').style.display='block';
+  document.getElementById('existing-sync-code-in').value='';
+  document.getElementById('existing-sync-msg').textContent='';
+  document.getElementById('existing-sync-msg').style.color='';
+}
+
+function importExistingProfile(){
+  const raw=(document.getElementById('existing-sync-code-in').value||'').trim();
+  const msg=document.getElementById('existing-sync-msg');
+  if(!raw){msg.style.color='#e74c3c';msg.textContent='Вставте код синхронізації';return;}
+  try{
+    const obj=JSON.parse(atob(raw));
+    if(!obj||!obj.id||!obj.name){throw new Error();}
+    const profiles=loadAllProfiles();
+    // Check for duplicate name
+    const dup=Object.values(profiles).find(p=>p.name.toLowerCase()===obj.name.toLowerCase());
+    if(dup){
+      msg.style.color='#e74c3c';
+      msg.textContent=`❌ Профіль "${obj.name}" вже існує`;
+      return;
+    }
+    profiles[obj.id]=obj;
+    saveAllProfiles(profiles);
+    msg.style.color='#27ae60';
+    msg.textContent=`✅ Профіль "${obj.name}" успішно імпортовано!`;
+    setTimeout(()=>{loginShowProfiles();},1400);
+  }catch{
+    msg.style.color='#e74c3c';
+    msg.textContent='❌ Невірний код синхронізації';
+  }
+}
+
 function createProfile(){
   const nameEl=document.getElementById('new-profile-name');
   const name=(nameEl?nameEl.value:'').trim();
@@ -2642,6 +2752,13 @@ function createProfile(){
   const pwdEl=document.getElementById('new-pin-input');
   const pwd=pwdEl?pwdEl.value:'';
   const profiles=loadAllProfiles();
+  // ── Duplicate name check ──
+  const dup=Object.values(profiles).find(p=>p.name.toLowerCase()===name.toLowerCase());
+  if(dup){
+    document.getElementById('new-pin-error').textContent=`❌ Профіль "${name}" вже існує`;
+    setTimeout(()=>{document.getElementById('new-pin-error').textContent='';},2200);
+    return;
+  }
   const id='p_'+Date.now();
   const avatarInfo = typeof getNewProfileAvatarData === 'function' ? getNewProfileAvatarData() : {type:'emoji', data: PROFILE_AVATARS[Object.keys(profiles).length % PROFILE_AVATARS.length]};
   const genderVal=(document.getElementById('new-gender-val')||{}).value||'girl';
@@ -2667,6 +2784,141 @@ function changePassword(){
   p.pin=newPwd;
   saveAllProfiles(profiles);
   alert(newPwd?'✅ Пароль змінено!':'✅ Пароль видалено!');
+}
+
+// ═══ GIFT SYSTEM ════════════════════════════════════════
+function openGiftModal(){
+  const modal=document.getElementById('gift-modal');
+  modal.style.display='flex';
+  giftShowSend();
+  // Populate recipient list
+  const sel=document.getElementById('gift-recipient-select');
+  const profiles=loadAllProfiles();
+  const others=Object.values(profiles).filter(p=>p.id!==_activeProfileId);
+  sel.innerHTML='<option value="">— Оберіть гравця —</option>'+
+    others.map(p=>`<option value="${p.id}">${p.avatar||'👤'} ${p.name}</option>`).join('');
+}
+
+function closeGiftModal(){
+  document.getElementById('gift-modal').style.display='none';
+}
+
+function giftShowSend(){
+  document.getElementById('gift-step-send').style.display='block';
+  document.getElementById('gift-step-code').style.display='none';
+  document.getElementById('gift-step-receive').style.display='none';
+  document.getElementById('gift-tab-send').style.background='linear-gradient(135deg,#e67e22,#d35400)';
+  document.getElementById('gift-tab-send').style.color='#fff';
+  document.getElementById('gift-tab-receive').style.background='#fff';
+  document.getElementById('gift-tab-receive').style.color='#27ae60';
+}
+
+function giftShowReceive(){
+  document.getElementById('gift-step-send').style.display='none';
+  document.getElementById('gift-step-code').style.display='none';
+  document.getElementById('gift-step-receive').style.display='block';
+  document.getElementById('gift-receive-msg').textContent='';
+  document.getElementById('gift-tab-receive').style.background='linear-gradient(135deg,#27ae60,#229954)';
+  document.getElementById('gift-tab-receive').style.color='#fff';
+  document.getElementById('gift-tab-send').style.background='#fff';
+  document.getElementById('gift-tab-send').style.color='#e67e22';
+}
+
+function resetGiftModal(){
+  document.getElementById('gift-step-send').style.display='block';
+  document.getElementById('gift-step-code').style.display='none';
+  document.getElementById('gift-send-msg').textContent='';
+  document.getElementById('gift-stars').value='';
+  document.getElementById('gift-bees').value='';
+  document.getElementById('gift-seeds').value='';
+  document.getElementById('gift-threads').value='';
+}
+
+function createGiftCode(){
+  const recipientId=document.getElementById('gift-recipient-select').value;
+  const stars=parseInt(document.getElementById('gift-stars').value)||0;
+  const bees=parseInt(document.getElementById('gift-bees').value)||0;
+  const seeds=parseInt(document.getElementById('gift-seeds').value)||0;
+  const threads=parseInt(document.getElementById('gift-threads').value)||0;
+  const msg=document.getElementById('gift-send-msg');
+
+  if(!recipientId){msg.style.color='#e74c3c';msg.textContent='Оберіть гравця';return;}
+  if(!stars&&!bees&&!seeds&&!threads){msg.style.color='#e74c3c';msg.textContent='Вкажіть хоч один ресурс';return;}
+
+  // Check sender has enough
+  const sender=getUser();
+  if(stars>sender.stars){msg.style.color='#e74c3c';msg.textContent=`Недостатньо ⭐ (маєш ${sender.stars})`;return;}
+  if(bees>(sender.bees||0)){msg.style.color='#e74c3c';msg.textContent=`Недостатньо 🐝 (маєш ${sender.bees||0})`;return;}
+  if(seeds>(sender.seeds||0)){msg.style.color='#e74c3c';msg.textContent=`Недостатньо 🌱 (маєш ${sender.seeds||0})`;return;}
+  if(threads>(sender.threads||0)){msg.style.color='#e74c3c';msg.textContent=`Недостатньо 🧵 (маєш ${sender.threads||0})`;return;}
+
+  // Deduct from sender
+  sender.stars-=stars;
+  if(bees)sender.bees=(sender.bees||0)-bees;
+  if(seeds)sender.seeds=(sender.seeds||0)-seeds;
+  if(threads)sender.threads=(sender.threads||0)-threads;
+  saveUser(sender);
+  updateUI();
+
+  // Get recipient name for display
+  const profiles=loadAllProfiles();
+  const recip=profiles[recipientId];
+  const recipName=recip?recip.name:'?';
+
+  // Build gift object
+  const gift={type:'gift',from:profiles[_activeProfileId]?profiles[_activeProfileId].name:'?',to:recipientId,toName:recipName,stars,bees,seeds,threads,ts:Date.now()};
+  const code=btoa(JSON.stringify(gift));
+  document.getElementById('gift-code-text').value=code;
+  document.getElementById('gift-step-send').style.display='none';
+  document.getElementById('gift-step-code').style.display='block';
+}
+
+function copyGiftCode(){
+  const txt=document.getElementById('gift-code-text').value;
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>{
+    const b=document.querySelector('#gift-step-code button');
+    const orig=b.textContent;b.textContent='✅ Скопійовано!';
+    setTimeout(()=>{b.textContent=orig;},1500);
+  });}else{
+    document.getElementById('gift-code-text').select();
+    document.execCommand('copy');
+  }
+}
+
+function redeemGiftCode(){
+  const raw=(document.getElementById('gift-receive-code').value||'').trim();
+  const msg=document.getElementById('gift-receive-msg');
+  if(!raw){msg.style.color='#e74c3c';msg.textContent='Вставте код подарунка';return;}
+  try{
+    const gift=JSON.parse(atob(raw));
+    if(!gift||gift.type!=='gift'){throw new Error();}
+    // Verify recipient
+    if(gift.to&&gift.to!==_activeProfileId){
+      const profiles=loadAllProfiles();
+      const thisName=profiles[_activeProfileId]?profiles[_activeProfileId].name:'?';
+      msg.style.color='#e74c3c';
+      msg.textContent=`❌ Цей подарунок призначений для "${gift.toName||gift.to}", не для "${thisName}"`;
+      return;
+    }
+    const user=getUser();
+    if(gift.stars)user.stars=(user.stars||0)+gift.stars;
+    if(gift.bees)user.bees=(user.bees||0)+gift.bees;
+    if(gift.seeds)user.seeds=(user.seeds||0)+gift.seeds;
+    if(gift.threads)user.threads=(user.threads||0)+gift.threads;
+    saveUser(user);
+    updateUI();
+    const parts=[];
+    if(gift.stars)parts.push(`${gift.stars} ⭐`);
+    if(gift.bees)parts.push(`${gift.bees} 🐝`);
+    if(gift.seeds)parts.push(`${gift.seeds} 🌱`);
+    if(gift.threads)parts.push(`${gift.threads} 🧵`);
+    msg.style.color='#27ae60';
+    msg.textContent=`🎉 Отримано від ${gift.from}: ${parts.join(', ')}!`;
+    document.getElementById('gift-receive-code').value='';
+  }catch{
+    msg.style.color='#e74c3c';
+    msg.textContent='❌ Невірний код подарунка';
+  }
 }
 
 function logoutUser(){
