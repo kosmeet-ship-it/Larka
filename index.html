@@ -794,7 +794,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <!-- BOSS LEVEL SELECT -->
 <div id="boss-level-select" class="math-level-select hidden">
 <h1 style="color:#ff4444;font-size:1.9rem;margin-bottom:14px">💀 BOSS — оберіть рівень</h1>
-<button class="math-level-btn" style="border-color:#44ff88" onclick="startBoss(0)"><span>🌱 Рівень 0 — +30 кожні 10с • X+X, 1X+X, X−Y</span><span class="math-level-badge" style="background:#1a5c2a;color:#fff">+500⭐</span></button>
+<button class="math-level-btn" style="border-color:#44ff88" onclick="startBoss(0)"><span>🌱 Рівень 0 — 1 клас: сума ≤20, кожне 5-те − віднімання</span><span class="math-level-badge" style="background:#1a5c2a;color:#fff">+500⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(1)"><span>💀 Рівень 1 — +50 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+1🐝+1000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(2)"><span>💀💀 Рівень 2 — +100 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+2🐝+2000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(3)"><span>💀💀💀 Рівень 3 — +150 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+3🐝+3000⭐</span></button>
@@ -4258,20 +4258,35 @@ const multMap={
 if(!window.bossState.qCount) window.bossState.qCount=0;
 window.bossState.qCount++;
 const qc=window.bossState.qCount;
-// Level 0: X+X, 1X+X (double-digit X), X−Y (Y<X), all single digits 0-9
+// Level 0: 1st grade addition (2 or 3 numbers, sum ≤20), every 5th is subtraction (result ≥0)
 if(lvl===0){
-  const type=r(3); // 0=X+X, 1=1X+X, 2=X−Y
-  if(type===0){
-    const x=r(10); // 0-9
-    q={q:`${x} + ${x} = ?`, a:x+x, baseDmg0:50};
-  } else if(type===1){
-    const x=r(10); // 0-9
-    const tx=10+x; // 10-19
-    q={q:`${tx} + ${x} = ?`, a:tx+x, baseDmg0:50};
-  } else {
-    const x=r(9)+1; // 1-9 (so Y<X is possible)
-    const y=r(x); // 0 to x-1
+  const isSub=(qc%5===0); // кожне 5-те — віднімання
+  if(isSub){
+    // X − Y, result ≥ 0, X ≤ 20
+    const x=r(21); // 0-20
+    const y=r(x+1); // 0 to x
     q={q:`${x} − ${y} = ?`, a:x-y, baseDmg0:50};
+  } else {
+    // Додавання 2 або 3 чисел, сума ≤ 20
+    const use3=(r(2)===0); // іноді 3 числа
+    if(use3){
+      const a=r(10); // 0-9
+      const b=r(10); // 0-9
+      const maxC=20-a-b;
+      if(maxC<=0){
+        // Fallback to 2 numbers
+        const a2=r(11); // 0-10
+        const b2=r(21-a2); // sum ≤ 20
+        q={q:`${a2} + ${b2} = ?`, a:a2+b2, baseDmg0:50};
+      } else {
+        const c=r(maxC+1); // 0 to maxC
+        q={q:`${a} + ${b} + ${c} = ?`, a:a+b+c, baseDmg0:50};
+      }
+    } else {
+      const a=r(11); // 0-10
+      const b=r(21-a); // sum ≤ 20
+      q={q:`${a} + ${b} = ?`, a:a+b, baseDmg0:50};
+    }
   }
   window.bossState.currentQ=q;
   window.bossState.currentLvl=null;
