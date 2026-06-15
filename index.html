@@ -4510,14 +4510,30 @@ const multMap={
 if(!window.bossState.qCount) window.bossState.qCount=0;
 window.bossState.qCount++;
 const qc=window.bossState.qCount;
-// Level 0: 1st grade addition (2 or 3 numbers, sum ≤20), every 5th is subtraction (result ≥0)
+// Level 0: 1st grade addition (2 or 3 numbers, result 0..20), every 5th includes a negative number
 if(lvl===0){
-  const isSub=(qc%5===0); // кожне 5-те — віднімання
-  if(isSub){
-    // X − Y, result ≥ 0, X ≤ 20
-    const x=r(21); // 0-20
-    const y=r(x+1); // 0 to x
-    q={q:`${x} − ${y} = ?`, a:x-y, baseDmg0:50};
+  const isNegAdd=(qc%5===0); // кожне 5-те — додавання з від'ємним числом
+  if(isNegAdd){
+    // Додавання з від'ємним числом, результат 0..20
+    const use3neg=(r(2)===0); // іноді 3 числа
+    const result=r(21); // 0-20 (відповідь)
+    if(use3neg){
+      // a + b + (−c) = result, де a,b ≥ 0, c ≥ 1
+      const c=r(10)+1; // 1-10
+      const sumAB=result+c;
+      const a=r(sumAB+1);
+      const b=sumAB-a;
+      const parts=[`${a}`,`${b}`,`−${c}`];
+      for(let i=parts.length-1;i>0;i--){const j=r(i+1);[parts[i],parts[j]]=[parts[j],parts[i]];}
+      q={q:`${parts.join(' + ')} = ?`, a:result, baseDmg0:50};
+    } else {
+      // a + (−b) = result, де a = result + b, b ≥ 1
+      const b=r(10)+1; // 1-10
+      const a=result+b;
+      const parts=[`${a}`,`−${b}`];
+      if(r(2)===0){parts.reverse();}
+      q={q:`${parts.join(' + ')} = ?`, a:result, baseDmg0:50};
+    }
   } else {
     // Додавання 2 або 3 чисел, сума ≤ 20
     const use3=(r(2)===0); // іноді 3 числа
