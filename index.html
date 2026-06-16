@@ -806,7 +806,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <!-- BOSS LEVEL SELECT -->
 <div id="boss-level-select" class="math-level-select hidden">
 <h1 style="color:#ff4444;font-size:1.9rem;margin-bottom:14px">💀 BOSS — оберіть рівень</h1>
-<button class="math-level-btn" style="border-color:#44ff88" onclick="startBoss(0)"><span>🌱 Рівень 0 — 1 клас: сума ≤20, кожне 5-те − віднімання</span><span class="math-level-badge" style="background:#1a5c2a;color:#fff">+500⭐</span></button>
+<button class="math-level-btn" style="border-color:#44ff88" onclick="startBoss(0)"><span>🌱 Рівень 0 — 1 клас: додавання 2 або 3 чисел, сума ≤20</span><span class="math-level-badge" style="background:#1a5c2a;color:#fff">+500⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(1)"><span>💀 Рівень 1 — +50 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+1🐝+1000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(2)"><span>💀💀 Рівень 2 — +100 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+2🐝+2000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(3)"><span>💀💀💀 Рівень 3 — +150 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+3🐝+3000⭐</span></button>
@@ -4510,31 +4510,9 @@ const multMap={
 if(!window.bossState.qCount) window.bossState.qCount=0;
 window.bossState.qCount++;
 const qc=window.bossState.qCount;
-// Level 0: 1st grade addition (2 or 3 numbers, result 0..20), every 5th includes a negative number
+// Level 0: 1st grade addition only (2 or 3 numbers, result 0..20)
 if(lvl===0){
-  const isNegAdd=(qc%5===0); // кожне 5-те — додавання з від'ємним числом
-  if(isNegAdd){
-    // Додавання з від'ємним числом, результат 0..20
-    const use3neg=(r(2)===0); // іноді 3 числа
-    const result=r(21); // 0-20 (відповідь)
-    if(use3neg){
-      // a + b + (−c) = result, де a,b ≥ 0, c ≥ 1
-      const c=r(10)+1; // 1-10
-      const sumAB=result+c;
-      const a=r(sumAB+1);
-      const b=sumAB-a;
-      const parts=[`${a}`,`${b}`,`−${c}`];
-      for(let i=parts.length-1;i>0;i--){const j=r(i+1);[parts[i],parts[j]]=[parts[j],parts[i]];}
-      q={q:`${parts.join(' + ')} = ?`, a:result, baseDmg0:50};
-    } else {
-      // a + (−b) = result, де a = result + b, b ≥ 1
-      const b=r(10)+1; // 1-10
-      const a=result+b;
-      const parts=[`${a}`,`−${b}`];
-      if(r(2)===0){parts.reverse();}
-      q={q:`${parts.join(' + ')} = ?`, a:result, baseDmg0:50};
-    }
-  } else {
+  {
     // Додавання 2 або 3 чисел, сума ≤ 20
     const use3=(r(2)===0); // іноді 3 числа
     if(use3){
