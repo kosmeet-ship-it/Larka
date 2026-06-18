@@ -400,7 +400,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="БоСС-Математика">💀 БоСС-Математика</button>
 <button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
 <button class="btn" onclick="openGenderModal()" style="background:linear-gradient(135deg,#e91e8c,#1565c0);padding:11px 14px" title="Змінити стать" id="header-gender-btn">👧</button>
-<button class="btn" onclick="openGiftModal()" style="background:linear-gradient(135deg,#e67e22,#d35400);padding:11px 14px" title="Подарунок">🎁</button>
+<button class="btn" id="gift-btn" onclick="openGiftModal()" style="background:linear-gradient(135deg,#e67e22,#d35400);padding:11px 14px;position:relative" title="Подарунок">🎁<span id="gift-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#e74c3c;color:#fff;font-size:.6rem;font-weight:900;border-radius:50%;width:16px;height:16px;line-height:16px;text-align:center;pointer-events:none">!</span></button>
 <button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
 <button class="btn" onclick="logoutUser()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px">🚪</button>
 </div>
@@ -996,14 +996,17 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       <h2 style="color:#e67e22;font-size:1.5rem;margin:0">🎁 Подарунок</h2>
       <button onclick="closeGiftModal()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:#999">✕</button>
     </div>
-    <p style="color:#666;font-size:.9rem;margin-bottom:16px">Передайте ресурси іншому гравцю. Одержувач повинен вставити код подарунка на своєму пристрої.</p>
+    <p style="color:#666;font-size:.9rem;margin-bottom:16px">Передайте ресурси іншому гравцю на цьому пристрої.</p>
 
     <!-- Step 1: select recipient & resources -->
     <div id="gift-step-send">
       <div style="font-weight:700;color:#e67e22;margin-bottom:8px">Кому дарувати:</div>
-      <select id="gift-recipient-select" style="width:100%;padding:10px;border-radius:10px;border:2px solid #e67e22;font-size:1rem;margin-bottom:14px">
-        <option value="">— Оберіть гравця —</option>
+      <select id="gift-recipient-select" style="width:100%;padding:10px;border-radius:10px;border:2px solid #e67e22;font-size:1rem;margin-bottom:10px">
+        <option value="">— Оберіть гравця зі списку —</option>
       </select>
+      <div style="color:#999;font-size:.8rem;text-align:center;margin-bottom:6px">або введіть ім'я вручну</div>
+      <input type="text" id="gift-recipient-name" placeholder="Ім'я гравця (необов'язково)" maxlength="32"
+        style="width:100%;padding:10px;border-radius:10px;border:2px solid #f0c080;font-size:.95rem;margin-bottom:14px;text-align:center;outline:none">
       <div style="font-weight:700;color:#e67e22;margin-bottom:8px">Що дарувати:</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
         <div>
@@ -1024,31 +1027,22 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
         </div>
       </div>
       <div id="gift-send-msg" style="min-height:1.2em;font-size:.9rem;font-weight:700;text-align:center;margin-bottom:10px"></div>
-      <button onclick="createGiftCode()" style="width:100%;padding:13px;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:8px">🎁 Згенерувати код подарунка</button>
+      <button onclick="createGiftCode()" style="width:100%;padding:13px;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:8px">🎁 Надіслати подарунок</button>
     </div>
 
-    <!-- Step 2: show generated code -->
+    <!-- Step 2: gift sent confirmation -->
     <div id="gift-step-code" style="display:none">
-      <div style="background:#fff8f0;border-radius:14px;padding:16px;margin-bottom:14px">
-        <div style="font-weight:700;color:#e67e22;margin-bottom:8px;text-align:center">Код подарунка (передайте одержувачу):</div>
-        <textarea id="gift-code-text" readonly style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #e67e22;font-size:.75rem;font-family:monospace;resize:none;word-break:break-all;color:#333"></textarea>
-        <button onclick="copyGiftCode()" style="width:100%;padding:10px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:8px">📋 Скопіювати код</button>
+      <div style="background:#f0fff4;border-radius:14px;padding:20px;margin-bottom:14px;text-align:center">
+        <div style="font-size:2.5rem;margin-bottom:8px">🎁✅</div>
+        <div id="gift-sent-summary" style="font-weight:700;color:#27ae60;font-size:1rem;margin-bottom:4px"></div>
+        <div id="gift-sent-to" style="color:#555;font-size:.9rem"></div>
       </div>
-      <button onclick="resetGiftModal()" style="width:100%;padding:10px;background:rgba(0,0,0,.08);border:none;border-radius:10px;font-size:.95rem;cursor:pointer;color:#666">← Новий подарунок</button>
-    </div>
-
-    <!-- Step 3: receive gift -->
-    <div id="gift-step-receive" style="display:none">
-      <div style="font-weight:700;color:#27ae60;margin-bottom:8px">📥 Отримати подарунок:</div>
-      <textarea id="gift-receive-code" placeholder="Вставте код подарунка тут..." style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #27ae60;font-size:.75rem;font-family:monospace;resize:none;margin-bottom:10px;word-break:break-all"></textarea>
-      <div id="gift-receive-msg" style="min-height:1.2em;font-size:.9rem;font-weight:700;text-align:center;margin-bottom:10px"></div>
-      <button onclick="redeemGiftCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer">🎁 Отримати подарунок</button>
+      <button onclick="resetGiftModal()" style="width:100%;padding:10px;background:rgba(0,0,0,.08);border:none;border-radius:10px;font-size:.95rem;cursor:pointer;color:#666">← Ще один подарунок</button>
     </div>
 
     <!-- Tabs -->
     <div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid #eee;padding-top:12px">
       <button onclick="giftShowSend()" id="gift-tab-send" style="flex:1;padding:8px;border-radius:8px;border:2px solid #e67e22;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;font-size:.85rem;font-weight:700;cursor:pointer">🎁 Надіслати</button>
-      <button onclick="giftShowReceive()" id="gift-tab-receive" style="flex:1;padding:8px;border-radius:8px;border:2px solid #27ae60;background:#fff;color:#27ae60;font-size:.85rem;font-weight:700;cursor:pointer">📥 Отримати</button>
     </div>
   </div>
 </div>
@@ -2795,8 +2789,30 @@ function openGiftModal(){
   const sel=document.getElementById('gift-recipient-select');
   const profiles=loadAllProfiles();
   const others=Object.values(profiles).filter(p=>p.id!==_activeProfileId);
-  sel.innerHTML='<option value="">— Оберіть гравця —</option>'+
+  sel.innerHTML='<option value="">— Оберіть гравця зі списку —</option>'+
     others.map(p=>`<option value="${p.id}">${p.avatar||'👤'} ${p.name}</option>`).join('');
+  // Clear name field
+  const nameInp=document.getElementById('gift-recipient-name');
+  if(nameInp) nameInp.value='';
+  // Show and clear pending gift notification
+  const user=getUser();
+  if(user.pendingGiftNotif){
+    const g=user.pendingGiftNotif;
+    const parts=[];
+    if(g.stars)parts.push(`${g.stars}⭐`);
+    if(g.bees)parts.push(`${g.bees}🐝`);
+    if(g.seeds)parts.push(`${g.seeds}🌱`);
+    if(g.threads)parts.push(`${g.threads}🧵`);
+    const sendMsg=document.getElementById('gift-send-msg');
+    if(sendMsg){
+      sendMsg.style.color='#27ae60';
+      sendMsg.textContent=`🎉 Ви отримали подарунок від ${g.from||'?'}: ${parts.join(' ')}!`;
+    }
+    // Clear the notification
+    delete user.pendingGiftNotif;
+    saveUser(user);
+    updateGiftBadge(false);
+  }
 }
 
 function closeGiftModal(){
@@ -2806,22 +2822,10 @@ function closeGiftModal(){
 function giftShowSend(){
   document.getElementById('gift-step-send').style.display='block';
   document.getElementById('gift-step-code').style.display='none';
-  document.getElementById('gift-step-receive').style.display='none';
-  document.getElementById('gift-tab-send').style.background='linear-gradient(135deg,#e67e22,#d35400)';
-  document.getElementById('gift-tab-send').style.color='#fff';
-  document.getElementById('gift-tab-receive').style.background='#fff';
-  document.getElementById('gift-tab-receive').style.color='#27ae60';
 }
 
 function giftShowReceive(){
-  document.getElementById('gift-step-send').style.display='none';
-  document.getElementById('gift-step-code').style.display='none';
-  document.getElementById('gift-step-receive').style.display='block';
-  document.getElementById('gift-receive-msg').textContent='';
-  document.getElementById('gift-tab-receive').style.background='linear-gradient(135deg,#27ae60,#229954)';
-  document.getElementById('gift-tab-receive').style.color='#fff';
-  document.getElementById('gift-tab-send').style.background='#fff';
-  document.getElementById('gift-tab-send').style.color='#e67e22';
+  // kept for compat but not used
 }
 
 function resetGiftModal(){
@@ -2832,17 +2836,34 @@ function resetGiftModal(){
   document.getElementById('gift-bees').value='';
   document.getElementById('gift-seeds').value='';
   document.getElementById('gift-threads').value='';
+  const nameInp=document.getElementById('gift-recipient-name');
+  if(nameInp) nameInp.value='';
+}
+
+function updateGiftBadge(show){
+  const badge=document.getElementById('gift-badge');
+  if(badge) badge.style.display=show?'block':'none';
+}
+
+function checkGiftBadge(){
+  // Check if current user has a pending gift notification
+  try{
+    const user=getUser();
+    updateGiftBadge(!!(user&&user.pendingGiftNotif));
+  }catch{}
 }
 
 function createGiftCode(){
+  // Get recipient: by select or by typed name
   const recipientId=document.getElementById('gift-recipient-select').value;
+  const typedName=(document.getElementById('gift-recipient-name').value||'').trim();
   const stars=parseInt(document.getElementById('gift-stars').value)||0;
   const bees=parseInt(document.getElementById('gift-bees').value)||0;
   const seeds=parseInt(document.getElementById('gift-seeds').value)||0;
   const threads=parseInt(document.getElementById('gift-threads').value)||0;
   const msg=document.getElementById('gift-send-msg');
 
-  if(!recipientId){msg.style.color='#e74c3c';msg.textContent='Оберіть гравця';return;}
+  if(!recipientId&&!typedName){msg.style.color='#e74c3c';msg.textContent='Оберіть гравця або введіть ім\'я';return;}
   if(!stars&&!bees&&!seeds&&!threads){msg.style.color='#e74c3c';msg.textContent='Вкажіть хоч один ресурс';return;}
 
   // Check sender has enough
@@ -2860,65 +2881,59 @@ function createGiftCode(){
   saveUser(sender);
   updateUI();
 
-  // Get recipient name for display
   const profiles=loadAllProfiles();
-  const recip=profiles[recipientId];
-  const recipName=recip?recip.name:'?';
+  let recipName='';
+  let recipProfile=null;
 
-  // Build gift object
-  const gift={type:'gift',from:profiles[_activeProfileId]?profiles[_activeProfileId].name:'?',to:recipientId,toName:recipName,stars,bees,seeds,threads,ts:Date.now()};
-  const code=btoa(JSON.stringify(gift));
-  document.getElementById('gift-code-text').value=code;
+  if(recipientId){
+    recipProfile=profiles[recipientId];
+    recipName=recipProfile?recipProfile.name:recipientId;
+  } else {
+    // Find by typed name (case-insensitive)
+    const found=Object.values(profiles).find(p=>p.name&&p.name.toLowerCase()===typedName.toLowerCase()&&p.id!==_activeProfileId);
+    if(found){ recipProfile=found; recipName=found.name; }
+    else { recipName=typedName; }
+  }
+
+  // Directly credit recipient if found on this device
+  if(recipProfile&&recipProfile.id){
+    const allProfs=loadAllProfiles();
+    const rp=allProfs[recipProfile.id];
+    if(rp&&rp.data){
+      if(stars)rp.data.stars=(rp.data.stars||0)+stars;
+      if(bees)rp.data.bees=(rp.data.bees||0)+bees;
+      if(seeds)rp.data.seeds=(rp.data.seeds||0)+seeds;
+      if(threads)rp.data.threads=(rp.data.threads||0)+threads;
+      // Mark gift notification for recipient
+      const senderName=profiles[_activeProfileId]?profiles[_activeProfileId].name:'?';
+      rp.data.pendingGiftNotif={from:senderName,stars,bees,seeds,threads,ts:Date.now()};
+      allProfs[recipProfile.id]=rp;
+      saveAllProfiles(allProfs);
+    }
+  }
+
+  // Build parts summary
+  const parts=[];
+  if(stars)parts.push(`${stars}⭐`);
+  if(bees)parts.push(`${bees}🐝`);
+  if(seeds)parts.push(`${seeds}🌱`);
+  if(threads)parts.push(`${threads}🧵`);
+
+  // Show success
+  const sumEl=document.getElementById('gift-sent-summary');
+  const toEl=document.getElementById('gift-sent-to');
+  if(sumEl) sumEl.textContent=`Відправлено: ${parts.join(' ')}`;
+  if(toEl) toEl.textContent=`Для: ${recipName||'невідомий'}`;
   document.getElementById('gift-step-send').style.display='none';
   document.getElementById('gift-step-code').style.display='block';
 }
 
 function copyGiftCode(){
-  const txt=document.getElementById('gift-code-text').value;
-  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>{
-    const b=document.querySelector('#gift-step-code button');
-    const orig=b.textContent;b.textContent='✅ Скопійовано!';
-    setTimeout(()=>{b.textContent=orig;},1500);
-  });}else{
-    document.getElementById('gift-code-text').select();
-    document.execCommand('copy');
-  }
+  // kept for compat
 }
 
 function redeemGiftCode(){
-  const raw=(document.getElementById('gift-receive-code').value||'').trim();
-  const msg=document.getElementById('gift-receive-msg');
-  if(!raw){msg.style.color='#e74c3c';msg.textContent='Вставте код подарунка';return;}
-  try{
-    const gift=JSON.parse(atob(raw));
-    if(!gift||gift.type!=='gift'){throw new Error();}
-    // Verify recipient
-    if(gift.to&&gift.to!==_activeProfileId){
-      const profiles=loadAllProfiles();
-      const thisName=profiles[_activeProfileId]?profiles[_activeProfileId].name:'?';
-      msg.style.color='#e74c3c';
-      msg.textContent=`❌ Цей подарунок призначений для "${gift.toName||gift.to}", не для "${thisName}"`;
-      return;
-    }
-    const user=getUser();
-    if(gift.stars)user.stars=(user.stars||0)+gift.stars;
-    if(gift.bees)user.bees=(user.bees||0)+gift.bees;
-    if(gift.seeds)user.seeds=(user.seeds||0)+gift.seeds;
-    if(gift.threads)user.threads=(user.threads||0)+gift.threads;
-    saveUser(user);
-    updateUI();
-    const parts=[];
-    if(gift.stars)parts.push(`${gift.stars} ⭐`);
-    if(gift.bees)parts.push(`${gift.bees} 🐝`);
-    if(gift.seeds)parts.push(`${gift.seeds} 🌱`);
-    if(gift.threads)parts.push(`${gift.threads} 🧵`);
-    msg.style.color='#27ae60';
-    msg.textContent=`🎉 Отримано від ${gift.from}: ${parts.join(', ')}!`;
-    document.getElementById('gift-receive-code').value='';
-  }catch{
-    msg.style.color='#e74c3c';
-    msg.textContent='❌ Невірний код подарунка';
-  }
+  // kept for compat
 }
 
 function logoutUser(){
@@ -2935,6 +2950,8 @@ document.getElementById('main').style.display='block';
 updateUI();
 updateDog();
 setTimeout(initDressingRoom, 50);
+// Check for pending gift notification
+setTimeout(checkGiftBadge, 200);
 }
 
 function updateUI(){
@@ -4513,24 +4530,26 @@ const qc=window.bossState.qCount;
 // Level 0: 1st grade addition only (2 or 3 numbers, result 0..20)
 if(lvl===0){
   {
-    // Додавання 2 або 3 чисел, сума ≤ 20
-    const use3=(r(2)===0); // іноді 3 числа
+    // Тільки додавання 2 або 3 чисел, сума від 0 до 20
+    const use3=(r(2)===0); // 50% шанс 3 числа
     if(use3){
+      // 3 числа: a+b+c, всі ≥ 0, сума ≤ 20
       const a=r(10); // 0-9
-      const b=r(10); // 0-9
+      const b=r(Math.min(10, 20-a)+1); // 0..(min(10,20-a))
       const maxC=20-a-b;
-      if(maxC<=0){
-        // Fallback to 2 numbers
-        const a2=r(11); // 0-10
-        const b2=r(21-a2); // sum ≤ 20
-        q={q:`${a2} + ${b2} = ?`, a:a2+b2, baseDmg0:50};
+      if(maxC<0){
+        // fallback 2 числа
+        const x=r(11); // 0-10
+        const y=r(21-x); // сума ≤ 20
+        q={q:`${x} + ${y} = ?`, a:x+y, baseDmg0:50};
       } else {
-        const c=r(maxC+1); // 0 to maxC
+        const c=r(maxC+1);
         q={q:`${a} + ${b} + ${c} = ?`, a:a+b+c, baseDmg0:50};
       }
     } else {
+      // 2 числа: a+b, сума 0..20
       const a=r(11); // 0-10
-      const b=r(21-a); // sum ≤ 20
+      const b=r(21-a); // 0..(20-a)
       q={q:`${a} + ${b} = ?`, a:a+b, baseDmg0:50};
     }
   }
