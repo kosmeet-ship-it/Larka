@@ -396,7 +396,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div style="font-size:1rem;color:#8e44ad;font-weight:700">🔘<span id="guzuk-count">0</span></div>
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
-<button class="btn" onclick="showSyncModal()" style="background:linear-gradient(135deg,#00b4d8,#0096c7)" title="Синхронізація між пристроями">🔄 Синхронізація</button>
+<button class="btn" onclick="showSyncModal()" style="background:linear-gradient(135deg,#00b4d8,#0096c7);position:relative" title="Синхронізація між пристроями">🔄 Синхронізація<span id="sync-status-dot" style="position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#aaa;border:2px solid #fff;display:block" title="Статус синхронізації"></span></button>
 <button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="БоСС-Математика">💀 БоСС-Математика</button>
 <button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
 <button class="btn" onclick="openGenderModal()" style="background:linear-gradient(135deg,#e91e8c,#1565c0);padding:11px 14px" title="Змінити стать" id="header-gender-btn">👧</button>
@@ -969,23 +969,38 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
     <h2 style="color:#00b4d8;font-size:1.5rem;margin:0">🔄 Синхронізація</h2>
     <button onclick="closeSyncModal()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:#999">✕</button>
   </div>
-  <p style="color:#555;font-size:.95rem;margin-bottom:18px">Перенеси дані між пристроями за допомогою коду синхронізації.</p>
+  <p style="color:#555;font-size:.95rem;margin-bottom:12px">Дані автоматично синхронізуються між усіма пристроями через хмару.</p>
 
-  <div style="background:#f0faff;border-radius:14px;padding:16px;margin-bottom:14px">
-    <div style="font-weight:700;color:#0096c7;margin-bottom:8px">📤 Передати з цього пристрою</div>
-    <button onclick="generateSyncCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#00b4d8,#0096c7);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px">Згенерувати код</button>
-    <div id="sync-code-out" style="display:none">
-      <textarea id="sync-code-text" readonly style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #00b4d8;font-size:.75rem;font-family:monospace;resize:none;word-break:break-all;color:#333"></textarea>
-      <button onclick="copySyncCode()" style="width:100%;padding:9px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:6px">📋 Скопіювати код</button>
+  <!-- Auto-sync status -->
+  <div id="auto-sync-status-box" style="background:#f0faff;border-radius:14px;padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:12px">
+    <div id="auto-sync-icon" style="font-size:1.8rem;flex-shrink:0">☁️</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:700;color:#0096c7;font-size:.95rem" id="auto-sync-title">Автосинхронізація</div>
+      <div style="color:#555;font-size:.82rem;margin-top:2px" id="auto-sync-desc">Перевірка стану…</div>
     </div>
+    <button onclick="manualCloudSync()" id="manual-sync-btn" style="flex-shrink:0;padding:8px 14px;background:linear-gradient(135deg,#00b4d8,#0096c7);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer">🔄 Зараз</button>
   </div>
 
-  <div style="background:#fff8f0;border-radius:14px;padding:16px">
-    <div style="font-weight:700;color:#e67e22;margin-bottom:8px">📥 Отримати на цей пристрій</div>
-    <textarea id="sync-code-in" placeholder="Вставте код синхронізації тут..." style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #e67e22;font-size:.75rem;font-family:monospace;resize:none;margin-bottom:8px;word-break:break-all"></textarea>
-    <button onclick="importSyncCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer">📥 Завантажити дані</button>
-  </div>
-  <div id="sync-msg" style="margin-top:12px;text-align:center;font-weight:700;font-size:.95rem;min-height:1.4em"></div>
+  <!-- Manual code section (collapsed) -->
+  <details style="margin-bottom:8px">
+    <summary style="cursor:pointer;font-weight:700;color:#888;font-size:.9rem;padding:8px 0;list-style:none">▸ Ручний перенос (без інтернету)</summary>
+    <div style="padding-top:10px">
+      <div style="background:#f0faff;border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-weight:700;color:#0096c7;margin-bottom:8px">📤 Передати з цього пристрою</div>
+        <button onclick="generateSyncCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#00b4d8,#0096c7);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px">Згенерувати код</button>
+        <div id="sync-code-out" style="display:none">
+          <textarea id="sync-code-text" readonly style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #00b4d8;font-size:.75rem;font-family:monospace;resize:none;word-break:break-all;color:#333"></textarea>
+          <button onclick="copySyncCode()" style="width:100%;padding:9px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:6px">📋 Скопіювати код</button>
+        </div>
+      </div>
+      <div style="background:#fff8f0;border-radius:14px;padding:16px">
+        <div style="font-weight:700;color:#e67e22;margin-bottom:8px">📥 Отримати на цей пристрій</div>
+        <textarea id="sync-code-in" placeholder="Вставте код синхронізації тут..." style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #e67e22;font-size:.75rem;font-family:monospace;resize:none;margin-bottom:8px;word-break:break-all"></textarea>
+        <button onclick="importSyncCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer">📥 Завантажити дані</button>
+      </div>
+    </div>
+  </details>
+  <div id="sync-msg" style="margin-top:8px;text-align:center;font-weight:700;font-size:.95rem;min-height:1.4em"></div>
 </div>
 </div>
 
@@ -2563,6 +2578,11 @@ function ensureLarikaPassword(){
 
 function saveAllProfiles(profiles){
   localStorage.setItem(PROFILES_KEY,JSON.stringify(profiles));
+  // Auto cloud sync (throttled)
+  if(typeof cloudSaveAll === 'function') {
+    clearTimeout(window._cloudSaveTimer);
+    window._cloudSaveTimer = setTimeout(cloudSaveAll, 1500);
+  }
 }
 
 function getUser(){
@@ -2665,6 +2685,8 @@ function loginSelectProfile(id){
     sessionStorage.setItem(ACTIVE_KEY,id);
     document.getElementById('login-screen').style.display='none';
     showMain();
+    // Sync this profile to cloud on login
+    if(typeof cloudSaveProfile==='function') cloudSaveProfile(p);
     return;
   }
   // Show password screen
@@ -2687,6 +2709,8 @@ function pinSubmit(){
     sessionStorage.setItem(ACTIVE_KEY,_pinTarget);
     document.getElementById('login-screen').style.display='none';
     showMain();
+    // Upload this profile to cloud on login
+    if(typeof cloudSaveProfile==='function') setTimeout(()=>cloudSaveProfile(p), 500);
   } else {
     document.getElementById('pin-error').textContent='❌ Неправильний пароль';
     document.getElementById('pin-password-input').value='';
@@ -2952,6 +2976,8 @@ updateDog();
 setTimeout(initDressingRoom, 50);
 // Check for pending gift notification
 setTimeout(checkGiftBadge, 200);
+// Start real-time cloud sync
+if(typeof startCloudSyncListener === 'function') setTimeout(startCloudSyncListener, 300);
 }
 
 function updateUI(){
@@ -4866,6 +4892,15 @@ function showSyncModal(){
   document.getElementById('sync-code-out').style.display='none';
   document.getElementById('sync-code-in').value='';
   document.getElementById('sync-msg').textContent='';
+  // Refresh sync status display
+  if(!fbReady()){
+    setSyncStatus('off');
+  } else if(_cloudSyncActive){
+    setSyncStatus('ok');
+  } else {
+    setSyncStatus('saving','Підключення…');
+    setTimeout(()=>{if(!_cloudSyncActive)setSyncStatus('error');},3000);
+  }
 }
 function closeSyncModal(){
   document.getElementById('sync-modal').style.display='none';
@@ -4925,6 +4960,238 @@ function importSyncCode(){
     document.getElementById('sync-msg').style.color='#e74c3c';
   }
 }
+
+// ═══════════════════════════════════════════════════════════
+// AUTO CLOUD SYNC — Firebase Realtime Database
+// Path: /cloud_profiles/{profileName}/
+// Syncs automatically on save and on login.
+// ═══════════════════════════════════════════════════════════
+
+const CLOUD_SYNC_THROTTLE = 5000; // мс між записами в хмару
+let _lastCloudSave = 0;
+let _cloudSyncListener = null;
+let _cloudSyncActive = false;
+
+function fbReady() {
+  return window._fbReady && window._fb && window._fb.db;
+}
+
+// ── Зберегти один профіль в хмару ──────────────────────
+async function cloudSaveProfile(profile) {
+  if (!fbReady()) return false;
+  try {
+    const fb = window._fb;
+    // Sanitize name for Firebase key (no dots, #, $, [, ], /)
+    const key = profile.name.replace(/[.#$\[\]/]/g, '_');
+    const payload = {
+      ...profile,
+      _syncedAt: Date.now(),
+      // Don't store large image data in cloud — keep locally only
+      data: profile.data ? { ...profile.data, photoDataUrl: null } : profile.data
+    };
+    // Keep photoDataUrl locally, remove from cloud to save space
+    await fb.set(fb.ref(fb.db, `cloud_profiles/${key}`), payload);
+    return true;
+  } catch (e) {
+    console.warn('Cloud save error:', e.message);
+    return false;
+  }
+}
+
+// ── Завантажити всі профілі з хмари і змержити ─────────
+async function cloudLoadAndMerge() {
+  if (!fbReady()) return false;
+  try {
+    const fb = window._fb;
+    const snap = await fb.get(fb.ref(fb.db, 'cloud_profiles'));
+    if (!snap.exists()) return false;
+    const cloudData = snap.val();
+    const local = loadAllProfiles();
+    let changed = false;
+
+    Object.values(cloudData).forEach(cloudProfile => {
+      if (!cloudProfile || !cloudProfile.id || !cloudProfile.name) return;
+      const localMatch = Object.values(local).find(p => p.name === cloudProfile.name);
+      if (!localMatch) {
+        // New profile from cloud — add locally (restore photoDataUrl as null)
+        local[cloudProfile.id] = cloudProfile;
+        changed = true;
+      } else {
+        // Merge: use whichever has more stars (cloud wins on tie = more recent)
+        const localStars = (localMatch.data && localMatch.data.stars) || 0;
+        const cloudStars = (cloudProfile.data && cloudProfile.data.stars) || 0;
+        const cloudSyncedAt = cloudProfile._syncedAt || 0;
+        const localSyncedAt = localMatch._syncedAt || 0;
+        if (cloudStars > localStars || (cloudStars === localStars && cloudSyncedAt > localSyncedAt)) {
+          // Preserve local photo since we didn't upload it
+          const localPhoto = localMatch.data && localMatch.data.photoDataUrl;
+          local[localMatch.id] = { ...cloudProfile, id: localMatch.id };
+          if (localPhoto && local[localMatch.id].data) {
+            local[localMatch.id].data.photoDataUrl = localPhoto;
+          }
+          changed = true;
+        }
+      }
+    });
+
+    if (changed) {
+      saveAllProfilesLocal(local); // save locally only (avoid re-upload loop)
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.warn('Cloud load error:', e.message);
+    return false;
+  }
+}
+
+// ── Зберегти всі профілі в хмару ───────────────────────
+async function cloudSaveAll() {
+  if (!fbReady()) return;
+  const now = Date.now();
+  if (now - _lastCloudSave < CLOUD_SYNC_THROTTLE) return;
+  _lastCloudSave = now;
+  setSyncStatus('saving');
+  const profiles = loadAllProfiles();
+  const promises = Object.values(profiles).map(p => cloudSaveProfile(p));
+  try {
+    await Promise.all(promises);
+    setSyncStatus('ok');
+  } catch {
+    setSyncStatus('error');
+  }
+}
+
+// ── Реальний listener — слухає зміни з хмари в реальному часі ──
+function startCloudSyncListener() {
+  if (!fbReady() || _cloudSyncListener) return;
+  const fb = window._fb;
+  const r = fb.ref(fb.db, 'cloud_profiles');
+  _cloudSyncListener = (snap) => {
+    if (!snap.exists()) return;
+    const cloudData = snap.val();
+    const local = loadAllProfiles();
+    let changed = false;
+
+    Object.values(cloudData).forEach(cloudProfile => {
+      if (!cloudProfile || !cloudProfile.id || !cloudProfile.name) return;
+      // Ignore changes we just wrote (avoid echo)
+      if (cloudProfile._syncedAt && Date.now() - cloudProfile._syncedAt < 3000) return;
+      const localMatch = Object.values(local).find(p => p.name === cloudProfile.name);
+      if (!localMatch) {
+        local[cloudProfile.id] = cloudProfile;
+        changed = true;
+      } else {
+        const localStars = (localMatch.data && localMatch.data.stars) || 0;
+        const cloudStars = (cloudProfile.data && cloudProfile.data.stars) || 0;
+        const cloudSyncedAt = cloudProfile._syncedAt || 0;
+        const localSyncedAt = localMatch._syncedAt || 0;
+        if (cloudStars > localStars || (cloudStars === localStars && cloudSyncedAt > localSyncedAt + 2000)) {
+          const localPhoto = localMatch.data && localMatch.data.photoDataUrl;
+          local[localMatch.id] = { ...cloudProfile, id: localMatch.id };
+          if (localPhoto && local[localMatch.id].data) {
+            local[localMatch.id].data.photoDataUrl = localPhoto;
+          }
+          changed = true;
+        }
+      }
+    });
+
+    if (changed) {
+      saveAllProfilesLocal(local);
+      updateUI();
+      setSyncStatus('ok', 'Оновлено з хмари!');
+    }
+  };
+  fb.onValue(r, _cloudSyncListener);
+  _cloudSyncActive = true;
+}
+
+// ── Зупинити listener ───────────────────────────────────
+function stopCloudSyncListener() {
+  if (_cloudSyncListener && fbReady()) {
+    const fb = window._fb;
+    fb.off(fb.ref(fb.db, 'cloud_profiles'), _cloudSyncListener);
+    _cloudSyncListener = null;
+    _cloudSyncActive = false;
+  }
+}
+
+// ── Ручна синхронізація по кнопці ──────────────────────
+async function manualCloudSync() {
+  const btn = document.getElementById('manual-sync-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+  setSyncStatus('saving', 'Синхронізація…');
+  const profiles = loadAllProfiles();
+  let ok = true;
+  for (const p of Object.values(profiles)) {
+    const res = await cloudSaveProfile(p);
+    if (!res) ok = false;
+  }
+  const merged = await cloudLoadAndMerge();
+  if (merged) updateUI();
+  if (btn) { btn.disabled = false; btn.textContent = '🔄 Зараз'; }
+  setSyncStatus(ok ? 'ok' : 'error', ok ? (merged ? '✅ Синхронізовано! Дані оновлені.' : '✅ Хмара актуальна.') : '❌ Помилка з\'єднання');
+}
+
+// ── Статус-індикатор ────────────────────────────────────
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('sync-status-dot');
+  const icon = document.getElementById('auto-sync-icon');
+  const title = document.getElementById('auto-sync-title');
+  const desc = document.getElementById('auto-sync-desc');
+  const colors = { ok: '#27ae60', saving: '#f39c12', error: '#e74c3c', off: '#aaa' };
+  if (dot) dot.style.background = colors[state] || '#aaa';
+  if (state === 'ok') {
+    if (icon) icon.textContent = '☁️';
+    if (title) title.textContent = 'Автосинхронізація активна';
+    if (desc) desc.textContent = msg || ('Останнє оновлення: ' + new Date().toLocaleTimeString('uk-UA', {hour:'2-digit',minute:'2-digit'}));
+  } else if (state === 'saving') {
+    if (icon) icon.textContent = '🔄';
+    if (title) title.textContent = 'Збереження в хмару…';
+    if (desc) desc.textContent = msg || 'Зачекайте…';
+  } else if (state === 'error') {
+    if (icon) icon.textContent = '⚠️';
+    if (title) title.textContent = 'Немає з\'єднання';
+    if (desc) desc.textContent = msg || 'Дані збережені локально';
+  } else {
+    if (icon) icon.textContent = '📵';
+    if (title) title.textContent = 'Хмара недоступна';
+    if (desc) desc.textContent = 'Firebase не підключений';
+  }
+}
+
+// ── Save locally without triggering cloud (to avoid loops) ─
+function saveAllProfilesLocal(profiles) {
+  localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+}
+
+// ── Init: run on Firebase ready ─────────────────────────
+async function initCloudSync() {
+  if (!fbReady()) {
+    setSyncStatus('off');
+    return;
+  }
+  setSyncStatus('saving', 'Завантаження з хмари…');
+  try {
+    const merged = await cloudLoadAndMerge();
+    if (merged) {
+      updateUI();
+      loginShowProfiles && loginShowProfiles();
+    }
+    await cloudSaveAll();
+    startCloudSyncListener();
+  } catch (e) {
+    setSyncStatus('error');
+  }
+}
+
+// Run after Firebase is ready
+document.addEventListener('fbReady', () => {
+  initCloudSync();
+});
+// Also try immediately if already loaded
+if (window._fbReady) initCloudSync();
 
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt',e=>{
