@@ -4553,32 +4553,24 @@ const multMap={
 if(!window.bossState.qCount) window.bossState.qCount=0;
 window.bossState.qCount++;
 const qc=window.bossState.qCount;
-// Level 0: 1st grade addition only (2 or 3 numbers, each ∈ [0–10])
+// ── РІВЕНЬ 0: лише додавання 2 або 3 чисел від 0 до 9 ────
 if(lvl===0){
-  {
-    // Тільки додавання 2 або 3 чисел; кожне число незалежно ∈ [0, 9]
-    const use3=(r(2)===0); // 50% шанс 3 числа
-    if(use3){
-      // 3 числа: a, b, c — кожне незалежно від 0 до 9
-      const a=r(10); // 0-9
-      const b=r(10); // 0-9
-      const c=r(10); // 0-9
-      q={q:`${a} + ${b} + ${c} = ?`, a:a+b+c, baseDmg0:20};
-    } else {
-      // 2 числа: a, b — кожне незалежно від 0 до 9
-      const a=r(10); // 0-9
-      const b=r(10); // 0-9
-      q={q:`${a} + ${b} = ?`, a:a+b, baseDmg0:10};
-    }
+  var _a0=Math.floor(Math.random()*10);
+  var _b0=Math.floor(Math.random()*10);
+  var _use3=(Math.floor(Math.random()*2)===0);
+  if(_use3){
+    var _c0=Math.floor(Math.random()*10);
+    window.bossState.currentQ={q:_a0+' + '+_b0+' + '+_c0+' = ?', a:_a0+_b0+_c0, lvl0dmg:20};
+  } else {
+    window.bossState.currentQ={q:_a0+' + '+_b0+' = ?', a:_a0+_b0, lvl0dmg:10};
   }
-  window.bossState.currentQ=q;
   window.bossState.currentLvl=null;
-  document.getElementById('boss-question').textContent=q.q;
-  const inp=document.getElementById('boss-answer');
-  inp.value=''; inp.className='math-input';
-  inp.style.borderColor='#667eea';
-  inp.style.background='rgba(255,255,255,.96)';
-  inp.focus();
+  document.getElementById('boss-question').textContent=window.bossState.currentQ.q;
+  var _inp0=document.getElementById('boss-answer');
+  _inp0.value=''; _inp0.className='math-input';
+  _inp0.style.borderColor='#667eea';
+  _inp0.style.background='rgba(255,255,255,.96)';
+  _inp0.focus();
   return;
 }
 if(multMap[lvl]){
@@ -4626,8 +4618,8 @@ if(answer===correct){
   let baseDmg;
   if(window.bossState.currentQ.multDmg){
     baseDmg=window.bossState.currentQ.multDmg;
-  } else if(window.bossState.currentQ.baseDmg0){
-    baseDmg=window.bossState.currentQ.baseDmg0;
+  } else if(window.bossState.currentQ.lvl0dmg){
+    baseDmg=window.bossState.currentQ.lvl0dmg;
   } else {
     baseDmg=window.bossState.currentLvl?MATH_LEVELS[window.bossState.currentLvl].reward:100;
   }
@@ -5708,8 +5700,8 @@ window.checkBossAnswer = async function(){
     let baseDmg2;
     if(window.bossState.currentQ && window.bossState.currentQ.multDmg){
       baseDmg2 = window.bossState.currentQ.multDmg;
-    } else if(window.bossState.currentQ && window.bossState.currentQ.baseDmg0){
-      baseDmg2 = window.bossState.currentQ.baseDmg0;
+    } else if(window.bossState.currentQ && window.bossState.currentQ.lvl0dmg){
+      baseDmg2 = window.bossState.currentQ.lvl0dmg;
     } else {
       baseDmg2 = window.bossState.currentLvl ? MATH_LEVELS[window.bossState.currentLvl].reward : 100;
     }
