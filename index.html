@@ -806,7 +806,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <!-- BOSS LEVEL SELECT -->
 <div id="boss-level-select" class="math-level-select hidden">
 <h1 style="color:#ff4444;font-size:1.9rem;margin-bottom:14px">💀 BOSS — оберіть рівень</h1>
-<button class="math-level-btn" style="border-color:#44ff88" onclick="startBoss(0)"><span>🌱 Рівень 0 — 1 клас: додавання 2 або 3 чисел (0–10)</span><span class="math-level-badge" style="background:#1a5c2a;color:#fff">+500⭐</span></button>
+<button class="math-level-btn" style="border-color:#44ff88" onclick="startBoss(0)"><span>🌱 Рівень 0 — додавання 2 або 3 чисел (0–9) • −10/−20 • +30/10с</span><span class="math-level-badge" style="background:#1a5c2a;color:#fff">+500⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(1)"><span>💀 Рівень 1 — +50 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+1🐝+1000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(2)"><span>💀💀 Рівень 2 — +100 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+2🐝+2000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(3)"><span>💀💀💀 Рівень 3 — +150 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+3🐝+3000⭐</span></button>
@@ -4556,19 +4556,19 @@ const qc=window.bossState.qCount;
 // Level 0: 1st grade addition only (2 or 3 numbers, each ∈ [0–10])
 if(lvl===0){
   {
-    // Тільки додавання 2 або 3 чисел; кожне число незалежно ∈ [0, 10]
+    // Тільки додавання 2 або 3 чисел; кожне число незалежно ∈ [0, 9]
     const use3=(r(2)===0); // 50% шанс 3 числа
     if(use3){
-      // 3 числа: a, b, c — кожне незалежно від 0 до 10
-      const a=r(11); // 0-10
-      const b=r(11); // 0-10
-      const c=r(11); // 0-10
-      q={q:`${a} + ${b} + ${c} = ?`, a:a+b+c, baseDmg0:50};
+      // 3 числа: a, b, c — кожне незалежно від 0 до 9
+      const a=r(10); // 0-9
+      const b=r(10); // 0-9
+      const c=r(10); // 0-9
+      q={q:`${a} + ${b} + ${c} = ?`, a:a+b+c, baseDmg0:20};
     } else {
-      // 2 числа: a, b — кожне незалежно від 0 до 10
-      const a=r(11); // 0-10
-      const b=r(11); // 0-10
-      q={q:`${a} + ${b} = ?`, a:a+b, baseDmg0:50};
+      // 2 числа: a, b — кожне незалежно від 0 до 9
+      const a=r(10); // 0-9
+      const b=r(10); // 0-9
+      q={q:`${a} + ${b} = ?`, a:a+b, baseDmg0:10};
     }
   }
   window.bossState.currentQ=q;
