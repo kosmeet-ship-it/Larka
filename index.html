@@ -5708,6 +5708,8 @@ window.checkBossAnswer = async function(){
     let baseDmg2;
     if(window.bossState.currentQ && window.bossState.currentQ.multDmg){
       baseDmg2 = window.bossState.currentQ.multDmg;
+    } else if(window.bossState.currentQ && window.bossState.currentQ.baseDmg0){
+      baseDmg2 = window.bossState.currentQ.baseDmg0;
     } else {
       baseDmg2 = window.bossState.currentLvl ? MATH_LEVELS[window.bossState.currentLvl].reward : 100;
     }
