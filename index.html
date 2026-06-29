@@ -895,7 +895,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       <div style="margin-bottom:10px">
         <label style="color:#aaa;font-size:.85rem">Рівень БоСС:</label>
         <select id="mp-level-select" style="width:100%;padding:9px;border-radius:9px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;margin-top:5px">
-          <option value="0">🌱 Рівень 0 — X+X, 1X+X, X−Y</option>
+          <option value="0">🌱 Рівень 0 — додавання 2 або 3 чисел (0–9)</option>
           <option value="1">💀 Рівень 1</option>
           <option value="2">💀💀 Рівень 2</option>
           <option value="3">💀💀💀 Рівень 3</option>
@@ -5601,7 +5601,7 @@ function mpUpdateLiveHud(players){
 // ── host starts game ─────────────────────────────────────
 async function mpHostStartGame(){
   if(!mpState || !mpState.isHost) return;
-  const lvl = parseInt(document.getElementById('mp-level-select').value) || 1;
+  const lvl = parseInt(document.getElementById('mp-level-select').value) ?? 0;
   mpState.level = lvl;
   try {
     await mpUpdate(`rooms/${mpState.roomCode}`, {
