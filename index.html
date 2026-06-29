@@ -313,13 +313,20 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       <button class="login-new-btn" onclick="loginShowExistingProfile()" style="background:linear-gradient(135deg,#27ae60,#229954);margin-top:6px">📲 Існуючий профіль</button>
     </div>
 
-    <!-- Existing profile (sync code entry) -->
+    <!-- Existing profile (password-only login) -->
     <div class="login-pin-screen" id="login-existing-view">
       <div class="pin-title" style="font-size:1.2rem;margin-bottom:16px;color:#27ae60;font-weight:700">📲 Існуючий профіль</div>
-      <p style="color:#666;font-size:.9rem;margin-bottom:14px;text-align:center">Вставте код синхронізації з іншого пристрою, щоб перенести профіль</p>
-      <textarea id="existing-sync-code-in" placeholder="Вставте код синхронізації тут..." style="width:100%;height:90px;padding:10px;border-radius:10px;border:2px solid #27ae60;font-size:.78rem;font-family:monospace;resize:none;margin-bottom:10px;word-break:break-all;outline:none"></textarea>
+      <p style="color:#666;font-size:.9rem;margin-bottom:14px;text-align:center">Введіть ім'я профілю та пароль для входу</p>
+      <input id="existing-profile-name" type="text" placeholder="Ім'я гравця..." maxlength="16"
+        style="width:100%;padding:12px;border-radius:10px;border:2px solid #27ae60;font-size:1.05rem;text-align:center;margin-bottom:10px;outline:none">
+      <div style="position:relative;margin-bottom:10px">
+        <input id="existing-profile-pwd" type="password" placeholder="Пароль..." autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')loginByNamePassword()"
+          style="width:100%;padding:13px 44px 13px 16px;border-radius:10px;border:2px solid #27ae60;font-size:1.1rem;text-align:center;outline:none;font-family:monospace;letter-spacing:2px;color:#2e7d32;background:#f0fff4">
+        <button type="button" onclick="togglePwdVis('existing-profile-pwd',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;padding:4px">👁</button>
+      </div>
       <div id="existing-sync-msg" style="min-height:1.2em;font-size:.9rem;font-weight:700;text-align:center;margin-bottom:10px"></div>
-      <button class="pin-submit-btn" style="background:linear-gradient(135deg,#27ae60,#229954)" onclick="importExistingProfile()">📥 Завантажити профіль</button>
+      <button class="pin-submit-btn" style="background:linear-gradient(135deg,#27ae60,#229954)" onclick="loginByNamePassword()">✓ Увійти</button>
       <div class="pin-back-link" onclick="loginShowProfiles()">← Назад до профілів</div>
     </div>
 
@@ -398,6 +405,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="exportData()">💾 Експорт</button>
 <button class="btn" onclick="showSyncModal()" style="background:linear-gradient(135deg,#00b4d8,#0096c7);position:relative" title="Синхронізація між пристроями">🔄 Синхронізація<span id="sync-status-dot" style="position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#aaa;border:2px solid #fff;display:block" title="Статус синхронізації"></span></button>
 <button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="БоСС-Математика">💀 БоСС-Математика</button>
+<button class="btn" onclick="openMath0Game()" style="background:linear-gradient(135deg,#00b894,#00cec9)" title="Математика-0">🔢 Математика-0</button>
 <button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
 <button class="btn" onclick="openGenderModal()" style="background:linear-gradient(135deg,#e91e8c,#1565c0);padding:11px 14px" title="Змінити стать" id="header-gender-btn">👧</button>
 <button class="btn" id="gift-btn" onclick="openGiftModal()" style="background:linear-gradient(135deg,#e67e22,#d35400);padding:11px 14px;position:relative" title="Подарунок">🎁<span id="gift-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#e74c3c;color:#fff;font-size:.6rem;font-weight:900;border-radius:50%;width:16px;height:16px;line-height:16px;text-align:center;pointer-events:none">!</span></button>
@@ -806,7 +814,6 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <!-- BOSS LEVEL SELECT -->
 <div id="boss-level-select" class="math-level-select hidden">
 <h1 style="color:#ff4444;font-size:1.9rem;margin-bottom:14px">💀 BOSS — оберіть рівень</h1>
-<button class="math-level-btn" style="border-color:#44ff88" onclick="startBoss(0)"><span>🌱 Рівень 0 — додавання 2 або 3 чисел (0–9) • −10/−20 • +30/10с</span><span class="math-level-badge" style="background:#1a5c2a;color:#fff">+500⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(1)"><span>💀 Рівень 1 — +50 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+1🐝+1000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(2)"><span>💀💀 Рівень 2 — +100 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+2🐝+2000⭐</span></button>
 <button class="math-level-btn" style="border-color:#ff6666" onclick="startBoss(3)"><span>💀💀💀 Рівень 3 — +150 кожні 10с</span><span class="math-level-badge" style="background:#8B0000;color:#fff">+3🐝+3000⭐</span></button>
@@ -895,7 +902,6 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       <div style="margin-bottom:10px">
         <label style="color:#aaa;font-size:.85rem">Рівень БоСС:</label>
         <select id="mp-level-select" style="width:100%;padding:9px;border-radius:9px;border:2px solid #667eea;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;margin-top:5px">
-          <option value="0">🌱 Рівень 0 — додавання 2 або 3 чисел (0–9)</option>
           <option value="1">💀 Рівень 1</option>
           <option value="2">💀💀 Рівень 2</option>
           <option value="3">💀💀💀 Рівень 3</option>
@@ -2732,9 +2738,28 @@ function loginShowNewProfile(){
 function loginShowExistingProfile(){
   document.getElementById('login-profile-view').style.display='none';
   document.getElementById('login-existing-view').style.display='block';
-  document.getElementById('existing-sync-code-in').value='';
+  document.getElementById('existing-profile-name').value='';
+  document.getElementById('existing-profile-pwd').value='';
   document.getElementById('existing-sync-msg').textContent='';
   document.getElementById('existing-sync-msg').style.color='';
+  setTimeout(()=>document.getElementById('existing-profile-name').focus(), 100);
+}
+
+function loginByNamePassword(){
+  const name=(document.getElementById('existing-profile-name').value||'').trim();
+  const pwd=document.getElementById('existing-profile-pwd').value||'';
+  const msg=document.getElementById('existing-sync-msg');
+  if(!name){msg.style.color='#e74c3c';msg.textContent='❌ Введіть ім\'я профілю';return;}
+  const profiles=loadAllProfiles();
+  const found=Object.entries(profiles).find(([id,p])=>p.name&&p.name.toLowerCase()===name.toLowerCase());
+  if(!found){msg.style.color='#e74c3c';msg.textContent='❌ Профіль не знайдено';return;}
+  const [id,p]=found;
+  if(p.pin && p.pin!==pwd){msg.style.color='#e74c3c';msg.textContent='❌ Невірний пароль';document.getElementById('existing-profile-pwd').value='';return;}
+  _activeProfileId=id;
+  sessionStorage.setItem(ACTIVE_KEY,id);
+  document.getElementById('login-screen').style.display='none';
+  showMain();
+  if(typeof cloudSaveProfile==='function') setTimeout(()=>cloudSaveProfile(p),500);
 }
 
 function importExistingProfile(){
@@ -7525,5 +7550,271 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+<!-- ═══════════════════════════════════════════════════════
+     МАТЕМАТИКА-0 GAME SCREEN
+══════════════════════════════════════════════════════════ -->
+<div id="math0-game" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);z-index:3100;flex-direction:column;touch-action:none">
+  <!-- HUD -->
+  <div style="height:44px;display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(0,0,0,.9);color:#fff;font-size:.85rem;white-space:nowrap;flex-shrink:0;position:relative">
+    <button onclick="closeMath0()" style="position:absolute;left:6px;top:50%;transform:translateY(-50%);background:#e74c3c;color:#fff;border:none;padding:4px 11px;border-radius:12px;cursor:pointer;font-size:.78rem;font-weight:700">← Назад</button>
+    <span id="m0-level-lbl" style="font-weight:900;color:#00cec9">Рівень 1</span>
+    <span style="color:#aaa">|</span>
+    <span>⭐<span id="m0-stars-lbl">0</span></span>
+  </div>
+
+  <!-- Level select -->
+  <div id="m0-level-select" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+    <div style="color:#fff;font-size:2rem;font-weight:900;margin-bottom:6px">🔢 Математика-0</div>
+    <div style="color:#aaa;font-size:.95rem;margin-bottom:24px;text-align:center">Тренування додавання та віднімання для початківців</div>
+    <button onclick="startMath0Level(1)" style="width:100%;max-width:420px;padding:16px 22px;margin:8px 0;background:rgba(0,184,148,.18);border:2px solid #00b894;border-radius:14px;color:#fff;font-size:1.1rem;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+      <span>🟢 Рівень 1 — лише додавання 2 або 3 чисел (0–9)</span>
+      <span style="background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;padding:3px 12px;border-radius:16px;font-size:.9rem;font-weight:700">+1000⭐</span>
+    </button>
+    <button onclick="startMath0Level(2)" style="width:100%;max-width:420px;padding:16px 22px;margin:8px 0;background:rgba(232,67,147,.18);border:2px solid #e84393;border-radius:14px;color:#fff;font-size:1.1rem;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+      <span>🔴 Рівень 2 — додавання та віднімання 2 або 3 чисел (0–9)</span>
+      <span style="background:linear-gradient(135deg,#ff4444,#cc0000);color:#fff;padding:3px 12px;border-radius:16px;font-size:.9rem;font-weight:700">+2000⭐</span>
+    </button>
+  </div>
+
+  <!-- Game area -->
+  <div id="m0-game-area" style="flex:1;display:none;flex-direction:column;align-items:stretch">
+    <!-- Boss HP panel -->
+    <div style="padding:7px 3% 6px;background:rgba(0,0,0,.88);flex-shrink:0;border-bottom:2px solid #00cec9">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+        <div id="m0-boss-icon" style="width:40px;height:40px;border-radius:50%;background:rgba(0,206,201,.2);border:2px solid #00cec9;display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex-shrink:0">👾</div>
+        <span id="m0-boss-hp-text" style="color:#fff;font-weight:900;font-size:1.6rem;flex:1;text-align:center;text-shadow:0 0 8px #00cec9">1500</span>
+        <span id="m0-boss-change-txt" style="font-weight:900;font-size:1.4rem;min-width:70px;text-align:center"> </span>
+        <span id="m0-regen-txt" style="color:#aaa;font-size:.72rem;white-space:nowrap">+30/10с</span>
+      </div>
+      <div style="background:rgba(255,255,255,.15);border-radius:6px;height:10px;overflow:hidden;border:1px solid #00cec9">
+        <div id="m0-boss-hp-bar" style="height:100%;background:linear-gradient(90deg,#00cec9,#00b894);border-radius:5px;transition:width .4s;width:50%"></div>
+      </div>
+    </div>
+    <!-- Question -->
+    <div id="m0-question" style="flex-shrink:0;text-align:center;background:rgba(0,0,0,.75);color:#fff;font-size:2.6rem;font-weight:700;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1);letter-spacing:1px">? = ?</div>
+    <!-- Input + Answer -->
+    <div style="display:flex;gap:8px;padding:10px 3%;flex-shrink:0;align-items:stretch">
+      <input type="number" id="m0-answer" placeholder="?" autocomplete="off" inputmode="numeric"
+        style="flex:1;font-size:2rem;font-weight:700;padding:8px 10px;border-radius:12px;border:3px solid #00cec9;background:rgba(255,255,255,.96);text-align:center;min-width:0">
+      <button onclick="checkMath0Answer()"
+        style="flex-shrink:0;padding:8px 16px;background:linear-gradient(135deg,#00b894,#00cec9);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;white-space:nowrap">✅ Відповідь</button>
+    </div>
+    <!-- Feedback -->
+    <div id="m0-feedback" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.96);padding:24px 40px;border-radius:20px;color:#fff;text-align:center;z-index:9200;min-width:220px">
+      <div id="m0-fb-title" style="font-size:2.4rem;margin-bottom:8px">✅</div>
+      <div id="m0-fb-detail" style="font-size:1.5rem"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// МАТЕМАТИКА-0 GAME LOGIC
+// ═══════════════════════════════════════════════════════════
+const MATH0_BOSS_START_HP = 1500;
+const MATH0_BOSS_DEFEAT_HP = 3000;
+const MATH0_REGEN = [0, 30, 40]; // index = level
+const MATH0_REWARD = [0, 1000, 2000]; // stars on victory
+const MATH0_BOSS_ICONS = ['👾','🤖'];
+
+let math0State = null;
+let math0Interval = null;
+let math0TimerLeft = 10;
+
+function openMath0Game(){
+  document.getElementById('main').style.display = 'none';
+  const el = document.getElementById('math0-game');
+  el.style.display = 'flex';
+  document.getElementById('m0-level-select').style.display = 'flex';
+  document.getElementById('m0-game-area').style.display = 'none';
+  document.getElementById('m0-stars-lbl').textContent = '0';
+  document.getElementById('m0-level-lbl').textContent = 'Оберіть рівень';
+}
+
+function closeMath0(){
+  if(math0Interval){ clearInterval(math0Interval); math0Interval = null; }
+  math0State = null;
+  document.getElementById('math0-game').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+}
+
+function startMath0Level(level){
+  document.getElementById('m0-level-select').style.display = 'none';
+  document.getElementById('m0-game-area').style.display = 'flex';
+  document.getElementById('m0-level-lbl').textContent = 'Рівень ' + level;
+  const icon = MATH0_BOSS_ICONS[level-1] || '👾';
+  document.getElementById('m0-boss-icon').textContent = icon;
+
+  math0State = {
+    level,
+    hp: MATH0_BOSS_START_HP,
+    regen: MATH0_REGEN[level],
+    currentQ: null,
+    totalDmg: 0
+  };
+  math0TimerLeft = 10;
+  updateMath0UI();
+  nextMath0Question();
+
+  if(math0Interval) clearInterval(math0Interval);
+  math0Interval = setInterval(()=>{
+    if(!math0State) return;
+    math0TimerLeft--;
+    document.getElementById('m0-regen-txt').textContent = `+${math0State.regen}/${math0TimerLeft}с`;
+    if(math0TimerLeft <= 0){
+      math0TimerLeft = 10;
+      math0State.hp = Math.min(MATH0_BOSS_DEFEAT_HP, math0State.hp + math0State.regen);
+      updateMath0UI(math0State.regen);
+      if(math0State.hp >= MATH0_BOSS_DEFEAT_HP){ math0EndGame(false); }
+    }
+  }, 1000);
+
+  document.getElementById('m0-answer').onkeypress = e => {
+    if(e.key === 'Enter') checkMath0Answer();
+  };
+}
+
+function nextMath0Question(){
+  if(!math0State) return;
+  const lvl = math0State.level;
+  let q;
+  const use3 = Math.random() < 0.5;
+  if(lvl === 1){
+    // Addition only
+    const a = Math.floor(Math.random()*10);
+    const b = Math.floor(Math.random()*10);
+    if(use3){
+      const c = Math.floor(Math.random()*10);
+      q = { q: `${a} + ${b} + ${c} = ?`, a: a+b+c, dmg: 20 };
+    } else {
+      q = { q: `${a} + ${b} = ?`, a: a+b, dmg: 10 };
+    }
+  } else {
+    // Level 2: addition and subtraction, result always > 0
+    const tryGen = () => {
+      const a = Math.floor(Math.random()*10);
+      const b = Math.floor(Math.random()*10);
+      const ops = ['+','-'];
+      const op1 = ops[Math.floor(Math.random()*2)];
+      if(!use3){
+        if(op1 === '-'){
+          const big = Math.max(a,b), small = Math.min(a,b);
+          if(big === 0) return null;
+          return { q: `${big} − ${small} = ?`, a: big-small, dmg: 20 }; // subtraction = 10 extra
+        }
+        return { q: `${a} + ${b} = ?`, a: a+b, dmg: 10 };
+      } else {
+        const c = Math.floor(Math.random()*10);
+        const op2 = ops[Math.floor(Math.random()*2)];
+        let res = op1==='+' ? a+b : a-b;
+        res = op2==='+' ? res+c : res-c;
+        if(res < 0) return null;
+        const q1 = op1==='+' ? `${a} + ${b}` : `${a} − ${b}`;
+        const q2 = op2==='+' ? `+ ${c}` : `− ${c}`;
+        const hasSub = (op1==='-'||op2==='-');
+        return { q: `${q1} ${q2} = ?`, a: res, dmg: hasSub ? 30 : 20 };
+      }
+    };
+    let attempt = null;
+    for(let i=0;i<20;i++){ attempt = tryGen(); if(attempt) break; }
+    q = attempt || { q: `3 + 4 = ?`, a: 7, dmg: 10 };
+  }
+  math0State.currentQ = q;
+  document.getElementById('m0-question').textContent = q.q;
+  const inp = document.getElementById('m0-answer');
+  inp.value = '';
+  inp.style.borderColor = '#00cec9';
+  inp.style.background = 'rgba(255,255,255,.96)';
+  inp.focus();
+}
+
+function checkMath0Answer(){
+  if(!math0State) return;
+  const inp = document.getElementById('m0-answer');
+  const val = inp.value.trim();
+  if(!val) return;
+  const answer = parseInt(val, 10);
+  const q = math0State.currentQ;
+  if(answer === q.a){
+    const dmgMod = typeof getUserBossDmgMod === 'function' ? getUserBossDmgMod() : 1;
+    const dmg = Math.round(q.dmg * dmgMod);
+    math0State.hp = Math.max(0, math0State.hp - dmg);
+    math0State.totalDmg += dmg;
+    inp.style.borderColor = '#00b894';
+    inp.style.background = '#d4edda';
+    updateMath0UI(-dmg);
+    showMath0Feedback(true, `−${dmg} HP`);
+    if(math0State.hp <= 0){ math0EndGame(true); return; }
+    setTimeout(()=>{ hideMath0Feedback(); nextMath0Question(); }, 900);
+  } else {
+    inp.style.borderColor = '#e74c3c';
+    inp.style.background = '#f8d7da';
+    showMath0Feedback(false, `Відповідь: ${q.a}`);
+    setTimeout(()=>{ hideMath0Feedback(); nextMath0Question(); }, 1400);
+  }
+}
+
+function updateMath0UI(change){
+  if(!math0State) return;
+  const hp = math0State.hp;
+  const pct = Math.max(0, Math.min(100, (hp/MATH0_BOSS_DEFEAT_HP)*100));
+  document.getElementById('m0-boss-hp-bar').style.width = pct + '%';
+  document.getElementById('m0-boss-hp-text').textContent = hp;
+  const bar = document.getElementById('m0-boss-hp-bar');
+  if(pct < 33) bar.style.background = 'linear-gradient(90deg,#00e676,#00c853)';
+  else if(pct < 66) bar.style.background = 'linear-gradient(90deg,#ffca28,#ff8f00)';
+  else bar.style.background = 'linear-gradient(90deg,#00cec9,#00b894)';
+  if(change !== undefined){
+    const el = document.getElementById('m0-boss-change-txt');
+    const sign = change > 0 ? '+' : '';
+    el.textContent = sign + change;
+    el.style.color = change < 0 ? '#00e676' : '#ff4444';
+    el.style.transform = 'scale(1.5)';
+    clearTimeout(el._t);
+    el._t = setTimeout(()=>{ el.style.transform='scale(1)'; setTimeout(()=>{el.textContent=' ';},400); }, 900);
+  }
+  document.getElementById('m0-stars-lbl').textContent = math0State.totalDmg;
+}
+
+function showMath0Feedback(ok, detail){
+  const fb = document.getElementById('m0-feedback');
+  document.getElementById('m0-fb-title').textContent = ok ? '✅ Правильно!' : '❌ Неправильно';
+  document.getElementById('m0-fb-title').style.color = ok ? '#00ff88' : '#ff4444';
+  document.getElementById('m0-fb-detail').textContent = detail;
+  fb.style.display = 'block';
+}
+function hideMath0Feedback(){
+  document.getElementById('m0-feedback').style.display = 'none';
+}
+
+function math0EndGame(victory){
+  if(math0Interval){ clearInterval(math0Interval); math0Interval = null; }
+  const lvl = math0State ? math0State.level : 1;
+  math0State = null;
+  hideMath0Feedback();
+  if(victory){
+    const stars = MATH0_REWARD[lvl] || 1000;
+    const user = getUser();
+    user.stars += stars;
+    saveUser(user);
+    updateUI();
+    // Show leaderboard / alert
+    setTimeout(()=>{
+      alert(`🎉 ПЕРЕМОГА!\nРівень ${lvl} пройдено!\n\n+${stars}⭐ додано!`);
+      closeMath0();
+    }, 200);
+  } else {
+    setTimeout(()=>{
+      alert('💀 ПОРАЗКА! БоСС пережив атаку...');
+      closeMath0();
+    }, 200);
+  }
+}
+window.openMath0Game = openMath0Game;
+window.closeMath0 = closeMath0;
+window.startMath0Level = startMath0Level;
+window.checkMath0Answer = checkMath0Answer;
+</script>
+
 </body>
 </html>
