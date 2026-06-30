@@ -2745,16 +2745,37 @@ function loginShowExistingProfile(){
   setTimeout(()=>document.getElementById('existing-profile-name').focus(), 100);
 }
 
-function loginByNamePassword(){
+async function loginByNamePassword(){
   const name=(document.getElementById('existing-profile-name').value||'').trim();
   const pwd=document.getElementById('existing-profile-pwd').value||'';
   const msg=document.getElementById('existing-sync-msg');
   if(!name){msg.style.color='#e74c3c';msg.textContent='❌ Введіть ім\'я профілю';return;}
   const profiles=loadAllProfiles();
-  const found=Object.entries(profiles).find(([id,p])=>p.name&&p.name.toLowerCase()===name.toLowerCase());
+  let found=Object.entries(profiles).find(([id,p])=>p.name&&p.name.toLowerCase()===name.toLowerCase());
+  // Profile not found locally — try fetching it from the cloud (e.g. created on another device)
+  if(!found){
+    if(typeof fbReady==='function' && fbReady()){
+      msg.style.color='#0096c7';msg.textContent='🔄 Шукаємо профіль у хмарі...';
+      try{
+        const fb=window._fb;
+        const key=name.replace(/[.#$\[\]/]/g,'_');
+        const snap=await fb.get(fb.ref(fb.db,`cloud_profiles/${key}`));
+        if(snap.exists()){
+          const cloudProfile=snap.val();
+          if(cloudProfile && cloudProfile.name){
+            const newId=cloudProfile.id||('p_'+Date.now());
+            profiles[newId]={...cloudProfile,id:newId};
+            saveAllProfilesLocal(profiles);
+            found=[newId,profiles[newId]];
+          }
+        }
+      }catch(e){ /* ignore, fall through to not-found message */ }
+    }
+  }
   if(!found){msg.style.color='#e74c3c';msg.textContent='❌ Профіль не знайдено';return;}
   const [id,p]=found;
   if(p.pin && p.pin!==pwd){msg.style.color='#e74c3c';msg.textContent='❌ Невірний пароль';document.getElementById('existing-profile-pwd').value='';return;}
+  msg.textContent='';
   _activeProfileId=id;
   sessionStorage.setItem(ACTIVE_KEY,id);
   document.getElementById('login-screen').style.display='none';
@@ -7574,10 +7595,47 @@ document.addEventListener('DOMContentLoaded', () => {
       <span>🔴 Рівень 2 — додавання та віднімання 2 або 3 чисел (0–9)</span>
       <span style="background:linear-gradient(135deg,#ff4444,#cc0000);color:#fff;padding:3px 12px;border-radius:16px;font-size:.9rem;font-weight:700">+2000⭐</span>
     </button>
+    <button onclick="math0CoopOpen()" style="width:100%;max-width:420px;padding:13px 22px;margin:14px 0 0;background:rgba(255,255,255,.08);border:2px dashed #ffd700;border-radius:14px;color:#ffd700;font-size:1rem;font-weight:700;cursor:pointer">🤝 Кооперативний режим (з другом)</button>
+  </div>
+
+  <!-- Coop room screens -->
+  <div id="m0-coop-screen" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:24px;color:#fff">
+    <div id="m0-coop-step-choose">
+      <div style="font-size:1.4rem;font-weight:900;margin-bottom:18px;text-align:center">🤝 Кооперативний режим</div>
+      <button onclick="math0CoopCreateRoom()" style="width:260px;padding:13px;margin:6px 0;background:linear-gradient(135deg,#00b894,#00cec9);border:none;border-radius:12px;color:#fff;font-weight:700;font-size:1rem;cursor:pointer">➕ Створити кімнату</button><br>
+      <button onclick="math0CoopShowJoin()" style="width:260px;padding:13px;margin:6px 0;background:linear-gradient(135deg,#e67e22,#d35400);border:none;border-radius:12px;color:#fff;font-weight:700;font-size:1rem;cursor:pointer">📲 Приєднатись по коду</button><br>
+      <button onclick="math0CloseCoop()" style="width:260px;padding:10px;margin:10px 0 0;background:none;border:none;color:#aaa;cursor:pointer;text-decoration:underline">← Назад</button>
+    </div>
+    <div id="m0-coop-step-created" style="display:none;text-align:center">
+      <div style="color:#aaa;margin-bottom:6px">Код кімнати:</div>
+      <div id="m0-coop-room-code-display" class="mp-code-val" style="font-size:2.4rem;font-weight:900;color:#ffd700;letter-spacing:6px;margin-bottom:14px">----</div>
+      <select id="m0-coop-level-select" style="width:260px;padding:9px;border-radius:9px;border:2px solid #00cec9;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;margin-bottom:12px">
+        <option value="1">🟢 Рівень 1</option>
+        <option value="2">🔴 Рівень 2</option>
+      </select><br>
+      <div class="mp-player-list" id="m0-coop-player-list-created" style="margin-bottom:12px"></div>
+      <button onclick="math0CoopHostStart()" style="width:260px;padding:13px;background:linear-gradient(135deg,#00b894,#00cec9);border:none;border-radius:12px;color:#fff;font-weight:700;font-size:1rem;cursor:pointer">▶️ Почати гру</button><br>
+      <button onclick="math0CoopLeaveRoom()" style="width:260px;padding:10px;margin-top:8px;background:none;border:none;color:#e74c3c;cursor:pointer;text-decoration:underline">Вийти з кімнати</button>
+    </div>
+    <div id="m0-coop-step-join" style="display:none;text-align:center">
+      <input id="m0-coop-join-input" placeholder="XXXXX" maxlength="6" style="width:260px;padding:11px;border-radius:10px;border:2px solid #00cec9;background:rgba(255,255,255,.1);color:#fff;font-size:1.2rem;text-align:center;letter-spacing:4px;font-weight:700;margin-bottom:10px;text-transform:uppercase"><br>
+      <button onclick="math0CoopJoinRoom()" style="width:260px;padding:13px;background:linear-gradient(135deg,#00b894,#00cec9);border:none;border-radius:12px;color:#fff;font-weight:700;font-size:1rem;cursor:pointer">✓ Приєднатись</button>
+      <div id="m0-coop-join-err" style="color:#e74c3c;display:none;margin-top:8px"></div><br>
+      <button onclick="math0CoopShowChoose()" style="width:260px;padding:10px;margin-top:8px;background:none;border:none;color:#aaa;cursor:pointer;text-decoration:underline">← Назад</button>
+    </div>
+    <div id="m0-coop-step-joined" style="display:none;text-align:center">
+      <div style="color:#aaa;margin-bottom:6px">Код кімнати:</div>
+      <div id="m0-coop-joined-code" style="font-size:2.4rem;font-weight:900;color:#ffd700;letter-spacing:6px;margin-bottom:14px">----</div>
+      <div class="mp-player-list" id="m0-coop-player-list-joined" style="margin-bottom:12px"></div>
+      <div style="color:#aaa;font-size:.85rem;margin-bottom:8px">Очікування на хоста...</div>
+      <button onclick="math0CoopLeaveRoom()" style="width:260px;padding:10px;background:none;border:none;color:#e74c3c;cursor:pointer;text-decoration:underline">Вийти з кімнати</button>
+    </div>
   </div>
 
   <!-- Game area -->
   <div id="m0-game-area" style="flex:1;display:none;flex-direction:column;align-items:stretch">
+    <!-- Coop players HUD -->
+    <div id="m0-coop-hud" style="display:none;padding:5px 3%;background:rgba(0,0,0,.7);border-bottom:1px solid #ffd700;flex-shrink:0;flex-wrap:wrap;gap:8px"></div>
     <!-- Boss HP panel -->
     <div style="padding:7px 3% 6px;background:rgba(0,0,0,.88);flex-shrink:0;border-bottom:2px solid #00cec9">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
@@ -7620,13 +7678,16 @@ const MATH0_BOSS_ICONS = ['👾','🤖'];
 let math0State = null;
 let math0Interval = null;
 let math0TimerLeft = 10;
+let math0MpState = null;
 
 function openMath0Game(){
   document.getElementById('main').style.display = 'none';
   const el = document.getElementById('math0-game');
   el.style.display = 'flex';
   document.getElementById('m0-level-select').style.display = 'flex';
+  document.getElementById('m0-coop-screen').style.display = 'none';
   document.getElementById('m0-game-area').style.display = 'none';
+  document.getElementById('m0-coop-hud').style.display = 'none';
   document.getElementById('m0-stars-lbl').textContent = '0';
   document.getElementById('m0-level-lbl').textContent = 'Оберіть рівень';
 }
@@ -7634,11 +7695,219 @@ function openMath0Game(){
 function closeMath0(){
   if(math0Interval){ clearInterval(math0Interval); math0Interval = null; }
   math0State = null;
+  if(math0MpState){
+    const fb = mpFb();
+    if(math0MpState.fbListeners) math0MpState.fbListeners.forEach(l=>{ try{ fb&&fb.off(l.r,l.cb); }catch{} });
+    const code = math0MpState.roomCode, myId = math0MpState.myId, isHost = math0MpState.isHost;
+    math0MpState = null;
+    try{
+      if(fb && code){
+        if(isHost) fb.remove(fb.ref(fb.db,`math0_rooms/${code}`));
+        else if(myId) mpUpdate(`math0_rooms/${code}/players/${myId}`,{online:false});
+      }
+    }catch{}
+  }
+  document.getElementById('m0-coop-hud').style.display = 'none';
+  document.getElementById('m0-coop-screen').style.display = 'none';
   document.getElementById('math0-game').style.display = 'none';
   document.getElementById('main').style.display = 'block';
 }
 
+// ── Кооперативний режим Математика-0 (Firebase realtime) ──
+function math0CoopOpen(){
+  document.getElementById('m0-level-select').style.display = 'none';
+  document.getElementById('m0-coop-screen').style.display = 'flex';
+  math0CoopShowChoose();
+}
+function math0CloseCoop(){
+  document.getElementById('m0-coop-screen').style.display = 'none';
+  document.getElementById('m0-level-select').style.display = 'flex';
+}
+function math0CoopShowStep(stepId){
+  ['m0-coop-step-choose','m0-coop-step-created','m0-coop-step-join','m0-coop-step-joined'].forEach(id=>{
+    document.getElementById(id).style.display = id===stepId ? 'block' : 'none';
+  });
+}
+function math0CoopShowChoose(){ math0CoopShowStep('m0-coop-step-choose'); }
+function math0CoopShowJoin(){
+  math0CoopShowStep('m0-coop-step-join');
+  document.getElementById('m0-coop-join-err').style.display='none';
+  document.getElementById('m0-coop-join-input').value='';
+}
+
+async function math0CoopCreateRoom(){
+  if(!window._fbReady){ alert('❌ Хмара недоступна. Перевірте інтернет-з\'єднання.'); return; }
+  const info = mpMyInfoEn();
+  const code = mpGenCode();
+  const myId = 'p_' + Date.now();
+  const roomData = {
+    host: info.name, level: 1, status: 'waiting', hp: MATH0_BOSS_START_HP, createdAt: Date.now(),
+    players: { [myId]: { name: info.name, avatar: info.avatar, photoUrl: info.photoUrl||null, dmg: 0, online: true } }
+  };
+  try { await mpSet(`math0_rooms/${code}`, roomData); } catch(e){ alert('❌ '+e.message); return; }
+  math0MpState = { roomCode: code, myId, myName: info.name, myAvatar: info.avatar, isHost: true, level: 1, hp: MATH0_BOSS_START_HP, fbListeners: [] };
+  document.getElementById('m0-coop-room-code-display').textContent = code;
+  math0CoopShowStep('m0-coop-step-created');
+  math0CoopListenRoom();
+}
+
+async function math0CoopJoinRoom(){
+  if(!window._fbReady){ alert('❌ Хмара недоступна. Перевірте інтернет-з\'єднання.'); return; }
+  const code = (document.getElementById('m0-coop-join-input').value||'').trim().toUpperCase();
+  const errEl = document.getElementById('m0-coop-join-err');
+  errEl.style.display='none';
+  if(code.length<4){ errEl.textContent='❌ Введіть правильний код'; errEl.style.display='block'; return; }
+  let snap;
+  try { snap = await mpGet(`math0_rooms/${code}`); } catch(e){ errEl.textContent='❌ Помилка'; errEl.style.display='block'; return; }
+  if(!snap.exists()){ errEl.textContent='❌ Кімнату не знайдено'; errEl.style.display='block'; return; }
+  const room = snap.val();
+  if(room.status==='playing'){ errEl.textContent='❌ Гра вже йде'; errEl.style.display='block'; return; }
+  const info = mpMyInfoEn();
+  const myId = 'p_' + Date.now();
+  try { await mpSet(`math0_rooms/${code}/players/${myId}`, { name: info.name, avatar: info.avatar, photoUrl: info.photoUrl||null, dmg: 0, online: true }); }
+  catch(e){ errEl.textContent='❌ '+e.message; errEl.style.display='block'; return; }
+  math0MpState = { roomCode: code, myId, myName: info.name, myAvatar: info.avatar, isHost: false, level: room.level||1, hp: room.hp||MATH0_BOSS_START_HP, fbListeners: [] };
+  document.getElementById('m0-coop-joined-code').textContent = code;
+  math0CoopShowStep('m0-coop-step-joined');
+  math0CoopListenRoom();
+}
+
+function math0CoopListenRoom(){
+  if(!math0MpState) return;
+  const code = math0MpState.roomCode;
+  const fb = mpFb();
+  if(!fb) return;
+  const r = fb.ref(fb.db, `math0_rooms/${code}`);
+  const cb = snap => {
+    if(!snap.exists()){ math0CoopLeaveRoom(true); return; }
+    const room = snap.val();
+    math0CoopRenderPlayerList(room.players||{});
+    if(!math0MpState.isHost && room.level) math0MpState.level = room.level;
+    if(room.status==='playing' && !math0State){
+      math0StartCoopGame(room.level||1);
+    }
+    if(room.status==='playing' && math0State){
+      math0MpState.hp = room.hp;
+      math0State.hp = room.hp;
+      updateMath0UI();
+    }
+    if(room.status==='victory' && math0State){ math0EndGame(true); }
+    else if(room.status==='defeat' && math0State){ math0EndGame(false); }
+    if(math0State) math0CoopUpdateHud(room.players||{});
+  };
+  fb.onValue(r, cb);
+  math0MpState.fbListeners.push({r, cb});
+}
+
+function math0CoopRenderPlayerList(players){
+  ['m0-coop-player-list-created','m0-coop-player-list-joined'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    const allProfiles = typeof loadAllProfiles==='function' ? loadAllProfiles() : {};
+    const photoByName = {};
+    Object.values(allProfiles).forEach(pr=>{ if(pr.data&&pr.data.photoDataUrl) photoByName[pr.name]=pr.data.photoDataUrl; });
+    el.innerHTML = Object.values(players).map(p=>{
+      const photo = p.photoUrl||photoByName[p.name];
+      const avatarHtml = photo
+        ? `<img src="${photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid #00cec9;flex-shrink:0">`
+        : `<span style="font-size:1.5rem">${p.avatar||'👤'}</span>`;
+      return `<div class="mp-player-row">${avatarHtml}<span>${p.name}</span><span class="mp-dmg">⚔️${p.dmg||0}</span></div>`;
+    }).join('') || '<div style="color:#888">Немає гравців</div>';
+  });
+}
+
+function math0CoopUpdateHud(players){
+  const hud = document.getElementById('m0-coop-hud');
+  if(!hud) return;
+  hud.style.display = 'flex';
+  const playerArr = Object.values(players).slice(0,5);
+  const allProfiles = typeof loadAllProfiles==='function' ? loadAllProfiles() : {};
+  const photoByName = {};
+  Object.values(allProfiles).forEach(pr=>{ if(pr.data&&pr.data.photoDataUrl) photoByName[pr.name]=pr.data.photoDataUrl; });
+  hud.innerHTML = playerArr.map((p,i)=>{
+    const col = (typeof MP_PLAYER_COLORS!=='undefined' ? MP_PLAYER_COLORS : ['#ffd700'])[i % ((typeof MP_PLAYER_COLORS!=='undefined'?MP_PLAYER_COLORS.length:1))];
+    const photo = p.photoUrl||photoByName[p.name];
+    const avatarHtml = photo
+      ? `<img src="${photo}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid ${col}">`
+      : `<div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid ${col};display:flex;align-items:center;justify-content:center;font-size:1.2rem">${p.avatar||'👤'}</div>`;
+    return `<div style="display:flex;align-items:center;gap:5px">${avatarHtml}<span style="font-size:.7rem;color:${col};font-weight:700">${p.name}</span><span style="font-size:.7rem;color:#00e676;font-weight:900">⚔️${p.dmg||0}</span></div>`;
+  }).join('');
+}
+
+async function math0CoopHostStart(){
+  if(!math0MpState||!math0MpState.isHost) return;
+  const lvl = parseInt(document.getElementById('m0-coop-level-select').value)||1;
+  math0MpState.level = lvl;
+  try {
+    await mpUpdate(`math0_rooms/${math0MpState.roomCode}`, { level: lvl, status: 'playing', hp: MATH0_BOSS_START_HP });
+  } catch(e){ alert('❌ '+e.message); }
+}
+
+async function math0CoopLeaveRoom(silent){
+  if(math0MpState){
+    const fb = mpFb();
+    if(math0MpState.fbListeners) math0MpState.fbListeners.forEach(l=>{ try{ fb&&fb.off(l.r,l.cb); }catch{} });
+    if(fb && math0MpState.roomCode && math0MpState.myId){
+      try{ await mpUpdate(`math0_rooms/${math0MpState.roomCode}/players/${math0MpState.myId}`, {online:false}); }catch{}
+      if(math0MpState.isHost){
+        try{ await fb.remove(fb.ref(fb.db,`math0_rooms/${math0MpState.roomCode}`)); }catch{}
+      }
+    }
+    math0MpState = null;
+  }
+  if(math0State){
+    if(math0Interval){ clearInterval(math0Interval); math0Interval=null; }
+    math0State = null;
+    document.getElementById('m0-coop-hud').style.display='none';
+  }
+  if(!silent) math0CoopOpen();
+}
+
+function math0StartCoopGame(level){
+  document.getElementById('m0-coop-screen').style.display = 'none';
+  document.getElementById('m0-level-select').style.display = 'none';
+  document.getElementById('m0-game-area').style.display = 'flex';
+  document.getElementById('m0-coop-hud').style.display = 'flex';
+  document.getElementById('m0-level-lbl').textContent = '🤝 Рівень ' + level;
+  const icon = MATH0_BOSS_ICONS[level-1] || '👾';
+  document.getElementById('m0-boss-icon').textContent = icon;
+
+  math0State = {
+    level,
+    hp: (math0MpState ? math0MpState.hp : MATH0_BOSS_START_HP) || MATH0_BOSS_START_HP,
+    regen: MATH0_REGEN[level],
+    currentQ: null,
+    totalDmg: 0
+  };
+  math0TimerLeft = 10;
+  updateMath0UI();
+  nextMath0Question();
+
+  if(math0Interval) clearInterval(math0Interval);
+  math0Interval = setInterval(async ()=>{
+    if(!math0State) return;
+    math0TimerLeft--;
+    document.getElementById('m0-regen-txt').textContent = `+${math0State.regen}/${math0TimerLeft}с`;
+    if(math0TimerLeft <= 0){
+      math0TimerLeft = 10;
+      if(math0MpState && math0MpState.isHost){
+        const newHp = Math.min(MATH0_BOSS_DEFEAT_HP, (math0MpState.hp||MATH0_BOSS_START_HP) + math0State.regen);
+        math0MpState.hp = newHp;
+        try{ await mpUpdate(`math0_rooms/${math0MpState.roomCode}`, {hp:newHp}); }catch{}
+        updateMath0UI(math0State.regen);
+        if(newHp >= MATH0_BOSS_DEFEAT_HP){ try{ await mpUpdate(`math0_rooms/${math0MpState.roomCode}`, {status:'defeat'}); }catch{} }
+      }
+    }
+  }, 1000);
+
+  document.getElementById('m0-answer').onkeypress = e => {
+    if(e.key === 'Enter') checkMath0Answer();
+  };
+}
+
 function startMath0Level(level){
+  math0MpState = null;
+  document.getElementById('m0-coop-hud').style.display = 'none';
   document.getElementById('m0-level-select').style.display = 'none';
   document.getElementById('m0-game-area').style.display = 'flex';
   document.getElementById('m0-level-lbl').textContent = 'Рівень ' + level;
@@ -7728,7 +7997,7 @@ function nextMath0Question(){
   inp.focus();
 }
 
-function checkMath0Answer(){
+async function checkMath0Answer(){
   if(!math0State) return;
   const inp = document.getElementById('m0-answer');
   const val = inp.value.trim();
@@ -7738,14 +8007,33 @@ function checkMath0Answer(){
   if(answer === q.a){
     const dmgMod = typeof getUserBossDmgMod === 'function' ? getUserBossDmgMod() : 1;
     const dmg = Math.round(q.dmg * dmgMod);
-    math0State.hp = Math.max(0, math0State.hp - dmg);
-    math0State.totalDmg += dmg;
     inp.style.borderColor = '#00b894';
     inp.style.background = '#d4edda';
-    updateMath0UI(-dmg);
-    showMath0Feedback(true, `−${dmg} HP`);
-    if(math0State.hp <= 0){ math0EndGame(true); return; }
-    setTimeout(()=>{ hideMath0Feedback(); nextMath0Question(); }, 900);
+    if(math0MpState){
+      const curHp = math0MpState.hp !== undefined ? math0MpState.hp : math0State.hp;
+      const newHp = Math.max(0, curHp - dmg);
+      math0MpState.hp = newHp;
+      math0State.hp = newHp;
+      math0State.totalDmg += dmg;
+      updateMath0UI(-dmg);
+      showMath0Feedback(true, `−${dmg} HP`);
+      try{
+        const snap = await mpGet(`math0_rooms/${math0MpState.roomCode}/players/${math0MpState.myId}`);
+        const prevDmg = snap.exists() ? (snap.val().dmg||0) : 0;
+        await mpUpdate(`math0_rooms/${math0MpState.roomCode}/players/${math0MpState.myId}`, {dmg: prevDmg+dmg});
+        await mpUpdate(`math0_rooms/${math0MpState.roomCode}`, {hp:newHp});
+        if(newHp<=0) await mpUpdate(`math0_rooms/${math0MpState.roomCode}`, {status:'victory'});
+      }catch(e){}
+      if(newHp<=0) return; // wait for room status listener to end the game
+      setTimeout(()=>{ hideMath0Feedback(); nextMath0Question(); }, 900);
+    } else {
+      math0State.hp = Math.max(0, math0State.hp - dmg);
+      math0State.totalDmg += dmg;
+      updateMath0UI(-dmg);
+      showMath0Feedback(true, `−${dmg} HP`);
+      if(math0State.hp <= 0){ math0EndGame(true); return; }
+      setTimeout(()=>{ hideMath0Feedback(); nextMath0Question(); }, 900);
+    }
   } else {
     inp.style.borderColor = '#e74c3c';
     inp.style.background = '#f8d7da';
@@ -7792,6 +8080,21 @@ function math0EndGame(victory){
   const lvl = math0State ? math0State.level : 1;
   math0State = null;
   hideMath0Feedback();
+  if(math0MpState){
+    document.getElementById('m0-coop-hud').style.display = 'none';
+    const fb = mpFb();
+    if(math0MpState.fbListeners) math0MpState.fbListeners.forEach(l=>{ try{ fb&&fb.off(l.r,l.cb); }catch{} });
+    const code = math0MpState.roomCode, myId = math0MpState.myId, isHost = math0MpState.isHost;
+    math0MpState = null;
+    setTimeout(()=>{
+      try{
+        if(fb && code){
+          if(isHost) fb.remove(fb.ref(fb.db,`math0_rooms/${code}`));
+          else if(myId) mpUpdate(`math0_rooms/${code}/players/${myId}`, {online:false});
+        }
+      }catch{}
+    }, 300);
+  }
   if(victory){
     const stars = MATH0_REWARD[lvl] || 1000;
     const user = getUser();
@@ -7810,6 +8113,14 @@ function math0EndGame(victory){
     }, 200);
   }
 }
+window.math0CoopOpen = math0CoopOpen;
+window.math0CloseCoop = math0CloseCoop;
+window.math0CoopShowChoose = math0CoopShowChoose;
+window.math0CoopShowJoin = math0CoopShowJoin;
+window.math0CoopCreateRoom = math0CoopCreateRoom;
+window.math0CoopJoinRoom = math0CoopJoinRoom;
+window.math0CoopHostStart = math0CoopHostStart;
+window.math0CoopLeaveRoom = math0CoopLeaveRoom;
 window.openMath0Game = openMath0Game;
 window.closeMath0 = closeMath0;
 window.startMath0Level = startMath0Level;
