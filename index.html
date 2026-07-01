@@ -66,6 +66,11 @@
   document.dispatchEvent(new Event('fbReady'));
 </script>
 
+<!-- PeerJS for WebRTC coop -->
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<!-- QRCode for sync -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
 <!-- ICONS -->
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='96' fill='%23FFD700'/%3E%3Crect y='96' width='192' height='96' fill='%23005BBB'/%3E%3Cpath d='M96 140 C96 140 40 105 40 72 C40 52 55 38 72 38 C83 38 92 44 96 52 C100 44 109 38 120 38 C137 38 152 52 152 72 C152 105 96 140 96 140Z' fill='%23FF69B4' stroke='%23FF1493' stroke-width='3'/%3E%3C/svg%3E">
@@ -311,6 +316,17 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       <div class="login-profiles" id="login-profiles-list"></div>
       <button class="login-new-btn" onclick="loginShowNewProfile()">➕ Новий профіль</button>
       <button class="login-new-btn" onclick="loginShowExistingProfile()" style="background:linear-gradient(135deg,#27ae60,#229954);margin-top:6px">📲 Існуючий профіль</button>
+      <button class="login-new-btn" onclick="loginShowImportProfile()" style="background:linear-gradient(135deg,#e67e22,#d35400);margin-top:6px">📥 Перенести з іншого пристрою</button>
+    </div>
+
+    <!-- Import profile by code (new device login) -->
+    <div class="login-pin-screen" id="login-import-view">
+      <div class="pin-title" style="font-size:1.2rem;margin-bottom:6px;color:#e67e22;font-weight:700">📥 Перенести профіль</div>
+      <p style="color:#666;font-size:.85rem;margin-bottom:12px;text-align:center">Вставте код синхронізації або посилання з іншого пристрою</p>
+      <textarea id="import-profile-code" placeholder="Вставте код або посилання..." style="width:100%;height:90px;padding:10px;border-radius:10px;border:2px solid #e67e22;font-size:.78rem;font-family:monospace;resize:none;word-break:break-all;margin-bottom:10px;outline:none"></textarea>
+      <div id="import-profile-msg" style="min-height:1.2em;font-size:.9rem;font-weight:700;text-align:center;margin-bottom:10px"></div>
+      <button class="pin-submit-btn" style="background:linear-gradient(135deg,#e67e22,#d35400)" onclick="importProfileFromLogin()">📥 Завантажити профілі</button>
+      <div class="pin-back-link" onclick="loginShowProfiles()">← Назад до профілів</div>
     </div>
 
     <!-- Existing profile (password-only login) -->
@@ -404,6 +420,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="showDictionary()">📚 Словник</button>
 <button class="btn" onclick="exportData()">💾 Експорт</button>
 <button class="btn" onclick="showSyncModal()" style="background:linear-gradient(135deg,#00b4d8,#0096c7);position:relative" title="Синхронізація між пристроями">🔄 Синхронізація<span id="sync-status-dot" style="position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#aaa;border:2px solid #fff;display:block" title="Статус синхронізації"></span></button>
+<button class="btn" onclick="showPlayerLeaderboard()" style="background:linear-gradient(135deg,#f39c12,#e67e22)" title="Рейтинг гравців">🏆 Рейтинг</button>
 <button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="БоСС-Математика">💀 БоСС-Математика</button>
 <button class="btn" onclick="openMath0Game()" style="background:linear-gradient(135deg,#00b894,#00cec9)" title="Математика-0">🔢 Математика-0</button>
 <button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
@@ -975,37 +992,40 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
     <h2 style="color:#00b4d8;font-size:1.5rem;margin:0">🔄 Синхронізація</h2>
     <button onclick="closeSyncModal()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:#999">✕</button>
   </div>
-  <p style="color:#555;font-size:.95rem;margin-bottom:12px">Дані автоматично синхронізуються між усіма пристроями через хмару.</p>
-
-  <!-- Auto-sync status -->
-  <div id="auto-sync-status-box" style="background:#f0faff;border-radius:14px;padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:12px">
-    <div id="auto-sync-icon" style="font-size:1.8rem;flex-shrink:0">☁️</div>
-    <div style="flex:1;min-width:0">
-      <div style="font-weight:700;color:#0096c7;font-size:.95rem" id="auto-sync-title">Автосинхронізація</div>
-      <div style="color:#555;font-size:.82rem;margin-top:2px" id="auto-sync-desc">Перевірка стану…</div>
-    </div>
-    <button onclick="manualCloudSync()" id="manual-sync-btn" style="flex-shrink:0;padding:8px 14px;background:linear-gradient(135deg,#00b4d8,#0096c7);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer">🔄 Зараз</button>
+  <!-- Tabs -->
+  <div style="display:flex;gap:6px;margin-bottom:14px">
+    <button onclick="syncShowTab('send')" id="sync-tab-send" style="flex:1;padding:9px;border-radius:10px;border:2px solid #00b4d8;background:linear-gradient(135deg,#00b4d8,#0096c7);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer">📤 Передати</button>
+    <button onclick="syncShowTab('receive')" id="sync-tab-receive" style="flex:1;padding:9px;border-radius:10px;border:2px solid #e0e0e0;background:#f5f5f5;color:#888;font-weight:700;font-size:.9rem;cursor:pointer">📥 Отримати</button>
   </div>
 
-  <!-- Manual code section (collapsed) -->
-  <details style="margin-bottom:8px">
-    <summary style="cursor:pointer;font-weight:700;color:#888;font-size:.9rem;padding:8px 0;list-style:none">▸ Ручний перенос (без інтернету)</summary>
-    <div style="padding-top:10px">
-      <div style="background:#f0faff;border-radius:14px;padding:16px;margin-bottom:14px">
-        <div style="font-weight:700;color:#0096c7;margin-bottom:8px">📤 Передати з цього пристрою</div>
-        <button onclick="generateSyncCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#00b4d8,#0096c7);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px">Згенерувати код</button>
-        <div id="sync-code-out" style="display:none">
-          <textarea id="sync-code-text" readonly style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #00b4d8;font-size:.75rem;font-family:monospace;resize:none;word-break:break-all;color:#333"></textarea>
-          <button onclick="copySyncCode()" style="width:100%;padding:9px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:6px">📋 Скопіювати код</button>
-        </div>
-      </div>
-      <div style="background:#fff8f0;border-radius:14px;padding:16px">
-        <div style="font-weight:700;color:#e67e22;margin-bottom:8px">📥 Отримати на цей пристрій</div>
-        <textarea id="sync-code-in" placeholder="Вставте код синхронізації тут..." style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #e67e22;font-size:.75rem;font-family:monospace;resize:none;margin-bottom:8px;word-break:break-all"></textarea>
-        <button onclick="importSyncCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer">📥 Завантажити дані</button>
+  <!-- SEND tab -->
+  <div id="sync-panel-send">
+    <p style="color:#555;font-size:.88rem;margin-bottom:10px;text-align:center">Передайте профілі на інший пристрій через QR-код або текстовий код.</p>
+    <button onclick="generateSyncCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#00b4d8,#0096c7);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px">🔄 Згенерувати код / QR</button>
+    <div id="sync-code-out" style="display:none">
+      <div id="sync-qr-container" style="display:flex;justify-content:center;margin-bottom:10px;background:#fff;padding:10px;border-radius:10px;border:2px solid #00b4d8"></div>
+      <textarea id="sync-code-text" readonly style="width:100%;height:70px;padding:8px;border-radius:8px;border:2px solid #00b4d8;font-size:.72rem;font-family:monospace;resize:none;word-break:break-all;color:#333;margin-bottom:6px"></textarea>
+      <div style="display:flex;gap:6px">
+        <button onclick="copySyncCode()" style="flex:1;padding:9px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer">📋 Скопіювати</button>
+        <button onclick="shareSyncLink()" style="flex:1;padding:9px;background:linear-gradient(135deg,#764ba2,#667eea);color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer">🔗 Поділитись</button>
       </div>
     </div>
-  </details>
+    <!-- Auto-sync hidden status (kept for internal use) -->
+    <div id="auto-sync-status-box" style="display:none">
+      <div id="auto-sync-icon">☁️</div>
+      <div id="auto-sync-title">Автосинхронізація</div>
+      <div id="auto-sync-desc"></div>
+    </div>
+    <button id="manual-sync-btn" onclick="manualCloudSync()" style="display:none"></button>
+  </div>
+
+  <!-- RECEIVE tab -->
+  <div id="sync-panel-receive" style="display:none">
+    <p style="color:#555;font-size:.88rem;margin-bottom:10px;text-align:center">Вставте текстовий код або посилання, отримані з іншого пристрою.</p>
+    <textarea id="sync-code-in" placeholder="Вставте код синхронізації або посилання..." style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #e67e22;font-size:.75rem;font-family:monospace;resize:none;margin-bottom:8px;word-break:break-all"></textarea>
+    <button onclick="importSyncCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer">📥 Завантажити дані</button>
+  </div>
+
   <div id="sync-msg" style="margin-top:8px;text-align:center;font-weight:700;font-size:.95rem;min-height:1.4em"></div>
 </div>
 </div>
@@ -7695,25 +7715,15 @@ function openMath0Game(){
 function closeMath0(){
   if(math0Interval){ clearInterval(math0Interval); math0Interval = null; }
   math0State = null;
-  if(math0MpState){
-    const fb = mpFb();
-    if(math0MpState.fbListeners) math0MpState.fbListeners.forEach(l=>{ try{ fb&&fb.off(l.r,l.cb); }catch{} });
-    const code = math0MpState.roomCode, myId = math0MpState.myId, isHost = math0MpState.isHost;
-    math0MpState = null;
-    try{
-      if(fb && code){
-        if(isHost) fb.remove(fb.ref(fb.db,`math0_rooms/${code}`));
-        else if(myId) mpUpdate(`math0_rooms/${code}/players/${myId}`,{online:false});
-      }
-    }catch{}
-  }
+  if(math0MpState){ math0MpState = null; }
+  if(typeof _math0PeerCleanup==='function') _math0PeerCleanup();
   document.getElementById('m0-coop-hud').style.display = 'none';
   document.getElementById('m0-coop-screen').style.display = 'none';
   document.getElementById('math0-game').style.display = 'none';
   document.getElementById('main').style.display = 'block';
 }
 
-// ── Кооперативний режим Математика-0 (Firebase realtime) ──
+// ── Кооперативний режим Математика-0 (PeerJS WebRTC) ──
 function math0CoopOpen(){
   document.getElementById('m0-level-select').style.display = 'none';
   document.getElementById('m0-coop-screen').style.display = 'flex';
@@ -7735,69 +7745,8 @@ function math0CoopShowJoin(){
   document.getElementById('m0-coop-join-input').value='';
 }
 
-async function math0CoopCreateRoom(){
-  if(!window._fbReady){ alert('❌ Хмара недоступна. Перевірте інтернет-з\'єднання.'); return; }
-  const info = mpMyInfoEn();
-  const code = mpGenCode();
-  const myId = 'p_' + Date.now();
-  const roomData = {
-    host: info.name, level: 1, status: 'waiting', hp: MATH0_BOSS_START_HP, createdAt: Date.now(),
-    players: { [myId]: { name: info.name, avatar: info.avatar, photoUrl: info.photoUrl||null, dmg: 0, online: true } }
-  };
-  try { await mpSet(`math0_rooms/${code}`, roomData); } catch(e){ alert('❌ '+e.message); return; }
-  math0MpState = { roomCode: code, myId, myName: info.name, myAvatar: info.avatar, isHost: true, level: 1, hp: MATH0_BOSS_START_HP, fbListeners: [] };
-  document.getElementById('m0-coop-room-code-display').textContent = code;
-  math0CoopShowStep('m0-coop-step-created');
-  math0CoopListenRoom();
-}
-
-async function math0CoopJoinRoom(){
-  if(!window._fbReady){ alert('❌ Хмара недоступна. Перевірте інтернет-з\'єднання.'); return; }
-  const code = (document.getElementById('m0-coop-join-input').value||'').trim().toUpperCase();
-  const errEl = document.getElementById('m0-coop-join-err');
-  errEl.style.display='none';
-  if(code.length<4){ errEl.textContent='❌ Введіть правильний код'; errEl.style.display='block'; return; }
-  let snap;
-  try { snap = await mpGet(`math0_rooms/${code}`); } catch(e){ errEl.textContent='❌ Помилка'; errEl.style.display='block'; return; }
-  if(!snap.exists()){ errEl.textContent='❌ Кімнату не знайдено'; errEl.style.display='block'; return; }
-  const room = snap.val();
-  if(room.status==='playing'){ errEl.textContent='❌ Гра вже йде'; errEl.style.display='block'; return; }
-  const info = mpMyInfoEn();
-  const myId = 'p_' + Date.now();
-  try { await mpSet(`math0_rooms/${code}/players/${myId}`, { name: info.name, avatar: info.avatar, photoUrl: info.photoUrl||null, dmg: 0, online: true }); }
-  catch(e){ errEl.textContent='❌ '+e.message; errEl.style.display='block'; return; }
-  math0MpState = { roomCode: code, myId, myName: info.name, myAvatar: info.avatar, isHost: false, level: room.level||1, hp: room.hp||MATH0_BOSS_START_HP, fbListeners: [] };
-  document.getElementById('m0-coop-joined-code').textContent = code;
-  math0CoopShowStep('m0-coop-step-joined');
-  math0CoopListenRoom();
-}
-
-function math0CoopListenRoom(){
-  if(!math0MpState) return;
-  const code = math0MpState.roomCode;
-  const fb = mpFb();
-  if(!fb) return;
-  const r = fb.ref(fb.db, `math0_rooms/${code}`);
-  const cb = snap => {
-    if(!snap.exists()){ math0CoopLeaveRoom(true); return; }
-    const room = snap.val();
-    math0CoopRenderPlayerList(room.players||{});
-    if(!math0MpState.isHost && room.level) math0MpState.level = room.level;
-    if(room.status==='playing' && !math0State){
-      math0StartCoopGame(room.level||1);
-    }
-    if(room.status==='playing' && math0State){
-      math0MpState.hp = room.hp;
-      math0State.hp = room.hp;
-      updateMath0UI();
-    }
-    if(room.status==='victory' && math0State){ math0EndGame(true); }
-    else if(room.status==='defeat' && math0State){ math0EndGame(false); }
-    if(math0State) math0CoopUpdateHud(room.players||{});
-  };
-  fb.onValue(r, cb);
-  math0MpState.fbListeners.push({r, cb});
-}
+// math0CoopCreateRoom, math0CoopJoinRoom, math0CoopLeaveRoom, math0CoopHostStart
+// are now implemented via PeerJS below (see end of file)
 
 function math0CoopRenderPlayerList(players){
   ['m0-coop-player-list-created','m0-coop-player-list-joined'].forEach(id=>{
@@ -7834,34 +7783,7 @@ function math0CoopUpdateHud(players){
   }).join('');
 }
 
-async function math0CoopHostStart(){
-  if(!math0MpState||!math0MpState.isHost) return;
-  const lvl = parseInt(document.getElementById('m0-coop-level-select').value)||1;
-  math0MpState.level = lvl;
-  try {
-    await mpUpdate(`math0_rooms/${math0MpState.roomCode}`, { level: lvl, status: 'playing', hp: MATH0_BOSS_START_HP });
-  } catch(e){ alert('❌ '+e.message); }
-}
-
-async function math0CoopLeaveRoom(silent){
-  if(math0MpState){
-    const fb = mpFb();
-    if(math0MpState.fbListeners) math0MpState.fbListeners.forEach(l=>{ try{ fb&&fb.off(l.r,l.cb); }catch{} });
-    if(fb && math0MpState.roomCode && math0MpState.myId){
-      try{ await mpUpdate(`math0_rooms/${math0MpState.roomCode}/players/${math0MpState.myId}`, {online:false}); }catch{}
-      if(math0MpState.isHost){
-        try{ await fb.remove(fb.ref(fb.db,`math0_rooms/${math0MpState.roomCode}`)); }catch{}
-      }
-    }
-    math0MpState = null;
-  }
-  if(math0State){
-    if(math0Interval){ clearInterval(math0Interval); math0Interval=null; }
-    math0State = null;
-    document.getElementById('m0-coop-hud').style.display='none';
-  }
-  if(!silent) math0CoopOpen();
-}
+// math0CoopHostStart and math0CoopLeaveRoom replaced by PeerJS versions at end of file
 
 function math0StartCoopGame(level){
   document.getElementById('m0-coop-screen').style.display = 'none';
@@ -7893,9 +7815,10 @@ function math0StartCoopGame(level){
       if(math0MpState && math0MpState.isHost){
         const newHp = Math.min(MATH0_BOSS_DEFEAT_HP, (math0MpState.hp||MATH0_BOSS_START_HP) + math0State.regen);
         math0MpState.hp = newHp;
-        try{ await mpUpdate(`math0_rooms/${math0MpState.roomCode}`, {hp:newHp}); }catch{}
+        math0State.hp = newHp;
         updateMath0UI(math0State.regen);
-        if(newHp >= MATH0_BOSS_DEFEAT_HP){ try{ await mpUpdate(`math0_rooms/${math0MpState.roomCode}`, {status:'defeat'}); }catch{} }
+        if(typeof _math0Broadcast==='function') _math0Broadcast({ type:'state', hp:newHp, players:math0MpState.players, status: newHp>=MATH0_BOSS_DEFEAT_HP?'defeat':'playing' });
+        if(newHp >= MATH0_BOSS_DEFEAT_HP){ math0EndGame(false); }
       }
     }
   }, 1000);
@@ -8010,21 +7933,25 @@ async function checkMath0Answer(){
     inp.style.borderColor = '#00b894';
     inp.style.background = '#d4edda';
     if(math0MpState){
-      const curHp = math0MpState.hp !== undefined ? math0MpState.hp : math0State.hp;
-      const newHp = Math.max(0, curHp - dmg);
-      math0MpState.hp = newHp;
-      math0State.hp = newHp;
       math0State.totalDmg += dmg;
-      updateMath0UI(-dmg);
       showMath0Feedback(true, `−${dmg} HP`);
-      try{
-        const snap = await mpGet(`math0_rooms/${math0MpState.roomCode}/players/${math0MpState.myId}`);
-        const prevDmg = snap.exists() ? (snap.val().dmg||0) : 0;
-        await mpUpdate(`math0_rooms/${math0MpState.roomCode}/players/${math0MpState.myId}`, {dmg: prevDmg+dmg});
-        await mpUpdate(`math0_rooms/${math0MpState.roomCode}`, {hp:newHp});
-        if(newHp<=0) await mpUpdate(`math0_rooms/${math0MpState.roomCode}`, {status:'victory'});
-      }catch(e){}
-      if(newHp<=0) return; // wait for room status listener to end the game
+      if(math0MpState.isHost){
+        // Host applies damage directly
+        const curHp = math0MpState.hp !== undefined ? math0MpState.hp : math0State.hp;
+        const newHp = Math.max(0, curHp - dmg);
+        math0MpState.hp = newHp; math0State.hp = newHp;
+        if(math0MpState.players[math0MpState.myId]) math0MpState.players[math0MpState.myId].dmg = (math0MpState.players[math0MpState.myId].dmg||0)+dmg;
+        updateMath0UI(-dmg);
+        math0CoopUpdateHud(math0MpState.players);
+        const status = newHp<=0?'victory':(newHp>=MATH0_BOSS_DEFEAT_HP?'defeat':'playing');
+        if(typeof _math0Broadcast==='function') _math0Broadcast({ type:'state', hp:newHp, players:math0MpState.players, status });
+        if(status!=='playing'){ math0EndGame(status==='victory'); return; }
+      } else {
+        // Guest sends dmg to host
+        const conn = math0PeerConns[0];
+        if(conn) try{ conn.send({ type:'dmg', id:math0MpState.myId, name:math0MpState.myName, avatar:math0MpState.myAvatar, amount:dmg }); }catch{}
+      }
+      if((math0MpState.hp||0)<=0) return;
       setTimeout(()=>{ hideMath0Feedback(); nextMath0Question(); }, 900);
     } else {
       math0State.hp = Math.max(0, math0State.hp - dmg);
@@ -8082,18 +8009,18 @@ function math0EndGame(victory){
   hideMath0Feedback();
   if(math0MpState){
     document.getElementById('m0-coop-hud').style.display = 'none';
-    const fb = mpFb();
-    if(math0MpState.fbListeners) math0MpState.fbListeners.forEach(l=>{ try{ fb&&fb.off(l.r,l.cb); }catch{} });
-    const code = math0MpState.roomCode, myId = math0MpState.myId, isHost = math0MpState.isHost;
+    const savedPlayers = Object.assign({}, math0MpState.players||{});
     math0MpState = null;
-    setTimeout(()=>{
-      try{
-        if(fb && code){
-          if(isHost) fb.remove(fb.ref(fb.db,`math0_rooms/${code}`));
-          else if(myId) mpUpdate(`math0_rooms/${code}/players/${myId}`, {online:false});
-        }
-      }catch{}
-    }, 300);
+    setTimeout(()=>{ if(typeof _math0PeerCleanup==='function') _math0PeerCleanup(); }, 300);
+    const stars = MATH0_REWARD[lvl] || 1000;
+    if(victory){
+      const user = getUser(); user.stars += stars; saveUser(user); updateUI();
+      if(typeof showDmgLeaderboard==='function') showDmgLeaderboard(savedPlayers, `🎉 ПЕРЕМОГА! Математика-0 Кооп`, `+${stars}⭐ додано!`);
+      setTimeout(()=>{ closeMath0(); }, 5500);
+    } else {
+      setTimeout(()=>{ alert('💀 ПОРАЗКА! БоСС пережив атаку...'); closeMath0(); }, 200);
+    }
+    return;
   }
   if(victory){
     const stars = MATH0_REWARD[lvl] || 1000;
@@ -8101,7 +8028,6 @@ function math0EndGame(victory){
     user.stars += stars;
     saveUser(user);
     updateUI();
-    // Show leaderboard / alert
     setTimeout(()=>{
       alert(`🎉 ПЕРЕМОГА!\nРівень ${lvl} пройдено!\n\n+${stars}⭐ додано!`);
       closeMath0();
@@ -8113,6 +8039,350 @@ function math0EndGame(victory){
     }, 200);
   }
 }
+window.openMath0Game = openMath0Game;
+window.closeMath0 = closeMath0;
+window.startMath0Level = startMath0Level;
+window.checkMath0Answer = checkMath0Answer;
+</script>
+
+<!-- PLAYER LEADERBOARD MODAL -->
+<div id="player-leaderboard-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9700;align-items:center;justify-content:center;padding:12px">
+<div style="background:linear-gradient(160deg,#1a1a2e,#16213e,#0f3460);border-radius:22px;padding:24px 20px;max-width:460px;width:100%;box-shadow:0 12px 50px rgba(0,0,0,.6);border:2px solid #ffd700;max-height:90dvh;overflow-y:auto">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+    <h2 style="color:#ffd700;font-size:1.5rem;margin:0">🏆 Рейтинг гравців</h2>
+    <button onclick="document.getElementById('player-leaderboard-modal').style.display='none'" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:#aaa">✕</button>
+  </div>
+  <div style="color:#aaa;font-size:.82rem;text-align:center;margin-bottom:14px">Гравці відсортовані за поточним % урону по БоССу</div>
+  <div id="player-leaderboard-rows"></div>
+  <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,.06);border-radius:12px">
+    <div style="color:#aaa;font-size:.78rem;text-align:center">💡 Урон збільшується: годування пса 🦴, їжачок 🦔, одяг з пошивки 👗, зафарбовані символи ✨</div>
+  </div>
+</div>
+</div>
+
+<script>
+// ── Sync tab switcher ──────────────────────────────────
+function syncShowTab(tab){
+  document.getElementById('sync-panel-send').style.display = tab==='send'?'block':'none';
+  document.getElementById('sync-panel-receive').style.display = tab==='receive'?'block':'none';
+  const btnSend = document.getElementById('sync-tab-send');
+  const btnRecv = document.getElementById('sync-tab-receive');
+  if(tab==='send'){
+    btnSend.style.background='linear-gradient(135deg,#00b4d8,#0096c7)'; btnSend.style.color='#fff'; btnSend.style.borderColor='#00b4d8';
+    btnRecv.style.background='#f5f5f5'; btnRecv.style.color='#888'; btnRecv.style.borderColor='#e0e0e0';
+  } else {
+    btnRecv.style.background='linear-gradient(135deg,#e67e22,#d35400)'; btnRecv.style.color='#fff'; btnRecv.style.borderColor='#e67e22';
+    btnSend.style.background='#f5f5f5'; btnSend.style.color='#888'; btnSend.style.borderColor='#e0e0e0';
+  }
+}
+
+// ── Enhanced generateSyncCode — also shows QR ─────────
+const _origGenerateSyncCode = generateSyncCode;
+window.generateSyncCode = function(){
+  _origGenerateSyncCode();
+  // Generate QR code
+  const qrEl = document.getElementById('sync-qr-container');
+  if(qrEl){
+    qrEl.innerHTML = '';
+    const codeText = document.getElementById('sync-code-text').value;
+    // For QR: use a short URL version if possible, else just the code
+    try {
+      if(typeof QRCode !== 'undefined'){
+        new QRCode(qrEl, { text: codeText.substring(0,800), width:180, height:180, correctLevel: QRCode.CorrectLevel.L });
+      } else {
+        qrEl.innerHTML = '<div style="color:#aaa;font-size:.8rem;padding:10px">QR-бібліотека завантажується... Скопіюйте код вручну.</div>';
+      }
+    } catch(e) {
+      qrEl.innerHTML = '<div style="color:#aaa;font-size:.8rem;padding:10px">QR не підтримується. Скопіюйте код вручну.</div>';
+    }
+  }
+};
+
+// ── Share sync link ────────────────────────────────────
+function shareSyncLink(){
+  const code = document.getElementById('sync-code-text').value;
+  if(!code) return;
+  const url = window.location.href.split('#')[0] + '#sync=' + encodeURIComponent(code);
+  if(navigator.share){
+    navigator.share({ title: 'Ларіка — перенос профілів', url }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(url).then(()=>{
+      document.getElementById('sync-msg').style.color='#27ae60';
+      document.getElementById('sync-msg').textContent='🔗 Посилання скопійовано!';
+    }).catch(()=>{
+      document.getElementById('sync-msg').textContent='Скопіюйте посилання вручну: ' + url;
+    });
+  }
+}
+
+// ── Override importSyncCode to also accept URLs ────────
+const _origImportSyncCode = importSyncCode;
+window.importSyncCode = function(){
+  const raw = (document.getElementById('sync-code-in').value || '').trim();
+  // Check if it's a URL with #sync=
+  if(raw.includes('#sync=')){
+    const hashPart = raw.split('#sync=')[1];
+    if(hashPart){
+      document.getElementById('sync-code-in').value = decodeURIComponent(hashPart);
+    }
+  }
+  _origImportSyncCode();
+};
+
+// ── Auto-import from URL hash on page load ─────────────
+(function(){
+  const hash = window.location.hash;
+  if(hash && hash.startsWith('#sync=')){
+    const code = decodeURIComponent(hash.slice(6));
+    window.location.hash = '';
+    setTimeout(()=>{
+      document.getElementById('sync-code-in').value = code;
+      _origImportSyncCode && _origImportSyncCode();
+    }, 1500);
+  }
+})();
+
+// ── Login import ───────────────────────────────────────
+function loginShowImportProfile(){
+  ['login-profile-view','login-pin-view','login-new-view','login-existing-view'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+  document.getElementById('login-import-view').style.display = 'block';
+  document.getElementById('import-profile-code').value = '';
+  document.getElementById('import-profile-msg').textContent = '';
+  setTimeout(()=>document.getElementById('import-profile-code').focus(), 100);
+}
+
+function importProfileFromLogin(){
+  let raw = (document.getElementById('import-profile-code').value || '').trim();
+  const msg = document.getElementById('import-profile-msg');
+  if(!raw){ msg.style.color='#e74c3c'; msg.textContent='❌ Вставте код або посилання'; return; }
+  // Check URL format
+  if(raw.includes('#sync=')){
+    raw = decodeURIComponent(raw.split('#sync=')[1] || '');
+  }
+  try {
+    const json = decodeURIComponent(escape(atob(raw)));
+    const payload = JSON.parse(json);
+    if(!payload.profiles) throw new Error('invalid');
+    const existing = loadAllProfiles();
+    let added = 0, updated = 0;
+    Object.values(payload.profiles).forEach(p => {
+      if(existing[p.id]){
+        if(p.data && existing[p.id].data && (p.data.stars||0) > (existing[p.id].data.stars||0)){
+          existing[p.id].data = p.data; updated++;
+        }
+      } else { existing[p.id] = p; added++; }
+    });
+    saveAllProfilesLocal(existing);
+    msg.style.color = '#27ae60';
+    msg.textContent = `✅ Додано: ${added}, оновлено: ${updated} профілів`;
+    setTimeout(()=>{ loginShowProfiles(); }, 1400);
+  } catch(e) {
+    msg.style.color = '#e74c3c';
+    msg.textContent = '❌ Невірний код. Перевірте і спробуйте ще.';
+  }
+}
+
+// ── Player Leaderboard ─────────────────────────────────
+function showPlayerLeaderboard(){
+  const profiles = loadAllProfiles();
+  const modal = document.getElementById('player-leaderboard-modal');
+  const rows = document.getElementById('player-leaderboard-rows');
+
+  // Collect all profiles with damage info
+  const players = Object.values(profiles).map(p => {
+    const data = p.data || {};
+    const baseDmg = 100;
+    const bonusDmg = data.bossDmgBonus || 0;
+    // Count equipped item bonuses
+    let equippedBonus = 0;
+    if(data.equipped){
+      const inv = data.inventory || [];
+      Object.values(data.equipped).forEach(itemId => {
+        if(!itemId) return;
+        const item = inv.find(i => i.id === itemId);
+        if(item){ equippedBonus += (item.customBonusDmg || 1); }
+      });
+    }
+    const totalDmgPct = baseDmg + bonusDmg + equippedBonus;
+    return {
+      name: p.name,
+      avatar: p.avatar || '👤',
+      photo: data.photoDataUrl || null,
+      stars: data.stars || 0,
+      bossDmgBonus: bonusDmg,
+      equippedBonus,
+      totalDmgPct,
+      bees: data.bees || 0,
+      bones: data.bones || 0,
+    };
+  }).sort((a, b) => b.totalDmgPct - a.totalDmgPct);
+
+  const medals = ['🥇','🥈','🥉'];
+  const rankColors = ['#ffd700','#c0c0c0','#cd7f32'];
+
+  rows.innerHTML = players.length === 0 ? '<div style="color:#aaa;text-align:center;padding:20px">Немає гравців</div>' :
+    players.map((p, i) => {
+      const avatarHtml = p.photo
+        ? `<img src="${p.photo}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid ${rankColors[i]||'#555'};flex-shrink:0">`
+        : `<div style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid ${rankColors[i]||'#555'};display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">${p.avatar}</div>`;
+      const medal = medals[i] || `#${i+1}`;
+      return `<div style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px;background:rgba(255,255,255,${i===0?'.12':'.06'});border-radius:14px;border:1px solid rgba(255,255,255,.1)">
+        <div style="font-size:1.5rem;width:28px;text-align:center;flex-shrink:0">${medal}</div>
+        ${avatarHtml}
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;color:#fff;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
+          <div style="color:#aaa;font-size:.75rem;margin-top:2px">⭐${p.stars.toLocaleString()} &nbsp;🐝${p.bees} &nbsp;🦴${p.bones}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:1.4rem;font-weight:900;color:#00e676">⚔️${p.totalDmgPct}%</div>
+          <div style="font-size:.7rem;color:#aaa">база+🦴${p.bossDmgBonus}%+👗${p.equippedBonus}%</div>
+        </div>
+      </div>`;
+    }).join('');
+
+  modal.style.display = 'flex';
+}
+
+// ── PeerJS Math0 Coop ──────────────────────────────────
+let math0Peer = null;
+let math0PeerConns = [];
+
+function _math0PeerCleanup(){
+  if(math0Peer){ try{ math0Peer.destroy(); }catch{} math0Peer = null; }
+  math0PeerConns = [];
+}
+
+async function math0CoopCreateRoom(){
+  _math0PeerCleanup();
+  const code = mpGenCode();
+  const myId = 'p_' + Date.now();
+  const info = mpMyInfoEn();
+  math0MpState = {
+    roomCode: code, myId, myName: info.name, myAvatar: info.avatar,
+    isHost: true, level: 1, hp: MATH0_BOSS_START_HP, fbListeners: [],
+    players: { [myId]: { name: info.name, avatar: info.avatar, photoUrl: info.photoUrl||null, dmg: 0, online: true } }
+  };
+  const peerId = 'larika-m0-' + code;
+  try {
+    math0Peer = new Peer(peerId);
+  } catch(e){ alert('❌ PeerJS не завантажено: ' + e.message); return; }
+  math0Peer.on('open', ()=>{
+    document.getElementById('m0-coop-room-code-display').textContent = code;
+    math0CoopShowStep('m0-coop-step-created');
+    math0CoopRenderPlayerList(math0MpState.players);
+  });
+  math0Peer.on('error', e=>{
+    if(e.type === 'unavailable-id'){
+      _math0PeerCleanup(); math0CoopCreateRoom(); // retry
+    } else {
+      alert('❌ Помилка: ' + (e.message||e.type));
+    }
+  });
+  math0Peer.on('connection', conn=>{
+    math0PeerConns.push(conn);
+    conn.on('open',()=>{
+      conn.send({ type:'welcome', players: math0MpState.players, level: math0MpState.level, hp: math0MpState.hp });
+    });
+    conn.on('data', data => _math0HostMsg(conn, data));
+    conn.on('close',()=>{ math0PeerConns = math0PeerConns.filter(c=>c!==conn); math0CoopRenderPlayerList(math0MpState?math0MpState.players:{}); });
+  });
+}
+
+function _math0HostMsg(conn, data){
+  if(!math0MpState||!math0MpState.isHost) return;
+  if(data.type==='join'){
+    math0MpState.players[data.id] = { name:data.name, avatar:data.avatar, photoUrl:data.photoUrl||null, dmg:0, online:true };
+    _math0Broadcast({ type:'players', players: math0MpState.players });
+    math0CoopRenderPlayerList(math0MpState.players);
+  } else if(data.type==='dmg'){
+    if(!math0MpState.players[data.id]) math0MpState.players[data.id]={name:data.name,avatar:data.avatar,dmg:0,online:true};
+    math0MpState.players[data.id].dmg = (math0MpState.players[data.id].dmg||0)+(data.amount||0);
+    const newHp = Math.max(0, (math0MpState.hp||MATH0_BOSS_START_HP) - (data.amount||0));
+    math0MpState.hp = newHp;
+    if(math0State){ math0State.hp = newHp; updateMath0UI(-data.amount); math0CoopUpdateHud(math0MpState.players); }
+    const status = newHp<=0?'victory':(newHp>=MATH0_BOSS_DEFEAT_HP?'defeat':'playing');
+    _math0Broadcast({ type:'state', hp:newHp, players:math0MpState.players, status });
+    if(status!=='playing') math0EndGame(status==='victory');
+  }
+}
+
+function _math0Broadcast(msg){
+  math0PeerConns.forEach(c=>{ try{ c.send(msg); }catch{} });
+}
+
+async function math0CoopJoinRoom(){
+  const code = (document.getElementById('m0-coop-join-input').value||'').trim().toUpperCase();
+  const errEl = document.getElementById('m0-coop-join-err');
+  errEl.style.display='none';
+  if(code.length<4){ errEl.textContent='❌ Введіть правильний код'; errEl.style.display='block'; return; }
+  _math0PeerCleanup();
+  const info = mpMyInfoEn();
+  const myId = 'p_' + Date.now();
+  try { math0Peer = new Peer(); } catch(e){ errEl.textContent='❌ PeerJS: '+e.message; errEl.style.display='block'; return; }
+  math0Peer.on('open', ()=>{
+    const conn = math0Peer.connect('larika-m0-'+code, { reliable:true });
+    math0PeerConns = [conn];
+    conn.on('open', ()=>{
+      math0MpState = { roomCode:code, myId, myName:info.name, myAvatar:info.avatar, isHost:false, level:1, hp:MATH0_BOSS_START_HP, fbListeners:[], players:{} };
+      conn.send({ type:'join', id:myId, name:info.name, avatar:info.avatar, photoUrl:info.photoUrl||null });
+      document.getElementById('m0-coop-joined-code').textContent = code;
+      math0CoopShowStep('m0-coop-step-joined');
+    });
+    conn.on('data', data => _math0GuestMsg(data));
+    conn.on('close', ()=>math0CoopLeaveRoom(true));
+    conn.on('error', e=>{ errEl.textContent='❌ '+e.message; errEl.style.display='block'; });
+  });
+  math0Peer.on('error', e=>{
+    errEl.textContent='❌ Не вдалось підключитись. Перевірте код кімнати.';
+    errEl.style.display='block';
+    _math0PeerCleanup();
+  });
+}
+
+function _math0GuestMsg(data){
+  if(!math0MpState) return;
+  if(data.type==='welcome'||data.type==='players'){
+    math0MpState.players = data.players||{};
+    if(data.level) math0MpState.level = data.level;
+    if(data.hp!=null) math0MpState.hp = data.hp;
+    math0CoopRenderPlayerList(math0MpState.players);
+  } else if(data.type==='start'){
+    math0MpState.level = data.level;
+    math0MpState.hp = data.hp||MATH0_BOSS_START_HP;
+    math0StartCoopGame(data.level);
+  } else if(data.type==='state'){
+    math0MpState.players = data.players||math0MpState.players;
+    math0MpState.hp = data.hp;
+    if(math0State){ math0State.hp = data.hp; updateMath0UI(); math0CoopUpdateHud(math0MpState.players); }
+    if(data.status==='victory') math0EndGame(true);
+    else if(data.status==='defeat') math0EndGame(false);
+  }
+}
+
+async function math0CoopHostStart(){
+  if(!math0MpState||!math0MpState.isHost) return;
+  const lvl = parseInt(document.getElementById('m0-coop-level-select').value)||1;
+  math0MpState.level = lvl;
+  math0MpState.hp = MATH0_BOSS_START_HP;
+  _math0Broadcast({ type:'start', level:lvl, hp:MATH0_BOSS_START_HP });
+  math0StartCoopGame(lvl);
+}
+
+async function math0CoopLeaveRoom(silent){
+  _math0PeerCleanup();
+  if(math0State){
+    if(math0Interval){ clearInterval(math0Interval); math0Interval=null; }
+    math0State=null;
+    document.getElementById('m0-coop-hud').style.display='none';
+  }
+  math0MpState=null;
+  if(!silent) math0CoopOpen();
+}
+
+// Register globals
 window.math0CoopOpen = math0CoopOpen;
 window.math0CloseCoop = math0CloseCoop;
 window.math0CoopShowChoose = math0CoopShowChoose;
@@ -8121,10 +8391,11 @@ window.math0CoopCreateRoom = math0CoopCreateRoom;
 window.math0CoopJoinRoom = math0CoopJoinRoom;
 window.math0CoopHostStart = math0CoopHostStart;
 window.math0CoopLeaveRoom = math0CoopLeaveRoom;
-window.openMath0Game = openMath0Game;
-window.closeMath0 = closeMath0;
-window.startMath0Level = startMath0Level;
-window.checkMath0Answer = checkMath0Answer;
+window.showPlayerLeaderboard = showPlayerLeaderboard;
+window.loginShowImportProfile = loginShowImportProfile;
+window.importProfileFromLogin = importProfileFromLogin;
+window.syncShowTab = syncShowTab;
+window.shareSyncLink = shareSyncLink;
 </script>
 
 </body>
