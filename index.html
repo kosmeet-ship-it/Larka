@@ -316,23 +316,12 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
       <div class="login-profiles" id="login-profiles-list"></div>
       <button class="login-new-btn" onclick="loginShowNewProfile()">➕ Новий профіль</button>
       <button class="login-new-btn" onclick="loginShowExistingProfile()" style="background:linear-gradient(135deg,#27ae60,#229954);margin-top:6px">📲 Існуючий профіль</button>
-      <button class="login-new-btn" onclick="loginShowImportProfile()" style="background:linear-gradient(135deg,#e67e22,#d35400);margin-top:6px">📥 Перенести з іншого пристрою</button>
-    </div>
-
-    <!-- Import profile by code (new device login) -->
-    <div class="login-pin-screen" id="login-import-view">
-      <div class="pin-title" style="font-size:1.2rem;margin-bottom:6px;color:#e67e22;font-weight:700">📥 Перенести профіль</div>
-      <p style="color:#666;font-size:.85rem;margin-bottom:12px;text-align:center">Вставте код синхронізації або посилання з іншого пристрою</p>
-      <textarea id="import-profile-code" placeholder="Вставте код або посилання..." style="width:100%;height:90px;padding:10px;border-radius:10px;border:2px solid #e67e22;font-size:.78rem;font-family:monospace;resize:none;word-break:break-all;margin-bottom:10px;outline:none"></textarea>
-      <div id="import-profile-msg" style="min-height:1.2em;font-size:.9rem;font-weight:700;text-align:center;margin-bottom:10px"></div>
-      <button class="pin-submit-btn" style="background:linear-gradient(135deg,#e67e22,#d35400)" onclick="importProfileFromLogin()">📥 Завантажити профілі</button>
-      <div class="pin-back-link" onclick="loginShowProfiles()">← Назад до профілів</div>
     </div>
 
     <!-- Existing profile (password-only login) -->
     <div class="login-pin-screen" id="login-existing-view">
-      <div class="pin-title" style="font-size:1.2rem;margin-bottom:16px;color:#27ae60;font-weight:700">📲 Існуючий профіль</div>
-      <p style="color:#666;font-size:.9rem;margin-bottom:14px;text-align:center">Введіть ім'я профілю та пароль для входу</p>
+      <div class="pin-title" style="font-size:1.2rem;margin-bottom:8px;color:#27ae60;font-weight:700">📲 Існуючий профіль</div>
+      <p style="color:#666;font-size:.85rem;margin-bottom:14px;text-align:center">Введіть ім'я та пароль. Якщо профіль створено на іншому пристрої — він знайдеться автоматично через хмару ☁️</p>
       <input id="existing-profile-name" type="text" placeholder="Ім'я гравця..." maxlength="16"
         style="width:100%;padding:12px;border-radius:10px;border:2px solid #27ae60;font-size:1.05rem;text-align:center;margin-bottom:10px;outline:none">
       <div style="position:relative;margin-bottom:10px">
@@ -989,44 +978,39 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div id="sync-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;align-items:center;justify-content:center">
 <div style="background:#fff;border-radius:22px;padding:28px 24px;max-width:420px;width:92%;box-shadow:0 12px 40px rgba(0,0,0,.3)">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-    <h2 style="color:#00b4d8;font-size:1.5rem;margin:0">🔄 Синхронізація</h2>
+    <h2 style="color:#00b4d8;font-size:1.5rem;margin:0">☁️ Синхронізація</h2>
     <button onclick="closeSyncModal()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:#999">✕</button>
   </div>
-  <!-- Tabs -->
-  <div style="display:flex;gap:6px;margin-bottom:14px">
-    <button onclick="syncShowTab('send')" id="sync-tab-send" style="flex:1;padding:9px;border-radius:10px;border:2px solid #00b4d8;background:linear-gradient(135deg,#00b4d8,#0096c7);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer">📤 Передати</button>
-    <button onclick="syncShowTab('receive')" id="sync-tab-receive" style="flex:1;padding:9px;border-radius:10px;border:2px solid #e0e0e0;background:#f5f5f5;color:#888;font-weight:700;font-size:.9rem;cursor:pointer">📥 Отримати</button>
+
+  <!-- Cloud sync status card -->
+  <div id="cloud-sync-card" style="background:linear-gradient(135deg,#e0f7fa,#b2ebf2);border:2px solid #00b4d8;border-radius:14px;padding:18px;margin-bottom:16px;text-align:center">
+    <div id="auto-sync-icon" style="font-size:2.4rem;margin-bottom:6px">☁️</div>
+    <div id="auto-sync-title" style="font-size:1.1rem;font-weight:800;color:#006064;margin-bottom:4px">Хмарна синхронізація</div>
+    <div id="auto-sync-desc" style="font-size:.85rem;color:#00838f;min-height:1.2em">Ваш профіль автоматично зберігається в хмарі</div>
   </div>
 
-  <!-- SEND tab -->
-  <div id="sync-panel-send">
-    <p style="color:#555;font-size:.88rem;margin-bottom:10px;text-align:center">Передайте профілі на інший пристрій через QR-код або текстовий код.</p>
-    <button onclick="generateSyncCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#00b4d8,#0096c7);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px">🔄 Згенерувати код / QR</button>
+  <!-- Info block -->
+  <div style="background:#f3e5ff;border:1.5px solid #c9a8f0;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:.88rem;color:#5b2d9e;line-height:1.5">
+    <b>📲 Як увійти на іншому пристрої:</b><br>
+    Натисніть <b>«📲 Існуючий профіль»</b> на екрані входу → введіть <b>ім'я</b> та <b>пароль</b>. Профіль знайдеться автоматично.
+  </div>
+
+  <!-- Manual sync button -->
+  <button id="manual-sync-btn" onclick="manualCloudSync()" style="width:100%;padding:13px;background:linear-gradient(135deg,#00b4d8,#0096c7);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:8px">🔄 Синхронізувати зараз</button>
+
+  <!-- Hidden elements kept for internal compatibility -->
+  <div id="auto-sync-status-box" style="display:none"></div>
+  <div id="sync-panel-send" style="display:none">
     <div id="sync-code-out" style="display:none">
-      <div id="sync-qr-container" style="display:flex;justify-content:center;margin-bottom:10px;background:#fff;padding:10px;border-radius:10px;border:2px solid #00b4d8"></div>
-      <textarea id="sync-code-text" readonly style="width:100%;height:70px;padding:8px;border-radius:8px;border:2px solid #00b4d8;font-size:.72rem;font-family:monospace;resize:none;word-break:break-all;color:#333;margin-bottom:6px"></textarea>
-      <div style="display:flex;gap:6px">
-        <button onclick="copySyncCode()" style="flex:1;padding:9px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer">📋 Скопіювати</button>
-        <button onclick="shareSyncLink()" style="flex:1;padding:9px;background:linear-gradient(135deg,#764ba2,#667eea);color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer">🔗 Поділитись</button>
-      </div>
+      <div id="sync-qr-container"></div>
+      <textarea id="sync-code-text" readonly style="display:none"></textarea>
     </div>
-    <!-- Auto-sync hidden status (kept for internal use) -->
-    <div id="auto-sync-status-box" style="display:none">
-      <div id="auto-sync-icon">☁️</div>
-      <div id="auto-sync-title">Автосинхронізація</div>
-      <div id="auto-sync-desc"></div>
-    </div>
-    <button id="manual-sync-btn" onclick="manualCloudSync()" style="display:none"></button>
   </div>
-
-  <!-- RECEIVE tab -->
   <div id="sync-panel-receive" style="display:none">
-    <p style="color:#555;font-size:.88rem;margin-bottom:10px;text-align:center">Вставте текстовий код або посилання, отримані з іншого пристрою.</p>
-    <textarea id="sync-code-in" placeholder="Вставте код синхронізації або посилання..." style="width:100%;height:80px;padding:8px;border-radius:8px;border:2px solid #e67e22;font-size:.75rem;font-family:monospace;resize:none;margin-bottom:8px;word-break:break-all"></textarea>
-    <button onclick="importSyncCode()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer">📥 Завантажити дані</button>
+    <textarea id="sync-code-in" style="display:none"></textarea>
   </div>
 
-  <div id="sync-msg" style="margin-top:8px;text-align:center;font-weight:700;font-size:.95rem;min-height:1.4em"></div>
+  <div id="sync-msg" style="margin-top:6px;text-align:center;font-weight:700;font-size:.95rem;min-height:1.4em"></div>
 </div>
 </div>
 
@@ -4947,8 +4931,6 @@ if('serviceWorker' in navigator){
 // ═══════════════════════════════════════════════════════════
 function showSyncModal(){
   document.getElementById('sync-modal').style.display='flex';
-  document.getElementById('sync-code-out').style.display='none';
-  document.getElementById('sync-code-in').value='';
   document.getElementById('sync-msg').textContent='';
   // Refresh sync status display
   if(!fbReady()){
@@ -8063,127 +8045,17 @@ window.checkMath0Answer = checkMath0Answer;
 <script>
 // ── Sync tab switcher ──────────────────────────────────
 function syncShowTab(tab){
-  document.getElementById('sync-panel-send').style.display = tab==='send'?'block':'none';
-  document.getElementById('sync-panel-receive').style.display = tab==='receive'?'block':'none';
-  const btnSend = document.getElementById('sync-tab-send');
-  const btnRecv = document.getElementById('sync-tab-receive');
-  if(tab==='send'){
-    btnSend.style.background='linear-gradient(135deg,#00b4d8,#0096c7)'; btnSend.style.color='#fff'; btnSend.style.borderColor='#00b4d8';
-    btnRecv.style.background='#f5f5f5'; btnRecv.style.color='#888'; btnRecv.style.borderColor='#e0e0e0';
-  } else {
-    btnRecv.style.background='linear-gradient(135deg,#e67e22,#d35400)'; btnRecv.style.color='#fff'; btnRecv.style.borderColor='#e67e22';
-    btnSend.style.background='#f5f5f5'; btnSend.style.color='#888'; btnSend.style.borderColor='#e0e0e0';
-  }
+  // Tabs removed — cloud sync is automatic. No-op for compatibility.
 }
 
-// ── Enhanced generateSyncCode — also shows QR ─────────
-const _origGenerateSyncCode = generateSyncCode;
-window.generateSyncCode = function(){
-  _origGenerateSyncCode();
-  // Generate QR code
-  const qrEl = document.getElementById('sync-qr-container');
-  if(qrEl){
-    qrEl.innerHTML = '';
-    const codeText = document.getElementById('sync-code-text').value;
-    // For QR: use a short URL version if possible, else just the code
-    try {
-      if(typeof QRCode !== 'undefined'){
-        new QRCode(qrEl, { text: codeText.substring(0,800), width:180, height:180, correctLevel: QRCode.CorrectLevel.L });
-      } else {
-        qrEl.innerHTML = '<div style="color:#aaa;font-size:.8rem;padding:10px">QR-бібліотека завантажується... Скопіюйте код вручну.</div>';
-      }
-    } catch(e) {
-      qrEl.innerHTML = '<div style="color:#aaa;font-size:.8rem;padding:10px">QR не підтримується. Скопіюйте код вручну.</div>';
-    }
-  }
-};
-
-// ── Share sync link ────────────────────────────────────
-function shareSyncLink(){
-  const code = document.getElementById('sync-code-text').value;
-  if(!code) return;
-  const url = window.location.href.split('#')[0] + '#sync=' + encodeURIComponent(code);
-  if(navigator.share){
-    navigator.share({ title: 'Ларіка — перенос профілів', url }).catch(()=>{});
-  } else {
-    navigator.clipboard.writeText(url).then(()=>{
-      document.getElementById('sync-msg').style.color='#27ae60';
-      document.getElementById('sync-msg').textContent='🔗 Посилання скопійовано!';
-    }).catch(()=>{
-      document.getElementById('sync-msg').textContent='Скопіюйте посилання вручну: ' + url;
-    });
-  }
-}
-
-// ── Override importSyncCode to also accept URLs ────────
-const _origImportSyncCode = importSyncCode;
-window.importSyncCode = function(){
-  const raw = (document.getElementById('sync-code-in').value || '').trim();
-  // Check if it's a URL with #sync=
-  if(raw.includes('#sync=')){
-    const hashPart = raw.split('#sync=')[1];
-    if(hashPart){
-      document.getElementById('sync-code-in').value = decodeURIComponent(hashPart);
-    }
-  }
-  _origImportSyncCode();
-};
-
-// ── Auto-import from URL hash on page load ─────────────
-(function(){
-  const hash = window.location.hash;
-  if(hash && hash.startsWith('#sync=')){
-    const code = decodeURIComponent(hash.slice(6));
-    window.location.hash = '';
-    setTimeout(()=>{
-      document.getElementById('sync-code-in').value = code;
-      _origImportSyncCode && _origImportSyncCode();
-    }, 1500);
-  }
-})();
+// ── Code/QR sync removed — cloud sync is automatic ─────
+function shareSyncLink(){} // no-op stub for compatibility
 
 // ── Login import ───────────────────────────────────────
-function loginShowImportProfile(){
-  ['login-profile-view','login-pin-view','login-new-view','login-existing-view'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.style.display = 'none';
-  });
-  document.getElementById('login-import-view').style.display = 'block';
-  document.getElementById('import-profile-code').value = '';
-  document.getElementById('import-profile-msg').textContent = '';
-  setTimeout(()=>document.getElementById('import-profile-code').focus(), 100);
-}
-
-function importProfileFromLogin(){
-  let raw = (document.getElementById('import-profile-code').value || '').trim();
-  const msg = document.getElementById('import-profile-msg');
-  if(!raw){ msg.style.color='#e74c3c'; msg.textContent='❌ Вставте код або посилання'; return; }
-  // Check URL format
-  if(raw.includes('#sync=')){
-    raw = decodeURIComponent(raw.split('#sync=')[1] || '');
-  }
-  try {
-    const json = decodeURIComponent(escape(atob(raw)));
-    const payload = JSON.parse(json);
-    if(!payload.profiles) throw new Error('invalid');
-    const existing = loadAllProfiles();
-    let added = 0, updated = 0;
-    Object.values(payload.profiles).forEach(p => {
-      if(existing[p.id]){
-        if(p.data && existing[p.id].data && (p.data.stars||0) > (existing[p.id].data.stars||0)){
-          existing[p.id].data = p.data; updated++;
-        }
-      } else { existing[p.id] = p; added++; }
-    });
-    saveAllProfilesLocal(existing);
-    msg.style.color = '#27ae60';
-    msg.textContent = `✅ Додано: ${added}, оновлено: ${updated} профілів`;
-    setTimeout(()=>{ loginShowProfiles(); }, 1400);
-  } catch(e) {
-    msg.style.color = '#e74c3c';
-    msg.textContent = '❌ Невірний код. Перевірте і спробуйте ще.';
-  }
-}
+// Removed: import-by-code feature replaced by automatic cloud sync.
+// Kept as no-op stubs for compatibility with any external references.
+function loginShowImportProfile(){ loginShowExistingProfile(); }
+function importProfileFromLogin(){}
 
 // ── Player Leaderboard ─────────────────────────────────
 function showPlayerLeaderboard(){
