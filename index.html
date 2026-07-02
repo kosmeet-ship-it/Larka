@@ -5011,6 +5011,8 @@ const CLOUD_SYNC_THROTTLE = 5000; // мс між записами в хмару
 let _lastCloudSave = 0;
 let _cloudSyncListener = null;
 let _cloudSyncActive = false;
+// Унікальний ID цієї сесії/пристрою — щоб відрізнити власні зміни від змін іншого пристрою
+const _deviceSessionId = 'dev_' + Math.random().toString(36).substr(2, 9);
 
 function fbReady() {
   return window._fbReady && window._fb && window._fb.db;
@@ -5026,6 +5028,7 @@ async function cloudSaveProfile(profile) {
     const payload = {
       ...profile,
       _syncedAt: Date.now(),
+      _savedByDevice: _deviceSessionId,
       // Don't store large image data in cloud — keep locally only
       data: profile.data ? { ...profile.data, photoDataUrl: null } : profile.data
     };
@@ -5053,19 +5056,22 @@ async function cloudLoadAndMerge() {
       if (!cloudProfile || !cloudProfile.id || !cloudProfile.name) return;
       const localMatch = Object.values(local).find(p => p.name === cloudProfile.name);
       if (!localMatch) {
-        // New profile from cloud — add locally (restore photoDataUrl as null)
-        local[cloudProfile.id] = cloudProfile;
+        // Новий профіль з хмари — додаємо локально
+        // Прибираємо _savedByDevice щоб не вважати цей профіль "своїм"
+        const { _savedByDevice, ...cleanProfile } = cloudProfile;
+        local[cloudProfile.id] = cleanProfile;
         changed = true;
       } else {
-        // Merge: use whichever has more stars (cloud wins on tie = more recent)
+        // Мерж: перемагає той що більше зірок (або новіший при рівних зірках)
         const localStars = (localMatch.data && localMatch.data.stars) || 0;
         const cloudStars = (cloudProfile.data && cloudProfile.data.stars) || 0;
         const cloudSyncedAt = cloudProfile._syncedAt || 0;
         const localSyncedAt = localMatch._syncedAt || 0;
         if (cloudStars > localStars || (cloudStars === localStars && cloudSyncedAt > localSyncedAt)) {
-          // Preserve local photo since we didn't upload it
+          // Зберігаємо локальне фото (воно не синхронізується через хмару)
           const localPhoto = localMatch.data && localMatch.data.photoDataUrl;
-          local[localMatch.id] = { ...cloudProfile, id: localMatch.id };
+          const { _savedByDevice, ...cleanCloud } = cloudProfile;
+          local[localMatch.id] = { ...cleanCloud, id: localMatch.id };
           if (localPhoto && local[localMatch.id].data) {
             local[localMatch.id].data.photoDataUrl = localPhoto;
           }
@@ -5115,8 +5121,9 @@ function startCloudSyncListener() {
 
     Object.values(cloudData).forEach(cloudProfile => {
       if (!cloudProfile || !cloudProfile.id || !cloudProfile.name) return;
-      // Ignore changes we just wrote (avoid echo)
-      if (cloudProfile._syncedAt && Date.now() - cloudProfile._syncedAt < 3000) return;
+      // Ігноруємо лише ті зміни, які записали МИ самі (echo-захист через ID пристрою)
+      if (cloudProfile._savedByDevice && cloudProfile._savedByDevice === _deviceSessionId
+          && cloudProfile._syncedAt && Date.now() - cloudProfile._syncedAt < 5000) return;
       const localMatch = Object.values(local).find(p => p.name === cloudProfile.name);
       if (!localMatch) {
         local[cloudProfile.id] = cloudProfile;
@@ -5140,6 +5147,11 @@ function startCloudSyncListener() {
     if (changed) {
       saveAllProfilesLocal(local);
       updateUI();
+      // Оновити екран входу якщо він зараз відкритий (нові профілі з іншого пристрою)
+      const loginScreen = document.getElementById('login-screen');
+      if (loginScreen && loginScreen.style.display !== 'none') {
+        loginShowProfiles();
+      }
       setSyncStatus('ok', 'Оновлено з хмари!');
     }
   };
@@ -5213,16 +5225,27 @@ async function initCloudSync() {
     return;
   }
   setSyncStatus('saving', 'Завантаження з хмари…');
+  // Показуємо "завантаження" на екрані входу, поки синхронізація іде
+  const loginScreen = document.getElementById('login-screen');
+  const loginList = document.getElementById('login-profiles-list');
+  const isOnLoginScreen = loginScreen && loginScreen.style.display !== 'none';
+  if (isOnLoginScreen && loginList) {
+    loginList.innerHTML = '<p style="color:#aaa;font-size:.95rem;margin:10px 0">🔄 Завантаження профілів з хмари…</p>';
+  }
   try {
     const merged = await cloudLoadAndMerge();
-    if (merged) {
-      updateUI();
+    // Завжди оновлюємо екран входу після завантаження (навіть якщо merged=false)
+    if (isOnLoginScreen) {
       loginShowProfiles && loginShowProfiles();
+    } else if (merged) {
+      updateUI();
     }
     await cloudSaveAll();
     startCloudSyncListener();
   } catch (e) {
     setSyncStatus('error');
+    // Навіть при помилці — показати локальні профілі
+    if (isOnLoginScreen) loginShowProfiles && loginShowProfiles();
   }
 }
 
@@ -8072,10 +8095,21 @@ function showPlayerLeaderboard(){
     let equippedBonus = 0;
     if(data.equipped){
       const inv = data.inventory || [];
+      const mods = data.clothingMods || {};
       Object.values(data.equipped).forEach(itemId => {
         if(!itemId) return;
-        const item = inv.find(i => i.id === itemId);
-        if(item){ equippedBonus += (item.customBonusDmg || 1); }
+        const m = mods[itemId] || {};
+        const invItem = inv.find(i => i.id === itemId);
+        if(invItem && invItem.isCustom){
+          // Custom-sewn item: use stored bonusDmg from mods, fallback to item's customBonusDmg
+          equippedBonus += m.bonusDmg || (invItem.customBonusDmg || 1);
+          if(m.symbols && m.symbols.count) equippedBonus += m.symbols.count;
+        } else {
+          // Standard clothing item: +1 base, +1 if dyed, +N symbols (mirrors getClothingDmgBonus)
+          equippedBonus += 1;
+          if(m.dyed) equippedBonus += 1;
+          if(m.symbols && m.symbols.count) equippedBonus += m.symbols.count;
+        }
       });
     }
     const totalDmgPct = baseDmg + bonusDmg + equippedBonus;
