@@ -1017,11 +1017,32 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <!-- Info block -->
   <div style="background:#f3e5ff;border:1.5px solid #c9a8f0;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:.88rem;color:#5b2d9e;line-height:1.5">
     <b>📲 Як увійти на іншому пристрої:</b><br>
-    Натисніть <b>«📲 Існуючий профіль»</b> на екрані входу → введіть <b>ім'я</b> та <b>пароль</b>. Профіль знайдеться автоматично.
+    Натисніть <b>«📲 Існуючий профіль»</b> на екрані входу → введіть <b>ім'я</b> та <b>пароль</b>. Профіль знайдеться автоматично.<br><br>
+    Якщо не працює — натисніть кнопку <b>«🩺 Перевірити, чому не працює»</b> нижче, вона покаже точну причину.
   </div>
 
   <!-- Manual sync button -->
   <button id="manual-sync-btn" onclick="manualCloudSync()" style="width:100%;padding:13px;background:linear-gradient(135deg,#00b4d8,#0096c7);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:8px">🔄 Синхронізувати зараз</button>
+
+  <!-- Diagnostics button (shown when cloud sync is broken) -->
+  <button id="diag-sync-btn" onclick="runSyncDiagnostics()" style="width:100%;padding:11px;background:#fff;color:#00838f;border:2px solid #00b4d8;border-radius:12px;font-size:.92rem;font-weight:700;cursor:pointer;margin-bottom:10px">🩺 Перевірити, чому не працює</button>
+
+  <!-- Diagnostics result panel -->
+  <div id="diag-result" style="display:none;background:#fff8e1;border:1.5px solid #f0c14b;border-radius:12px;padding:13px 15px;margin-bottom:14px;font-size:.85rem;color:#5b4300;line-height:1.55;text-align:left;white-space:pre-wrap"></div>
+
+  <!-- Copyable Firebase Database Rules (shown only when needed) -->
+  <div id="diag-rules-box" style="display:none;margin-bottom:14px">
+    <div style="font-size:.82rem;color:#666;margin-bottom:6px">Правила для <b>Firebase Console → Realtime Database → Rules</b>:</div>
+    <textarea id="diag-rules-text" readonly style="width:100%;height:110px;font-family:monospace;font-size:.78rem;padding:8px;border:1.5px solid #ccc;border-radius:8px;box-sizing:border-box;background:#f7f7f7" onclick="this.select()">{
+  "rules": {
+    "cloud_profiles": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}</textarea>
+    <button type="button" onclick="copyDiagRules()" style="margin-top:6px;padding:7px 14px;background:#eee;border:none;border-radius:8px;font-size:.82rem;cursor:pointer">📋 Скопіювати правила</button>
+  </div>
 
   <!-- Hidden elements kept for internal compatibility -->
   <div id="auto-sync-status-box" style="display:none"></div>
@@ -5295,6 +5316,108 @@ document.addEventListener('fbAuthError', (e) => {
 // ── Save locally without triggering cloud (to avoid loops) ─
 function saveAllProfilesLocal(profiles) {
   localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+}
+
+// ── Копіювати правила бази даних ────────────────────────
+function copyDiagRules(){
+  const ta = document.getElementById('diag-rules-text');
+  ta.select();
+  try{
+    navigator.clipboard.writeText(ta.value);
+  }catch{
+    document.execCommand('copy');
+  }
+}
+
+// ── Повна діагностика синхронізації: показує ТОЧНУ причину ──
+async function runSyncDiagnostics(){
+  const btn = document.getElementById('diag-sync-btn');
+  const out = document.getElementById('diag-result');
+  const rulesBox = document.getElementById('diag-rules-box');
+  rulesBox.style.display = 'none';
+  out.style.display = 'block';
+  out.style.background = '#fff8e1';
+  out.style.borderColor = '#f0c14b';
+  out.style.color = '#5b4300';
+  if(btn){ btn.disabled = true; }
+  out.textContent = '🔄 Перевіряю з\'єднання з Firebase...';
+
+  const lines = [];
+
+  // 1. SDK завантажений?
+  if(!window._fb || !window._fb.db){
+    lines.push('❌ Firebase SDK не завантажився взагалі.');
+    lines.push('Перевірте інтернет-з\'єднання цього пристрою і перезавантажте сторінку.');
+    out.textContent = lines.join('\n');
+    if(btn) btn.disabled = false;
+    return;
+  }
+  lines.push('✅ Firebase SDK завантажено.');
+
+  // 2. Анонімна автентифікація пройшла?
+  if(window._fbAuthError){
+    lines.push('❌ Анонімна автентифікація НЕ пройшла.');
+    lines.push('Код помилки: ' + window._fbAuthError);
+    if(String(window._fbAuthError).includes('admin-restricted-operation') || String(window._fbAuthError).includes('operation-not-allowed')){
+      lines.push('');
+      lines.push('👉 ПРИЧИНА: у Firebase Console вимкнено вхід "Anonymous".');
+      lines.push('Виправлення: Firebase Console → Authentication → Sign-in method → увімкніть провайдер "Anonymous" → Save.');
+    } else if(String(window._fbAuthError).includes('network')){
+      lines.push('');
+      lines.push('👉 ПРИЧИНА: немає з\'єднання з інтернетом на цьому пристрої.');
+    } else {
+      lines.push('');
+      lines.push('👉 Перевірте розділ Authentication у Firebase Console цього проєкту.');
+    }
+    out.textContent = lines.join('\n');
+    if(btn) btn.disabled = false;
+    return;
+  }
+  if(!window._fbReady){
+    lines.push('⏳ Автентифікація ще триває, зачекайте пару секунд і натисніть кнопку ще раз.');
+    out.textContent = lines.join('\n');
+    if(btn) btn.disabled = false;
+    return;
+  }
+  lines.push('✅ Анонімна автентифікація пройшла успішно.');
+
+  // 3. Реальний тест запису й читання в базу
+  try{
+    const fb = window._fb;
+    const testPath = `cloud_profiles/_diag_${_deviceSessionId}`;
+    await fb.set(fb.ref(fb.db, testPath), { ts: Date.now(), test: true });
+    lines.push('✅ Запис у базу даних працює.');
+    const snap = await fb.get(fb.ref(fb.db, testPath));
+    if(snap.exists()){
+      lines.push('✅ Читання з бази даних працює.');
+    } else {
+      lines.push('⚠️ Запис пройшов, але читання не повернуло дані (незвично).');
+    }
+    await fb.remove(fb.ref(fb.db, testPath));
+    lines.push('');
+    lines.push('🎉 Синхронізація технічно працює на цьому пристрої!');
+    lines.push('Якщо профіль з іншого пристрою все одно не видно — натисніть "🔄 Синхронізувати зараз" на ОБОХ пристроях і перевірте, що ім\'я профілю введено однаково.');
+    out.style.background = '#e8f8ee';
+    out.style.borderColor = '#27ae60';
+    out.style.color = '#1e6b3a';
+  }catch(e){
+    const code = e.code || e.message || 'невідома помилка';
+    lines.push('❌ Тест запису/читання провалився: ' + code);
+    if(code === 'PERMISSION_DENIED'){
+      lines.push('');
+      lines.push('👉 ПРИЧИНА: Database Rules у Firebase Console забороняють доступ.');
+      lines.push('Виправлення: Firebase Console → Realtime Database → Rules → вставте правила нижче → Publish.');
+      rulesBox.style.display = 'block';
+    } else {
+      lines.push('');
+      lines.push('👉 Перевірте, що поле databaseURL у налаштуваннях коду відповідає вашій базі даних у Firebase Console.');
+    }
+    out.style.background = '#fdecea';
+    out.style.borderColor = '#e74c3c';
+    out.style.color = '#8a2c22';
+  }
+  out.textContent = lines.join('\n');
+  if(btn) btn.disabled = false;
 }
 
 // ── Init: run on Firebase ready ─────────────────────────
