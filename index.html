@@ -37,11 +37,24 @@
 
 <!-- Firebase SDK -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, update, onValue, off, push, serverTimestamp, remove }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-  import { getAuth, signInAnonymously, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+(async () => {
+  window._fbSdkError = null; // помилка завантаження самого SDK (мережа/CDN заблоковано)
+  let initializeApp, getDatabase, ref, set, get, update, onValue, off, push, serverTimestamp, remove, getAuth, signInAnonymously, onAuthStateChanged;
+  try {
+    ({ initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"));
+    ({ getDatabase, ref, set, get, update, onValue, off, push, serverTimestamp, remove } =
+      await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"));
+    ({ getAuth, signInAnonymously, onAuthStateChanged } =
+      await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"));
+  } catch (e) {
+    console.warn('Firebase SDK load error:', e && e.message);
+    window._fbSdkError = (e && e.message) || 'Не вдалося завантажити Firebase SDK з gstatic.com';
+    window._fbReady = false;
+    window._fb = null;
+    document.dispatchEvent(new CustomEvent('fbSdkError', { detail: e }));
+    document.dispatchEvent(new Event('fbReady')); // дозволяє UI не зависати на "завантаження"
+    return;
+  }
 
   // ── Firebase config ───────────────────────────────────────────────────────
   const firebaseConfig = {
@@ -89,7 +102,9 @@
     });
   } else {
     document.dispatchEvent(new Event('fbReady'));
-  }</script>
+  }
+})();
+</script>
 
 <!-- PeerJS for WebRTC coop -->
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -5345,9 +5360,13 @@ async function runSyncDiagnostics(){
   const lines = [];
 
   // 1. SDK завантажений?
-  if(!window._fb || !window._fb.db){
-    lines.push('❌ Firebase SDK не завантажився взагалі.');
-    lines.push('Перевірте інтернет-з\'єднання цього пристрою і перезавантажте сторінку.');
+  if(window._fbSdkError || !window._fb || !window._fb.db){
+    lines.push('❌ Firebase SDK не зміг завантажитися з gstatic.com.');
+    if(window._fbSdkError) lines.push('Технічна деталь: ' + window._fbSdkError);
+    lines.push('');
+    lines.push('👉 НАЙЙМОВІРНІША ПРИЧИНА: цю сторінку відкрито у вбудованому перегляді Claude.ai (панель "Index · HTML" у чаті). Цей sandbox-перегляд блокує мережеві запити до зовнішніх сайтів (у т.ч. gstatic.com), тому Firebase там ніколи не запрацює — незалежно від налаштувань вашого проєкту.');
+    lines.push('');
+    lines.push('✅ Що зробити: завантажте файл (кнопка Download) і відкрийте його на реальному хостингу вашого застосунку (де у вас встановлено PWA), або відкрийте локально через власний сервер. Тестуйте синхронізацію саме там, не в перегляді Claude.ai.');
     out.textContent = lines.join('\n');
     if(btn) btn.disabled = false;
     return;
