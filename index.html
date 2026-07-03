@@ -40,6 +40,8 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, get, update, onValue, off, push, serverTimestamp, remove }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   // ── Firebase config ───────────────────────────────────────────────────────
   const firebaseConfig = {
@@ -52,19 +54,42 @@
     appId: "1:519585104019:web:ca2df482ddc7d94f59cd66"
   };
 
-  let app, db;
+  let app, db, auth;
   try {
     app = initializeApp(firebaseConfig);
     db  = getDatabase(app);
+    auth = getAuth(app);
   } catch(e) {
     console.warn('Firebase init error (demo mode):', e.message);
   }
 
   // Expose helpers to global scope
   window._fb = { db, ref, set, get, update, onValue, off, push, serverTimestamp, remove };
-  window._fbReady = !!db;
-  document.dispatchEvent(new Event('fbReady'));
-</script>
+  window._fbReady = false;      // true тільки коли DB + автентифікація готові
+  window._fbAuthError = null;   // текст помилки автентифікації, якщо є
+
+  // ── Анонімна автентифікація ─────────────────────────────────────────────
+  // Кожен пристрій має підписатись анонімно, інакше правила бази даних
+  // Firebase (auth != null) відхиляють читання/запис БЕЗ явної помилки для
+  // користувача — саме тому синхронізація й вхід у профіль з іншого
+  // пристрою "мовчки" не працювали.
+  if (auth) {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window._fbReady = !!db;
+        window._fbAuthError = null;
+        document.dispatchEvent(new Event('fbReady'));
+      }
+    });
+    signInAnonymously(auth).catch((e) => {
+      console.warn('Firebase anonymous auth error:', e.code, e.message);
+      window._fbReady = false;
+      window._fbAuthError = e.code || e.message;
+      document.dispatchEvent(new CustomEvent('fbAuthError', { detail: e }));
+    });
+  } else {
+    document.dispatchEvent(new Event('fbReady'));
+  }</script>
 
 <!-- PeerJS for WebRTC coop -->
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -2758,6 +2783,12 @@ async function loginByNamePassword(){
   let found=Object.entries(profiles).find(([id,p])=>p.name&&p.name.toLowerCase()===name.toLowerCase());
   // Profile not found locally — try fetching it from the cloud (e.g. created on another device)
   if(!found){
+    if(window._fbAuthError){
+      // Firebase auth failed on this device — cloud is unreachable, don't pretend we searched it
+      msg.style.color='#e74c3c';
+      msg.textContent='❌ Немає доступу до хмари. Перевірте налаштування Firebase (Anonymous Authentication) або з\'єднання з інтернетом.';
+      return;
+    }
     if(typeof fbReady==='function' && fbReady()){
       msg.style.color='#0096c7';msg.textContent='🔄 Шукаємо профіль у хмарі...';
       try{
@@ -2773,10 +2804,21 @@ async function loginByNamePassword(){
             found=[newId,profiles[newId]];
           }
         }
-      }catch(e){ /* ignore, fall through to not-found message */ }
+      }catch(e){
+        console.warn('Cloud profile lookup error:', e.code||e.message);
+        msg.style.color='#e74c3c';
+        msg.textContent = (e.code==='PERMISSION_DENIED')
+          ? '❌ Немає доступу до хмари (перевірте правила Firebase Database).'
+          : '❌ Помилка з\'єднання з хмарою. Спробуйте ще раз.';
+        return;
+      }
+    } else {
+      msg.style.color='#e74c3c';
+      msg.textContent='🔄 Хмара ще завантажується, спробуйте через кілька секунд.';
+      return;
     }
   }
-  if(!found){msg.style.color='#e74c3c';msg.textContent='❌ Профіль не знайдено';return;}
+  if(!found){msg.style.color='#e74c3c';msg.textContent='❌ Профіль не знайдено (ні локально, ні в хмарі)';return;}
   const [id,p]=found;
   if(p.pin && p.pin!==pwd){msg.style.color='#e74c3c';msg.textContent='❌ Невірний пароль';document.getElementById('existing-profile-pwd').value='';return;}
   msg.textContent='';
@@ -5036,7 +5078,10 @@ async function cloudSaveProfile(profile) {
     await fb.set(fb.ref(fb.db, `cloud_profiles/${key}`), payload);
     return true;
   } catch (e) {
-    console.warn('Cloud save error:', e.message);
+    console.warn('Cloud save error:', e.code || e.message);
+    if (e.code === 'PERMISSION_DENIED') {
+      setSyncStatus('autherror', 'Немає прав запису в базу (перевірте Firebase Database Rules)');
+    }
     return false;
   }
 }
@@ -5086,7 +5131,10 @@ async function cloudLoadAndMerge() {
     }
     return false;
   } catch (e) {
-    console.warn('Cloud load error:', e.message);
+    console.warn('Cloud load error:', e.code || e.message);
+    if (e.code === 'PERMISSION_DENIED') {
+      setSyncStatus('autherror', 'Немає прав читання бази (перевірте Firebase Database Rules)');
+    }
     return false;
   }
 }
@@ -5155,7 +5203,15 @@ function startCloudSyncListener() {
       setSyncStatus('ok', 'Оновлено з хмари!');
     }
   };
-  fb.onValue(r, _cloudSyncListener);
+  fb.onValue(r, _cloudSyncListener, (err) => {
+    console.warn('Cloud listener error:', err.code || err.message);
+    if (err.code === 'PERMISSION_DENIED') {
+      setSyncStatus('autherror', 'Немає прав на реальний час (перевірте Firebase Database Rules)');
+    } else {
+      setSyncStatus('error', 'Втрачено з\'єднання з хмарою');
+    }
+    _cloudSyncActive = false;
+  });
   _cloudSyncActive = true;
 }
 
@@ -5192,7 +5248,7 @@ function setSyncStatus(state, msg) {
   const icon = document.getElementById('auto-sync-icon');
   const title = document.getElementById('auto-sync-title');
   const desc = document.getElementById('auto-sync-desc');
-  const colors = { ok: '#27ae60', saving: '#f39c12', error: '#e74c3c', off: '#aaa' };
+  const colors = { ok: '#27ae60', saving: '#f39c12', error: '#e74c3c', off: '#aaa', autherror: '#e74c3c' };
   if (dot) dot.style.background = colors[state] || '#aaa';
   if (state === 'ok') {
     if (icon) icon.textContent = '☁️';
@@ -5206,12 +5262,35 @@ function setSyncStatus(state, msg) {
     if (icon) icon.textContent = '⚠️';
     if (title) title.textContent = 'Немає з\'єднання';
     if (desc) desc.textContent = msg || 'Дані збережені локально';
+  } else if (state === 'autherror') {
+    if (icon) icon.textContent = '🔒';
+    if (title) title.textContent = 'Немає доступу до хмари';
+    if (desc) desc.textContent = msg || 'Увімкніть Anonymous Authentication у Firebase Console';
   } else {
     if (icon) icon.textContent = '📵';
     if (title) title.textContent = 'Хмара недоступна';
     if (desc) desc.textContent = 'Firebase не підключений';
   }
 }
+
+// ── Реагуємо на помилку автентифікації Firebase ─────────
+document.addEventListener('fbAuthError', (e) => {
+  const code = (e.detail && e.detail.code) || '';
+  let hint = 'Перевірте налаштування Firebase.';
+  if (code.includes('admin-restricted-operation') || code.includes('operation-not-allowed')) {
+    hint = 'У Firebase Console → Authentication увімкніть провайдер "Anonymous".';
+  } else if (code.includes('network')) {
+    hint = 'Немає з\'єднання з інтернетом.';
+  }
+  setSyncStatus('autherror', hint);
+  const loginList = document.getElementById('login-profiles-list');
+  if (loginList && document.getElementById('login-screen') && document.getElementById('login-screen').style.display !== 'none') {
+    const warn = document.createElement('p');
+    warn.style.cssText = 'color:#e74c3c;font-size:.85rem;margin:6px 0;text-align:center';
+    warn.textContent = '⚠️ Немає доступу до хмари (' + hint + '). Показані лише локальні профілі.';
+    loginList.prepend(warn);
+  }
+});
 
 // ── Save locally without triggering cloud (to avoid loops) ─
 function saveAllProfilesLocal(profiles) {
