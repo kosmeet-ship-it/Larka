@@ -210,6 +210,20 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 .victory-stars{font-size:8rem;margin:20px 0}
 @keyframes bounce{0%,20%,50%,80%,100%{transform:translateY(0)}40%{transform:translateY(-30px)}60%{transform:translateY(-15px)}}
 
+/* Floating jumping gift box notification */
+#gift-float{display:none;position:fixed;right:18px;bottom:18px;z-index:9000;cursor:pointer;user-select:none;text-align:center}
+#gift-float .gift-float-box{font-size:3.4rem;display:inline-block;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));animation:giftJump 1s infinite}
+#gift-float .gift-float-label{margin-top:2px;background:#e74c3c;color:#fff;font-weight:800;font-size:.8rem;padding:3px 10px;border-radius:12px;box-shadow:0 3px 8px rgba(0,0,0,.3);animation:giftLabelPulse 1s infinite}
+@keyframes giftJump{0%,100%{transform:translateY(0) rotate(0deg)}20%{transform:translateY(-22px) rotate(-8deg)}40%{transform:translateY(0) rotate(0deg)}55%{transform:translateY(-10px) rotate(6deg)}70%{transform:translateY(0) rotate(0deg)}}
+@keyframes giftLabelPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+#gift-float.opening .gift-float-box{animation:giftOpenShake .5s}
+@keyframes giftOpenShake{0%,100%{transform:translate(0,0) rotate(0deg)}20%{transform:translate(-6px,0) rotate(-10deg)}40%{transform:translate(6px,0) rotate(10deg)}60%{transform:translate(-6px,0) rotate(-8deg)}80%{transform:translate(6px,0) rotate(8deg)}}
+#gift-float.opened{pointer-events:none}
+#gift-float.opened .gift-float-box{animation:giftOpenBurst .5s forwards}
+@keyframes giftOpenBurst{0%{transform:scale(1) rotate(0deg);opacity:1}60%{transform:scale(1.5) rotate(15deg);opacity:1}100%{transform:scale(0) rotate(25deg);opacity:0}}
+.gift-float-spark{position:absolute;font-size:1.6rem;pointer-events:none;opacity:1;animation:giftSparkFly .6s forwards}
+@keyframes giftSparkFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--sx),var(--sy)) scale(1.4);opacity:0}}
+
 /* Math Game */
 #math-game{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);z-index:3000;touch-action:none}
 #math-game.is-open{display:block}
@@ -456,6 +470,10 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="openGenderModal()" style="background:linear-gradient(135deg,#e91e8c,#1565c0);padding:11px 14px" title="Змінити стать" id="header-gender-btn">👧</button>
 <button class="btn" id="gift-btn" onclick="openGiftModal()" style="background:linear-gradient(135deg,#e67e22,#d35400);padding:11px 14px;position:relative" title="Подарунок">🎁<span id="gift-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#e74c3c;color:#fff;font-size:.6rem;font-weight:900;border-radius:50%;width:16px;height:16px;line-height:16px;text-align:center;pointer-events:none">!</span></button>
 <button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
+<div id="gift-float" onclick="openFloatingGift()" title="Тобі прийшов подарунок! Натисни щоб відкрити">
+  <span class="gift-float-box">🎁</span>
+  <div class="gift-float-label">Подарунок!</div>
+</div>
 <button class="btn" onclick="logoutUser()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px">🚪</button>
 </div>
 
@@ -2995,6 +3013,45 @@ function resetGiftModal(){
 function updateGiftBadge(show){
   const badge=document.getElementById('gift-badge');
   if(badge) badge.style.display=show?'block':'none';
+  const floatEl=document.getElementById('gift-float');
+  if(floatEl){
+    if(show){
+      floatEl.classList.remove('opening','opened');
+      floatEl.style.display='block';
+    } else {
+      floatEl.style.display='none';
+      floatEl.classList.remove('opening','opened');
+    }
+  }
+}
+
+// ── Клік по стрибаючій коробці: анімація відкриття, потім показ подарунка ──
+function openFloatingGift(){
+  const floatEl=document.getElementById('gift-float');
+  if(!floatEl||floatEl.classList.contains('opening')||floatEl.classList.contains('opened'))return;
+  floatEl.classList.add('opening');
+  setTimeout(()=>{
+    floatEl.classList.add('opened');
+    // Іскри навколо коробки під час відкриття
+    const sparkEmojis=['✨','🎉','⭐','💫'];
+    for(let i=0;i<8;i++){
+      const sp=document.createElement('div');
+      sp.className='gift-float-spark';
+      sp.textContent=sparkEmojis[i%sparkEmojis.length];
+      const angle=(Math.PI*2*i)/8;
+      sp.style.setProperty('--sx',(Math.cos(angle)*70)+'px');
+      sp.style.setProperty('--sy',(Math.sin(angle)*70)+'px');
+      sp.style.left='50%';
+      sp.style.top='0';
+      floatEl.appendChild(sp);
+      setTimeout(()=>sp.remove(),650);
+    }
+    setTimeout(()=>{
+      floatEl.style.display='none';
+      floatEl.classList.remove('opening','opened');
+      openGiftModal();
+    },500);
+  },500);
 }
 
 function checkGiftBadge(){
@@ -3104,6 +3161,8 @@ updateDog();
 setTimeout(initDressingRoom, 50);
 // Check for pending gift notification
 setTimeout(checkGiftBadge, 200);
+// Періодично перевіряти чи не прийшов подарунок (для стрибаючої коробки)
+if(!window._giftBadgeInterval) window._giftBadgeInterval=setInterval(checkGiftBadge, 4000);
 // Start real-time cloud sync
 if(typeof startCloudSyncListener === 'function') setTimeout(startCloudSyncListener, 300);
 }
@@ -5231,6 +5290,8 @@ function startCloudSyncListener() {
     if (changed) {
       saveAllProfilesLocal(local);
       updateUI();
+      // Перевірити чи не прийшов новий подарунок (для стрибаючої коробки)
+      if (typeof checkGiftBadge === 'function') checkGiftBadge();
       // Оновити екран входу якщо він зараз відкритий (нові профілі з іншого пристрою)
       const loginScreen = document.getElementById('login-screen');
       if (loginScreen && loginScreen.style.display !== 'none') {
