@@ -2177,7 +2177,7 @@ function doHedgehogAction(){
 // ═══════════════════════════════════════════════════════════
 function throwBoneToDog(){
   const user=getUser();
-  if((user.dog.hearts||0)<10) return alert('Собаці потрібно 10 ❤️ щоб прийняти кісточку!');
+  if((user.dog.hearts||0)<5) return alert('Собаці потрібно щонайменше 5 ❤️ щоб прийняти кісточку!');
   if(!user.bones||user.bones<1) return alert('Немає кісточок! Зіграйте в КооП БоСС English 🦔');
   user.bones-=1;
   if(!user.bossDmgBonus) user.bossDmgBonus=0;
@@ -2218,7 +2218,7 @@ function updateDogActionsUI(){
   const boneToDogBtn=document.getElementById('bone-to-dog-btn');
   if(boneToDogBtn){
     const hasBones=(user.bones||0)>0;
-    const has10Hearts=(user.dog.hearts||0)>=10;
+    const has10Hearts=(user.dog.hearts||0)>=5;
     boneToDogBtn.style.display=(hasBones&&has10Hearts)?'block':'none';
     boneToDogBtn.textContent=`🦴 Кісточка −1🦴 +1%урону [${user.bones||0}🦴]`;
   }
@@ -2666,6 +2666,16 @@ function ensureLarikaPassword(){
 }
 
 function saveAllProfiles(profiles){
+  // Позначаємо момент локальної зміни для КОЖНОГО профілю з даними.
+  // Це критично для коректного мержу з хмарою (last-write-wins):
+  // без цієї мітки щойно зроблена локальна дія (погодувати собаку,
+  // полити дерево тощо) могла "відкотитися" назад, якщо застарілий
+  // знімок з хмари прилітав раніше, ніж локальні зміни встигали
+  // завантажитись у хмару (upload йде з затримкою/тротлінгом).
+  const now = Date.now();
+  Object.values(profiles || {}).forEach(p => {
+    if(p) p._syncedAt = Math.max(p._syncedAt || 0, now);
+  });
   localStorage.setItem(PROFILES_KEY,JSON.stringify(profiles));
   // Auto cloud sync (throttled)
   if(typeof cloudSaveAll === 'function') {
@@ -5202,12 +5212,13 @@ async function cloudLoadAndMerge() {
         local[cloudProfile.id] = cleanProfile;
         changed = true;
       } else {
-        // Мерж: перемагає той що більше зірок (або новіший при рівних зірках)
-        const localStars = (localMatch.data && localMatch.data.stars) || 0;
-        const cloudStars = (cloudProfile.data && cloudProfile.data.stars) || 0;
+        // Мерж: перемагає НОВІШИЙ запис (last-write-wins за часом збереження),
+        // а НЕ той у кого більше зірок — інакше дії з собакою/деревом (які не
+        // завжди підвищують кількість зірок) "відкочувались" назад, коли
+        // приходив старіший, але "зірковіший" знімок з хмари.
         const cloudSyncedAt = cloudProfile._syncedAt || 0;
         const localSyncedAt = localMatch._syncedAt || 0;
-        if (cloudStars > localStars || (cloudStars === localStars && cloudSyncedAt > localSyncedAt)) {
+        if (cloudSyncedAt > localSyncedAt) {
           // Зберігаємо локальне фото (воно не синхронізується через хмару)
           const localPhoto = localMatch.data && localMatch.data.photoDataUrl;
           const { _savedByDevice, ...cleanCloud } = cloudProfile;
@@ -5272,11 +5283,11 @@ function startCloudSyncListener() {
         local[cloudProfile.id] = cloudProfile;
         changed = true;
       } else {
-        const localStars = (localMatch.data && localMatch.data.stars) || 0;
-        const cloudStars = (cloudProfile.data && cloudProfile.data.stars) || 0;
+        // Last-write-wins за часом збереження, а не за кількістю зірок —
+        // див. пояснення в cloudLoadAndMerge вище.
         const cloudSyncedAt = cloudProfile._syncedAt || 0;
         const localSyncedAt = localMatch._syncedAt || 0;
-        if (cloudStars > localStars || (cloudStars === localStars && cloudSyncedAt > localSyncedAt + 2000)) {
+        if (cloudSyncedAt > localSyncedAt + 2000) {
           const localPhoto = localMatch.data && localMatch.data.photoDataUrl;
           local[localMatch.id] = { ...cloudProfile, id: localMatch.id };
           if (localPhoto && local[localMatch.id].data) {
@@ -8237,6 +8248,11 @@ async function checkMath0Answer(){
         // Guest sends dmg to host
         const conn = math0PeerConns[0];
         if(conn) try{ conn.send({ type:'dmg', id:math0MpState.myId, name:math0MpState.myName, avatar:math0MpState.myAvatar, amount:dmg }); }catch{}
+        // Оптимістично зменшуємо локально відомий HP одразу, а не чекаємо
+        // відповіді від хоста мережею — інакше після смертельного удару
+        // гра встигала запропонувати ще одне питання (перевірка нижче
+        // спиралась на застаріле значення math0MpState.hp).
+        math0MpState.hp = Math.max(0, (math0MpState.hp||MATH0_BOSS_START_HP) - dmg);
       }
       if((math0MpState.hp||0)<=0) return;
       setTimeout(()=>{ hideMath0Feedback(); nextMath0Question(); }, 900);
@@ -8297,8 +8313,19 @@ function math0EndGame(victory){
   if(math0MpState){
     document.getElementById('m0-coop-hud').style.display = 'none';
     const savedPlayers = Object.assign({}, math0MpState.players||{});
+    // Якщо ми хост — продублюємо фінальний стан гостям ще пару разів,
+    // бо саме тут раніше "губилась" нагорода: якщо гість щойно завдав
+    // фінальний удар, host міг знищити P2P-з'єднання (_math0PeerCleanup)
+    // ДО того, як WebRTC встигав фактично доставити останнє повідомлення,
+    // і гість просто ніколи не дізнавався про перемогу/поразку.
+    if(math0MpState.isHost && typeof _math0Broadcast==='function'){
+      const finalMsg = { type:'state', hp:math0MpState.hp, players:savedPlayers, status: victory?'victory':'defeat' };
+      _math0Broadcast(finalMsg);
+      setTimeout(()=>_math0Broadcast(finalMsg), 400);
+      setTimeout(()=>_math0Broadcast(finalMsg), 900);
+    }
     math0MpState = null;
-    setTimeout(()=>{ if(typeof _math0PeerCleanup==='function') _math0PeerCleanup(); }, 300);
+    setTimeout(()=>{ if(typeof _math0PeerCleanup==='function') _math0PeerCleanup(); }, 2000);
     const stars = MATH0_REWARD[lvl] || 1000;
     if(victory){
       const user = getUser(); user.stars += stars; saveUser(user); updateUI();
