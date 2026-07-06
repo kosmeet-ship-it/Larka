@@ -818,7 +818,6 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <div class="header">
 <h2 style="color:#764ba2;margin:0">📚 Словник</h2>
 <div style="display:flex;gap:8px;flex-wrap:wrap">
-<button class="btn danger" onclick="resetAllDictProgress()" style="font-size:.85rem;padding:8px 14px">🗑 Скинути прогрес</button>
 <button class="btn" onclick="closeDictionary()">← Назад</button>
 </div>
 </div>
@@ -2687,7 +2686,16 @@ function saveAllProfiles(profiles){
 function getUser(){
   const profiles=loadAllProfiles();
   const p=profiles[_activeProfileId];
-  if(p&&p.data) return p.data;
+  if(p&&p.data){
+    // Захист від "старих"/прилетілих з хмари профілів без цих полів —
+    // без цього renderDictionary() падав з помилкою і слова взагалі
+    // не показувались (навіть вбудовані).
+    const d=p.data;
+    if(!Array.isArray(d.customWords)) d.customWords=[];
+    if(!d.english||typeof d.english!=='object') d.english={};
+    if(!d.games||typeof d.games!=='object') d.games={};
+    return d;
+  }
   const newData={stars:0,seeds:0,bees:0,threads:0,guzuky:0,tree:null,
     dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
     english:{},customWords:[],games:{}};
@@ -2945,6 +2953,10 @@ function createProfile(){
   if(avatarInfo.type === 'photo') newData.photoDataUrl = avatarInfo.data;
   const emojiAvatar = avatarInfo.type === 'emoji' ? avatarInfo.data : (PROFILE_AVATARS[Object.keys(profiles).length % PROFILE_AVATARS.length]);
   profiles[id]={id,name,pin:pwd,avatar:avatarInfo.type==='photo'?'📷':emojiAvatar,data:newData};
+  // Якщо вже маємо кеш спільного словника kosmeet — одразу наповнюємо новий профіль
+  if(_lastSharedDictSnapshot && name.trim().toLowerCase()!==MASTER_DICT_ACCOUNT){
+    mergeSharedCustomWordsIntoProfileData(profiles[id].data, _lastSharedDictSnapshot.customWords);
+  }
   saveAllProfiles(profiles);
   loginShowProfiles();
 }
@@ -3989,24 +4001,6 @@ function closeDictionary(){
 document.getElementById('dictionary').style.display='none';
 }
 
-function resetAllDictProgress(){
-  if(!confirm('Скинути весь прогрес правильних відповідей у словнику? Це видалить усю історію вивчення слів.')) return;
-  const user = getUser();
-  // Reset correct count for all themes and words
-  for(const theme in user.english){
-    for(const word in user.english[theme]){
-      user.english[theme][word].correct = 0;
-      user.english[theme][word].srsStep = 0;
-      user.english[theme][word].nextReview = 0;
-      user.english[theme][word].lastSeen = 0;
-    }
-  }
-  saveUser(user);
-  const filterTheme = document.querySelector('.theme-btn.active')?.dataset?.theme || 'all';
-  renderDictionary(filterTheme);
-  alert('✅ Прогрес скинуто!');
-}
-
 function filterDictionary(theme, btn){
 document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));
 if(btn) btn.classList.add('active');
@@ -4030,12 +4024,13 @@ if(!user.customWords)user.customWords=[];
 const ukVariants=uk.split(',').map(s=>s.trim()).filter(Boolean);
 user.customWords.push({en,uk:ukVariants[0],ukVariants,theme});
 saveUser(user);
+publishSharedDictionaryIfMaster();
 
 enEl.value='';
 ukEl.value='';
 
 renderDictionary(document.querySelector('.theme-btn.active')?.dataset?.theme||'all');
-alert('✅ Слово додано!');
+alert('✅ Слово додано!'+(isMasterDictAccount()?' Синхронізується з усіма акаунтами.':''));
 }
 
 function deleteWord(idx,filterTheme){
@@ -4046,6 +4041,7 @@ const customIdx=getRealCustomIndex(idx,filterTheme);
 if(customIdx===-1)return;
 user.customWords.splice(customIdx,1);
 saveUser(user);
+publishSharedDictionaryIfMaster();
 renderDictionary(filterTheme);
 }
 
@@ -4064,6 +4060,7 @@ if(!newUk||!newUk.trim())return;
 const ukVariants=newUk.split(',').map(s=>s.trim()).filter(Boolean);
 user.customWords[customIdx]={...w,en:newEn.trim(),uk:ukVariants[0],ukVariants};
 saveUser(user);
+publishSharedDictionaryIfMaster();
 renderDictionary(filterTheme);
 }
 
@@ -4073,7 +4070,7 @@ const allWords=[];
 for(const theme in EN_WORDS){
 EN_WORDS[theme].forEach(w=>allWords.push({...w,theme,custom:false}));
 }
-user.customWords.forEach((w,i)=>allWords.push({...w,custom:true,realIdx:i}));
+(user.customWords||[]).forEach((w,i)=>allWords.push({...w,custom:true,realIdx:i}));
 const filtered=filterTheme==='all'?allWords:allWords.filter(w=>w.theme===filterTheme);
 const customFiltered=filtered.filter(w=>w.custom);
 // displayIdx is index among ALL filtered words that are custom
@@ -4096,7 +4093,7 @@ allWords.push({...w,theme,progress,custom:false});
 }
 
 // Add custom words
-user.customWords.forEach((w,realIdx)=>{
+(user.customWords||[]).forEach((w,realIdx)=>{
 const progress=user.english[w.theme]&&user.english[w.theme][w.en]?user.english[w.theme][w.en].correct:0;
 const variants=w.ukVariants||[w.uk];
 allWords.push({...w,ukVariants:variants,progress,custom:true,realIdx});
@@ -4164,6 +4161,7 @@ function editDefaultWord(enWord, theme, filterTheme){
   const idx = arr.findIndex(w=>w.en===enWord);
   if(idx===-1) return;
   const w = arr[idx];
+  const originalEn = w.en; // ключ для синхронізації — беремо ДО перейменування
   const newEn = prompt('English слово:', w.en);
   if(!newEn||!newEn.trim()) return;
   const allUk = (w.ukVariants||[w.uk]).join(', ');
@@ -4171,15 +4169,21 @@ function editDefaultWord(enWord, theme, filterTheme){
   if(!newUk||!newUk.trim()) return;
   const ukVariants = newUk.split(',').map(s=>s.trim()).filter(Boolean);
   arr[idx] = {...w, en: newEn.trim(), uk: ukVariants[0], ukVariants};
+  publishDefaultWordChangeIfMaster(theme, originalEn, arr[idx]);
   renderDictionary(filterTheme);
 }
 
 function deleteDefaultWord(enWord, theme, filterTheme){
-  if(!confirm(`Видалити слово "${enWord}" зі словника? Це тимчасово (до перезавантаження сторінки).`)) return;
+  const isMaster = isMasterDictAccount();
+  const warnText = isMaster
+    ? `Видалити слово "${enWord}" зі словника? Це синхронізується і видалить слово в словниках УСІХ акаунтів.`
+    : `Видалити слово "${enWord}" зі словника? Це тимчасово (до перезавантаження сторінки).`;
+  if(!confirm(warnText)) return;
   const arr = EN_WORDS[theme];
   if(!arr) return;
   const idx = arr.findIndex(w=>w.en===enWord);
   if(idx!==-1) arr.splice(idx,1);
+  publishDefaultWordChangeIfMaster(theme, enWord, null);
   renderDictionary(filterTheme);
 }
 
@@ -5333,6 +5337,192 @@ function stopCloudSyncListener() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════
+// СИНХРОНІЗАЦІЯ СЛОВНИКА: переклади з акаунту "kosmeet" → усі акаунти
+// ═══════════════════════════════════════════════════════════
+// Ідея: акаунт з іменем "kosmeet" є "майстер"-джерелом перекладів.
+// Будь-яка зміна перекладу (додавання/редагування/видалення власного
+// слова, редагування/видалення перекладу вбудованого слова) з цього
+// акаунту публікується в Firebase (вузол SHARED_DICT_PATH) і потім
+// застосовується до словників УСІХ інших акаунтів.
+//
+// Важливо: ця синхронізація торкається ЛИШЕ самих слів/перекладів
+// (EN_WORDS та customWords). Прогрес/історія повторення слів
+// зберігається окремо — у user.english[theme][en] — і ця функція
+// НІКОЛИ не читає і не змінює user.english, тож повторення слів
+// у кожного акаунту лишається їхнім особистим і не збивається.
+const MASTER_DICT_ACCOUNT = 'kosmeet';
+const SHARED_DICT_PATH = 'shared_dictionary';
+let _sharedDictListener = null;
+let _lastSharedDictSnapshot = null;
+
+function _sanitizeFbKey(s){
+  return String(s).replace(/[.#$\[\]/]/g,'_');
+}
+
+function getActiveProfileObj(){
+  const profiles = loadAllProfiles();
+  return profiles[_activeProfileId] || null;
+}
+
+// Чи поточний активний акаунт — це "kosmeet" (джерело перекладів)
+function isMasterDictAccount(){
+  const p = getActiveProfileObj();
+  return !!(p && (p.name||'').trim().toLowerCase() === MASTER_DICT_ACCOUNT);
+}
+
+// Застосувати спільні перезаписи/видалення вбудованих слів до EN_WORDS.
+// EN_WORDS — спільний глобальний об'єкт для всіх акаунтів у поточній
+// сесії, тому досить оновити його один раз — це одразу відобразиться
+// і в словнику, і в іграх для будь-якого залогованого акаунту.
+function applySharedDefaultWords(shared){
+  if(!shared) return;
+  const overrides = shared.defaultOverrides || {};
+  const deletions = shared.defaultDeletions || {};
+  Object.values(overrides).forEach(o=>{
+    if(!o || !o.theme) return;
+    const arr = EN_WORDS[o.theme];
+    if(!arr) return;
+    const idx = arr.findIndex(w=>w.en===o.originalEn || w.en===o.en);
+    if(idx!==-1) arr[idx] = {...arr[idx], en:o.en, uk:o.uk, ukVariants:o.ukVariants};
+  });
+  Object.values(deletions).forEach(d=>{
+    if(!d || !d.theme) return;
+    const arr = EN_WORDS[d.theme];
+    if(!arr) return;
+    const idx = arr.findIndex(w=>w.en===d.en);
+    if(idx!==-1) arr.splice(idx,1);
+  });
+}
+
+// Змержити спільні кастомні слова (від kosmeet) у customWords ОДНОГО
+// профілю. Власні (приватні) слова цього профілю — ті, що без syncId —
+// не чіпаються. user.english (прогрес) теж не чіпається.
+function mergeSharedCustomWordsIntoProfileData(data, sharedCustomWords){
+  if(!data) return false;
+  if(!Array.isArray(data.customWords)) data.customWords = [];
+  const shared = sharedCustomWords || {};
+  let changed = false;
+  const bySyncId = {};
+  data.customWords.forEach((w,i)=>{ if(w && w.syncId) bySyncId[w.syncId]=i; });
+
+  Object.values(shared).forEach(sw=>{
+    if(!sw || !sw.id) return;
+    if(sw.deleted) return; // видалення обробляється фільтром нижче
+    const entry = {en:sw.en, uk:sw.uk, ukVariants:sw.ukVariants||[sw.uk], theme:sw.theme, syncId:sw.id};
+    if(bySyncId[sw.id]!==undefined){
+      const cur = data.customWords[bySyncId[sw.id]];
+      if(!cur || cur.en!==entry.en || cur.uk!==entry.uk || cur.theme!==entry.theme || JSON.stringify(cur.ukVariants)!==JSON.stringify(entry.ukVariants)){
+        data.customWords[bySyncId[sw.id]] = entry;
+        changed = true;
+      }
+    } else {
+      data.customWords.push(entry);
+      changed = true;
+    }
+  });
+
+  const beforeLen = data.customWords.length;
+  data.customWords = data.customWords.filter(w=>{
+    if(!w) return false;
+    if(!w.syncId) return true; // приватне слово користувача — лишаємо як є
+    return !!shared[w.syncId] && !shared[w.syncId].deleted;
+  });
+  if(data.customWords.length!==beforeLen) changed = true;
+
+  return changed;
+}
+
+// Застосувати спільний словник до ВСІХ локальних профілів (крім самого
+// kosmeet — його customWords і є джерелом) + до глобального EN_WORDS
+function applySharedDictionaryEverywhere(shared){
+  if(!shared) return;
+  _lastSharedDictSnapshot = shared;
+  applySharedDefaultWords(shared);
+  const profiles = loadAllProfiles();
+  let anyChanged = false;
+  Object.values(profiles).forEach(p=>{
+    if(!p || !p.data) return;
+    if((p.name||'').trim().toLowerCase()===MASTER_DICT_ACCOUNT) return;
+    if(mergeSharedCustomWordsIntoProfileData(p.data, shared.customWords)) anyChanged = true;
+  });
+  if(anyChanged) saveAllProfilesLocal(profiles);
+  const dictEl = document.getElementById('dictionary');
+  if(dictEl && dictEl.style.display!=='none'){
+    renderDictionary(document.querySelector('.theme-btn.active')?.dataset?.theme||'all');
+  }
+}
+
+// Прочитати спільний словник з хмари один раз (при старті)
+async function loadSharedDictionaryOnce(){
+  if(!fbReady()) return;
+  try{
+    const fb = window._fb;
+    const snap = await fb.get(fb.ref(fb.db, SHARED_DICT_PATH));
+    if(snap.exists()) applySharedDictionaryEverywhere(snap.val());
+  }catch(e){ console.warn('Shared dictionary load error:', e.code||e.message); }
+}
+
+// Слухати зміни спільного словника у реальному часі
+function startSharedDictionaryListener(){
+  if(!fbReady() || _sharedDictListener) return;
+  const fb = window._fb;
+  const r = fb.ref(fb.db, SHARED_DICT_PATH);
+  _sharedDictListener = (snap)=>{
+    if(!snap.exists()) return;
+    applySharedDictionaryEverywhere(snap.val());
+  };
+  fb.onValue(r, _sharedDictListener, ()=>{});
+}
+
+// kosmeet публікує поточний повний стан своїх власних слів у хмару
+async function publishSharedDictionaryIfMaster(){
+  if(!isMasterDictAccount() || !fbReady()) return;
+  try{
+    const fb = window._fb;
+    const user = getUser();
+    if(!Array.isArray(user.customWords)) user.customWords = [];
+    let idsAdded = false;
+    user.customWords.forEach(w=>{
+      if(w && !w.syncId){ w.syncId = 'sw_'+Date.now()+'_'+Math.random().toString(36).slice(2,8); idsAdded = true; }
+    });
+    if(idsAdded) saveUser(user);
+
+    const customWords = {};
+    user.customWords.forEach(w=>{
+      customWords[w.syncId] = {id:w.syncId, en:w.en, uk:w.uk, ukVariants:w.ukVariants||[w.uk], theme:w.theme, deleted:false, updatedAt:Date.now()};
+    });
+    // Позначаємо видаленими ті id, що раніше були опубліковані, але зникли локально
+    const snap = await fb.get(fb.ref(fb.db, SHARED_DICT_PATH+'/customWords'));
+    if(snap.exists()){
+      const prev = snap.val()||{};
+      Object.keys(prev).forEach(id=>{
+        if(!customWords[id]) customWords[id] = {...prev[id], deleted:true, updatedAt:Date.now()};
+      });
+    }
+    await fb.set(fb.ref(fb.db, SHARED_DICT_PATH+'/customWords'), customWords);
+  }catch(e){ console.warn('Publish shared dictionary error:', e.code||e.message); }
+}
+
+// kosmeet публікує зміну/видалення перекладу вбудованого слова
+async function publishDefaultWordChangeIfMaster(theme, originalEn, updatedWordOrNull){
+  if(!isMasterDictAccount() || !fbReady()) return;
+  try{
+    const fb = window._fb;
+    const key = _sanitizeFbKey(theme+'::'+originalEn);
+    if(updatedWordOrNull){
+      await fb.set(fb.ref(fb.db, SHARED_DICT_PATH+'/defaultOverrides/'+key), {
+        theme, originalEn, en:updatedWordOrNull.en, uk:updatedWordOrNull.uk, ukVariants:updatedWordOrNull.ukVariants, updatedAt:Date.now()
+      });
+      await fb.set(fb.ref(fb.db, SHARED_DICT_PATH+'/defaultDeletions/'+key), null);
+    } else {
+      await fb.set(fb.ref(fb.db, SHARED_DICT_PATH+'/defaultDeletions/'+key), {
+        theme, en:originalEn, updatedAt:Date.now()
+      });
+    }
+  }catch(e){ console.warn('Publish default word change error:', e.code||e.message); }
+}
+
 // ── Ручна синхронізація по кнопці ──────────────────────
 async function manualCloudSync() {
   const btn = document.getElementById('manual-sync-btn');
@@ -5346,6 +5536,8 @@ async function manualCloudSync() {
   }
   const merged = await cloudLoadAndMerge();
   if (merged) updateUI();
+  await publishSharedDictionaryIfMaster();
+  await loadSharedDictionaryOnce();
   if (btn) { btn.disabled = false; btn.textContent = '🔄 Зараз'; }
   setSyncStatus(ok ? 'ok' : 'error', ok ? (merged ? '✅ Синхронізовано! Дані оновлені.' : '✅ Хмара актуальна.') : '❌ Помилка з\'єднання');
 }
@@ -5535,6 +5727,9 @@ async function initCloudSync() {
     }
     await cloudSaveAll();
     startCloudSyncListener();
+    await loadSharedDictionaryOnce();
+    startSharedDictionaryListener();
+    await publishSharedDictionaryIfMaster();
   } catch (e) {
     setSyncStatus('error');
     // Навіть при помилці — показати локальні профілі
