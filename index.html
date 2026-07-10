@@ -795,6 +795,11 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
     <option value="3">💀💀💀 Рівень 3</option>
     <option value="4">💀💀💀💀 Рівень 4</option>
     <option value="5">💀💀💀💀💀 Рівень 5</option>
+    <option value="6">⚡ Рівень 6</option>
+    <option value="7">🔥 Рівень 7</option>
+    <option value="8">💥 Рівень 8</option>
+    <option value="9">🌪️ Рівень 9</option>
+    <option value="10">☠️ Рівень 10</option>
   </select>
 </div>
 <button class="btn" style="padding:14px 30px;font-size:1.1rem;width:100%;background:linear-gradient(135deg,rgba(180,0,0,.8),rgba(80,0,0,.95));border:2px solid #ff4444" onclick="startEnBossSoloMulti()">💀 Грати (БоСС)</button>
@@ -1128,6 +1133,10 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
           <label style="font-size:.85rem;color:#666;display:block;margin-bottom:3px">🧵 Нитки</label>
           <input type="number" id="gift-threads" placeholder="0" min="0" style="width:100%;padding:8px;border-radius:8px;border:2px solid #f39c12;font-size:1rem;text-align:center">
         </div>
+        <div>
+          <label style="font-size:.85rem;color:#666;display:block;margin-bottom:3px">🔘 Гудзики</label>
+          <input type="number" id="gift-guzuky" placeholder="0" min="0" style="width:100%;padding:8px;border-radius:8px;border:2px solid #f39c12;font-size:1rem;text-align:center">
+        </div>
       </div>
       <div id="gift-send-msg" style="min-height:1.2em;font-size:.9rem;font-weight:700;text-align:center;margin-bottom:10px"></div>
       <button onclick="createGiftCode()" style="width:100%;padding:13px;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:8px">🎁 Надіслати подарунок</button>
@@ -1196,6 +1205,11 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
         <option value="3">💀💀💀 Рівень 3 — +150/10с</option>
         <option value="4">💀💀💀💀 Рівень 4 — +200/10с</option>
         <option value="5">💀💀💀💀💀 Рівень 5 — +250/10с</option>
+        <option value="6">⚡ Рівень 6 — +300/10с</option>
+        <option value="7">🔥 Рівень 7 — +350/10с</option>
+        <option value="8">💥 Рівень 8 — +400/10с</option>
+        <option value="9">🌪️ Рівень 9 — +450/10с</option>
+        <option value="10">☠️ Рівень 10 — +500/10с</option>
       </select>
       <div style="color:#aaa;font-size:.85rem;margin-bottom:6px">Гравці:</div>
       <div class="mp-player-list" id="en-boss-player-list-created"></div>
@@ -1290,7 +1304,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 // ═══════════════════════════════════════════════════════════
 const EN_BOSS_START_HP = 2000;
 const EN_BOSS_DEFEAT_HP = 6000;
-const EN_BOSS_REGEN = [0, 50, 100, 150, 200, 250];
+const EN_BOSS_REGEN = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 const EN_BOSS_DMG_PER_LETTER = 30;
 
 let enBossState = null;
@@ -2995,6 +3009,7 @@ function openGiftModal(){
     if(g.bees)parts.push(`${g.bees}🐝`);
     if(g.seeds)parts.push(`${g.seeds}🌱`);
     if(g.threads)parts.push(`${g.threads}🧵`);
+    if(g.guzuky)parts.push(`${g.guzuky}🔘`);
     const sendMsg=document.getElementById('gift-send-msg');
     if(sendMsg){
       sendMsg.style.color='#27ae60';
@@ -3028,6 +3043,7 @@ function resetGiftModal(){
   document.getElementById('gift-bees').value='';
   document.getElementById('gift-seeds').value='';
   document.getElementById('gift-threads').value='';
+  document.getElementById('gift-guzuky').value='';
   const nameInp=document.getElementById('gift-recipient-name');
   if(nameInp) nameInp.value='';
 }
@@ -3092,10 +3108,11 @@ function createGiftCode(){
   const bees=parseInt(document.getElementById('gift-bees').value)||0;
   const seeds=parseInt(document.getElementById('gift-seeds').value)||0;
   const threads=parseInt(document.getElementById('gift-threads').value)||0;
+  const guzuky=parseInt(document.getElementById('gift-guzuky').value)||0;
   const msg=document.getElementById('gift-send-msg');
 
   if(!recipientId&&!typedName){msg.style.color='#e74c3c';msg.textContent='Оберіть гравця або введіть ім\'я';return;}
-  if(!stars&&!bees&&!seeds&&!threads){msg.style.color='#e74c3c';msg.textContent='Вкажіть хоч один ресурс';return;}
+  if(!stars&&!bees&&!seeds&&!threads&&!guzuky){msg.style.color='#e74c3c';msg.textContent='Вкажіть хоч один ресурс';return;}
 
   // Check sender has enough
   const sender=getUser();
@@ -3103,12 +3120,14 @@ function createGiftCode(){
   if(bees>(sender.bees||0)){msg.style.color='#e74c3c';msg.textContent=`Недостатньо 🐝 (маєш ${sender.bees||0})`;return;}
   if(seeds>(sender.seeds||0)){msg.style.color='#e74c3c';msg.textContent=`Недостатньо 🌱 (маєш ${sender.seeds||0})`;return;}
   if(threads>(sender.threads||0)){msg.style.color='#e74c3c';msg.textContent=`Недостатньо 🧵 (маєш ${sender.threads||0})`;return;}
+  if(guzuky>(sender.guzuky||0)){msg.style.color='#e74c3c';msg.textContent=`Недостатньо 🔘 (маєш ${sender.guzuky||0})`;return;}
 
   // Deduct from sender
   sender.stars-=stars;
   if(bees)sender.bees=(sender.bees||0)-bees;
   if(seeds)sender.seeds=(sender.seeds||0)-seeds;
   if(threads)sender.threads=(sender.threads||0)-threads;
+  if(guzuky)sender.guzuky=(sender.guzuky||0)-guzuky;
   saveUser(sender);
   updateUI();
 
@@ -3135,9 +3154,10 @@ function createGiftCode(){
       if(bees)rp.data.bees=(rp.data.bees||0)+bees;
       if(seeds)rp.data.seeds=(rp.data.seeds||0)+seeds;
       if(threads)rp.data.threads=(rp.data.threads||0)+threads;
+      if(guzuky)rp.data.guzuky=(rp.data.guzuky||0)+guzuky;
       // Mark gift notification for recipient
       const senderName=profiles[_activeProfileId]?profiles[_activeProfileId].name:'?';
-      rp.data.pendingGiftNotif={from:senderName,stars,bees,seeds,threads,ts:Date.now()};
+      rp.data.pendingGiftNotif={from:senderName,stars,bees,seeds,threads,guzuky,ts:Date.now()};
       allProfs[recipProfile.id]=rp;
       saveAllProfiles(allProfs);
     }
@@ -3149,6 +3169,7 @@ function createGiftCode(){
   if(bees)parts.push(`${bees}🐝`);
   if(seeds)parts.push(`${seeds}🌱`);
   if(threads)parts.push(`${threads}🧵`);
+  if(guzuky)parts.push(`${guzuky}🔘`);
 
   // Show success
   const sumEl=document.getElementById('gift-sent-summary');
