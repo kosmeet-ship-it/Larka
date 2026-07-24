@@ -1437,9 +1437,13 @@ function enBossListenRoom(){
       enBossState.hp = room.bossHp;
       updateEnBossUI();
     }
-    if((room.status==='victory'||(room.status==='playing'&&room.bossHp<=0)) && enBossState){
+    // Гейтимо на enBossMpState (я досі учасник кімнати), а не на
+    // локальний enBossState — щоб гравець, що приєднався, не втратив
+    // нагороду через розсинхрон локального стану (див. аналогічний
+    // фікс у mpListenRoom для Математика-БоСС).
+    if(enBossMpState && (room.status==='victory'||(room.status==='playing'&&room.bossHp<=0))){
       enBossEndGame(true);
-    } else if((room.status==='defeat'||(room.status==='playing'&&room.bossHp>=EN_BOSS_DEFEAT_HP)) && enBossState){
+    } else if(enBossMpState && (room.status==='defeat'||(room.status==='playing'&&room.bossHp>=EN_BOSS_DEFEAT_HP))){
       enBossEndGame(false);
     }
     if(enBossState) enBossUpdateMpHud(room.players||{});
@@ -5326,6 +5330,7 @@ function startCloudSyncListener() {
     if (changed) {
       saveAllProfilesLocal(local);
       updateUI();
+      if (typeof refreshCharacterAppearance === 'function') refreshCharacterAppearance();
       // Перевірити чи не прийшов новий подарунок (для стрибаючої коробки)
       if (typeof checkGiftBadge === 'function') checkGiftBadge();
       // Оновити екран входу якщо він зараз відкритий (нові профілі з іншого пристрою)
@@ -5556,7 +5561,7 @@ async function manualCloudSync() {
     if (!res) ok = false;
   }
   const merged = await cloudLoadAndMerge();
-  if (merged) updateUI();
+  if (merged) { updateUI(); if (typeof refreshCharacterAppearance === 'function') refreshCharacterAppearance(); }
   await publishSharedDictionaryIfMaster();
   await loadSharedDictionaryOnce();
   if (btn) { btn.disabled = false; btn.textContent = '🔄 Зараз'; }
@@ -5745,6 +5750,11 @@ async function initCloudSync() {
       loginShowProfiles && loginShowProfiles();
     } else if (merged) {
       updateUI();
+      // Хмара могла принести новіший стан одягу (наприклад, змінений на
+      // іншому пристрої) вже ПІСЛЯ того, як персонажа намалювали при
+      // вході — без цього виклику одяг лишався б застарілим/дефолтним
+      // до наступного входу в застосунок.
+      if (typeof refreshCharacterAppearance === 'function') refreshCharacterAppearance();
     }
     await cloudSaveAll();
     startCloudSyncListener();
@@ -6027,10 +6037,18 @@ function mpListenRoom(){
       updateBossUI();
     }
 
-    // victory / defeat signals — single entry point, guard with bossState
-    if((room.status === 'victory' || (room.status === 'playing' && room.bossHp <= 0)) && window.bossState){
+    // victory / defeat signals — single entry point.
+    // ВАЖЛИВО: гейтимо на mpState (я досі учасник кімнати), а НЕ на
+    // window.bossState. Якщо гейтити на bossState, гравець, що
+    // приєднався (гість), міг втратити нагороду — наприклад, якщо його
+    // локальний bossState ще не встиг ініціалізуватись або вже
+    // очистився на момент приходу фінального знімку з Firebase.
+    // bossEndGame сам коректно обробляє відсутній window.bossState
+    // (бере рівень з mpState), тож нагорода видається завжди, поки
+    // гравець ще в кооп-кімнаті.
+    if(mpState && (room.status === 'victory' || (room.status === 'playing' && room.bossHp <= 0))){
       bossEndGame(true);
-    } else if((room.status === 'defeat' || (room.status === 'playing' && room.bossHp >= MP_BOSS_DEFEAT_HP)) && window.bossState){
+    } else if(mpState && (room.status === 'defeat' || (room.status === 'playing' && room.bossHp >= MP_BOSS_DEFEAT_HP))){
       bossEndGame(false);
     }
 
@@ -7189,6 +7207,30 @@ let _equipped = {}; // { zone: itemId }
 let _invFilter = 'all';
 
 function initDressingRoom() {
+  refreshCharacterAppearance();
+  // Attach zone click handlers for quick symbol popup
+  document.querySelectorAll('.dress-zone').forEach(el => {
+    el.addEventListener('click', function(e) {
+      const zone = el.getAttribute('data-zone');
+      if (!zone) return;
+      if (_equipped[zone]) {
+        e.stopPropagation();
+        openZoneSymbolPopup(zone);
+      }
+    });
+  });
+}
+
+// Легка повторна синхронізація вигляду персонажа з даними профілю —
+// на відміну від initDressingRoom() не навішує обробники подій заново
+// (щоб уникнути дублювання слухачів при повторних викликах).
+// Потрібна тому, що дані профілю можуть оновитись ПІСЛЯ першого
+// малювання персонажа при вході — наприклад, коли синхронізація з
+// хмарою (Firebase) завершується із затримкою й приносить новіший
+// стан одягу з іншого пристрою. Без цього виклику персонаж лишався б
+// відображеним у застарілому вигляді (наприклад, без одягу) до
+// наступного входу в застосунок.
+function refreshCharacterAppearance() {
   const user = getUser();
   if (!user.gender) user.gender = 'girl';
   if (!user.equipped) user.equipped = {};
@@ -7201,17 +7243,6 @@ function initDressingRoom() {
   updateHeaderGenderBtn();
   updateCharLabel();
   updateCharacterFace();
-  // Attach zone click handlers for quick symbol popup
-  document.querySelectorAll('.dress-zone').forEach(el => {
-    el.addEventListener('click', function(e) {
-      const zone = el.getAttribute('data-zone');
-      if (!zone) return;
-      if (_equipped[zone]) {
-        e.stopPropagation();
-        openZoneSymbolPopup(zone);
-      }
-    });
-  });
 }
 
 function applyCharacterGender() {
@@ -8469,6 +8500,18 @@ async function checkMath0Answer(){
         // гра встигала запропонувати ще одне питання (перевірка нижче
         // спиралась на застаріле значення math0MpState.hp).
         math0MpState.hp = Math.max(0, (math0MpState.hp||MATH0_BOSS_START_HP) - dmg);
+        if(math0MpState.hp<=0){
+          // Чекаємо на офіційне підтвердження від хоста (з повторними
+          // трансляціями), але якщо за 3с нічого не прийде — все одно
+          // зараховуємо перемогу й нагороду локально, щоб гість не
+          // залишився без нагороди через нестабільне з'єднання.
+          clearTimeout(_math0GuestVictoryFallback);
+          _math0GuestVictoryFallback = setTimeout(()=>{
+            if(math0MpState && !math0MpState.isHost && math0State){
+              math0EndGame(true);
+            }
+          }, 3000);
+        }
       }
       if((math0MpState.hp||0)<=0) return;
       setTimeout(()=>{ hideMath0Feedback(); nextMath0Question(); }, 900);
@@ -8522,6 +8565,7 @@ function hideMath0Feedback(){
 }
 
 function math0EndGame(victory){
+  clearTimeout(_math0GuestVictoryFallback);
   if(math0Interval){ clearInterval(math0Interval); math0Interval = null; }
   const lvl = math0State ? math0State.level : 1;
   math0State = null;
@@ -8680,6 +8724,10 @@ function showPlayerLeaderboard(){
 // ── PeerJS Math0 Coop ──────────────────────────────────
 let math0Peer = null;
 let math0PeerConns = [];
+// Підстрахування для гостя: якщо host не встигне (або не зможе через
+// втрату P2P-з'єднання) підтвердити фінальний стан бою, гість все одно
+// отримає нагороду за власним оптимістичним підрахунком.
+let _math0GuestVictoryFallback = null;
 
 function _math0PeerCleanup(){
   if(math0Peer){ try{ math0Peer.destroy(); }catch{} math0Peer = null; }
@@ -8785,6 +8833,9 @@ function _math0GuestMsg(data){
     math0MpState.hp = data.hp||MATH0_BOSS_START_HP;
     math0StartCoopGame(data.level);
   } else if(data.type==='state'){
+    // Прийшло реальне повідомлення від хоста — підстраховуючий таймер
+    // більше не потрібен (незалежно від статусу).
+    clearTimeout(_math0GuestVictoryFallback);
     math0MpState.players = data.players||math0MpState.players;
     math0MpState.hp = data.hp;
     if(math0State){ math0State.hp = data.hp; updateMath0UI(); math0CoopUpdateHud(math0MpState.players); }
@@ -8803,6 +8854,7 @@ async function math0CoopHostStart(){
 }
 
 async function math0CoopLeaveRoom(silent){
+  clearTimeout(_math0GuestVictoryFallback);
   _math0PeerCleanup();
   if(math0State){
     if(math0Interval){ clearInterval(math0Interval); math0Interval=null; }
