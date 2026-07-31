@@ -1523,9 +1523,19 @@ async function enBossLeaveRoom(silent){
     if(enBossMpState.fbListeners) enBossMpState.fbListeners.forEach(l=>{ try{ fb&&fb.off(l.r,l.cb); }catch{} });
     if(enBossMpState.regenInterval) clearInterval(enBossMpState.regenInterval);
     if(fb && enBossMpState.roomCode && enBossMpState.myId){
+      const _enRoomCodeToClose = enBossMpState.roomCode;
+      const _enWasHost = enBossMpState.isHost;
       try{ await mpUpdate(`en_rooms/${enBossMpState.roomCode}/players/${enBossMpState.myId}`, {online:false}); }catch{}
-      if(enBossMpState.isHost){
-        try{ await fb.remove(fb.ref(fb.db,`en_rooms/${enBossMpState.roomCode}`)); }catch{}
+      // Якщо хост виходить — НЕ видаляємо кімнату миттєво (див. пояснення в
+      // mpLeaveRoom): гравці, що приєдналися за кодом, могли ще не отримати
+      // фінальний статус victory/defeat і залишились би без нагороди.
+      if(_enWasHost){
+        setTimeout(async () => {
+          try{
+            const fb2 = mpFb();
+            if(fb2) await fb2.remove(fb2.ref(fb2.db,`en_rooms/${_enRoomCodeToClose}`));
+          }catch{}
+        }, 4000);
       }
     }
     enBossMpState = null;
@@ -6354,11 +6364,23 @@ async function mpLeaveRoom(silent){
     mpUnsubAll();
     if(mpState.regenInterval) clearInterval(mpState.regenInterval);
     if(fb && mpState.roomCode && mpState.myId){
+      const _roomCodeToClose = mpState.roomCode;
+      const _wasHost = mpState.isHost;
       try {
         await mpUpdate(`rooms/${mpState.roomCode}/players/${mpState.myId}`, { online: false });
-        // If host leaves, delete room
-        if(mpState.isHost){
-          await fb.remove(fb.ref(fb.db, `rooms/${mpState.roomCode}`));
+        // Якщо хост виходить — НЕ видаляємо кімнату миттєво. Хост дізнається
+        // про victory/defeat практично одразу (локальний запис Firebase
+        // застосовується ще до підтвердження сервером), тож миттєве видалення
+        // могло "стерти" кімнату раніше, ніж гравці, що приєдналися за кодом,
+        // встигали отримати фінальний статус мережею — і залишались без
+        // нагороди. Даємо кілька секунд на синхронізацію перед видаленням.
+        if(_wasHost){
+          setTimeout(async () => {
+            try {
+              const fb2 = mpFb();
+              if(fb2) await fb2.remove(fb2.ref(fb2.db, `rooms/${_roomCodeToClose}`));
+            } catch{}
+          }, 4000);
         }
       } catch{}
     }
