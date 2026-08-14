@@ -466,7 +466,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="showPlayerLeaderboard()" style="background:linear-gradient(135deg,#f39c12,#e67e22)" title="Рейтинг гравців">🏆 Рейтинг</button>
 <button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="БоСС-Математика">💀 БоСС-Математика</button>
 <button class="btn" onclick="openMath0Game()" style="background:linear-gradient(135deg,#00b894,#00cec9)" title="Математика-0">🔢 Математика-0</button>
-<button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
+<button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openPiratesModal()" style="background:linear-gradient(135deg,#00838f,#006064)" title="Пірати">🏴‍☠️ Пірати</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
 <button class="btn" onclick="openGenderModal()" style="background:linear-gradient(135deg,#e91e8c,#1565c0);padding:11px 14px" title="Змінити стать" id="header-gender-btn">👧</button>
 <button class="btn" id="gift-btn" onclick="openGiftModal()" style="background:linear-gradient(135deg,#e67e22,#d35400);padding:11px 14px;position:relative" title="Подарунок">🎁<span id="gift-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#e74c3c;color:#fff;font-size:.6rem;font-weight:900;border-radius:50%;width:16px;height:16px;line-height:16px;text-align:center;pointer-events:none">!</span></button>
 <button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
@@ -1288,6 +1288,90 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   </div>
 </div>
 
+<!-- PIRATES GAME -->
+<style>
+#pirates-game{display:none;position:fixed;inset:0;background:linear-gradient(180deg,#87CEEB 0%,#6EC6E8 30%,#1E90FF 55%,#0B5EA8 100%);z-index:4200;touch-action:none;flex-direction:column;overflow:hidden}
+#pirates-game.is-open{display:flex}
+.pir-top{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:8px 3%;background:rgba(0,0,0,.35);position:relative;z-index:2}
+.pir-back{background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);color:#fff;padding:6px 12px;border-radius:10px;font-weight:700;cursor:pointer;font-size:.85rem;flex-shrink:0}
+.pir-hearts{font-size:1rem;letter-spacing:1px;flex-shrink:0}
+.pir-badge{margin-left:auto;background:rgba(255,215,0,.25);border:1.5px solid #ffd700;color:#ffd700;font-weight:800;font-size:.78rem;padding:4px 10px;border-radius:10px;white-space:nowrap}
+.pir-level-select{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:92%;max-width:600px;max-height:88vh;overflow-y:auto;padding:6px}
+.pir-level-btn{display:flex;justify-content:space-between;align-items:center;width:100%;padding:13px 18px;margin:6px 0;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.35);border-radius:14px;color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;transition:.2s;backdrop-filter:blur(6px);text-align:left}
+.pir-level-btn:hover{background:rgba(255,255,255,.24);transform:scale(1.02)}
+.pir-level-badge{background:#7a4a00;color:#ffd700;border-radius:8px;padding:3px 8px;font-size:.75rem;white-space:nowrap;flex-shrink:0;margin-left:8px}
+#pirates-board-wrap{flex:1;position:relative;min-height:0}
+#pirates-board-svg{width:100%;height:100%;display:block}
+#pirate-token{position:absolute;width:38px;height:38px;margin-left:-19px;margin-top:-19px;border-radius:50%;background:#fff;border:3px solid #ffd700;box-shadow:0 3px 10px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden;transition:left .6s cubic-bezier(.4,1.4,.6,1),top .6s cubic-bezier(.4,1.4,.6,1);z-index:3}
+#pirate-token img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.pir-bottom{flex-shrink:0;background:rgba(0,0,0,.55);padding:12px 3% calc(12px + env(safe-area-inset-bottom));position:relative;z-index:2}
+.pir-roll-btn{width:100%;padding:16px;font-size:1.2rem;font-weight:900;border:none;border-radius:16px;background:linear-gradient(135deg,#ffd700,#ff8f00);color:#3a2200;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.pir-roll-btn:disabled{opacity:.5}
+.pir-dice-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;color:#fff;font-size:1rem}
+#pir-dice-face{font-size:2.2rem}
+.pir-q-source{font-size:.78rem;font-weight:700;padding:2px 10px;border-radius:8px}
+.pir-q-source.math{background:rgba(102,126,234,.3);color:#a9b6ff}
+.pir-q-source.en{background:rgba(0,180,216,.3);color:#8fe3ff}
+#pirates-question-text{text-align:center;color:#fff;font-size:1.7rem;font-weight:800;margin-bottom:10px;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+.pir-answer-row{display:flex;gap:8px}
+#pirates-answer{flex:1;font-size:1.4rem;font-weight:700;padding:10px;border-radius:12px;border:3px solid #ffd700;text-align:center;min-width:0}
+.pir-check-btn{flex-shrink:0;padding:10px 18px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:800;cursor:pointer}
+#pirates-feedback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(0,0,0,.72);z-index:10;text-align:center;padding:20px}
+#pirates-feedback.show{display:flex}
+#pirates-feedback.correct h2{color:#4ade80}
+#pirates-feedback.wrong h2{color:#ff5c5c}
+#pirates-feedback h2{font-size:2.1rem;margin-bottom:10px}
+.pir-result-box{color:#fff}
+.pir-result-btn{margin-top:16px;padding:12px 26px;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#ffd700,#ff8f00);color:#3a2200}
+.pir-result-btn.secondary{background:rgba(255,255,255,.18);color:#fff;border:2px solid rgba(255,255,255,.4);margin-left:8px}
+</style>
+<div id="pirates-game">
+  <div class="pir-top">
+    <button class="pir-back" onclick="closePirates()">← Назад</button>
+    <div class="pir-hearts" id="pirates-hearts">❤️❤️❤️❤️❤️</div>
+    <div class="pir-badge" id="pirates-badge">Крок 0/15</div>
+  </div>
+
+  <!-- LEVEL SELECT -->
+  <div class="pir-level-select" id="pirates-level-select">
+    <h1 style="color:#fff;font-size:1.7rem;margin-bottom:12px;text-shadow:0 2px 8px rgba(0,0,0,.5)">🏴‍☠️ Пірати — оберіть рівень складності</h1>
+    <div id="pirates-level-list"></div>
+  </div>
+
+  <!-- BOARD + PLAY AREA -->
+  <div id="pirates-play-area" class="hidden" style="flex:1;display:flex;flex-direction:column;min-height:0">
+    <div id="pirates-board-wrap">
+      <svg id="pirates-board-svg" viewBox="0 0 320 520" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <div class="pir-bottom">
+      <div id="pirates-idle-panel">
+        <button class="pir-roll-btn" id="pirates-roll-btn" onclick="piratesRoll()">🎲 Кинути кубик</button>
+      </div>
+      <div id="pirates-question-panel" class="hidden">
+        <div class="pir-dice-row">
+          <span id="pir-dice-face">🎲</span>
+          <span id="pirates-q-source" class="pir-q-source math">➕ Математика</span>
+        </div>
+        <div id="pirates-question-text">?</div>
+        <div class="pir-answer-row">
+          <input type="text" id="pirates-answer" autocomplete="off" placeholder="Відповідь...">
+          <button class="pir-check-btn" onclick="piratesCheckAnswer()">✅</button>
+        </div>
+      </div>
+    </div>
+    <div id="pirates-feedback">
+      <div class="pir-result-box">
+        <h2 id="pirates-fb-title">✅ Правильно!</h2>
+        <div id="pirates-fb-detail" style="font-size:1.1rem;margin-bottom:6px"></div>
+        <div id="pirates-fb-actions" style="display:none">
+          <button class="pir-result-btn" onclick="piratesRestartSame()">🔁 Спробувати знову</button>
+          <button class="pir-result-btn secondary" onclick="closePirates()">🚪 В меню</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- DAMAGE LEADERBOARD -->
 <div id="dmg-leaderboard">
   <div class="dmg-board-box">
@@ -1523,19 +1607,9 @@ async function enBossLeaveRoom(silent){
     if(enBossMpState.fbListeners) enBossMpState.fbListeners.forEach(l=>{ try{ fb&&fb.off(l.r,l.cb); }catch{} });
     if(enBossMpState.regenInterval) clearInterval(enBossMpState.regenInterval);
     if(fb && enBossMpState.roomCode && enBossMpState.myId){
-      const _enRoomCodeToClose = enBossMpState.roomCode;
-      const _enWasHost = enBossMpState.isHost;
       try{ await mpUpdate(`en_rooms/${enBossMpState.roomCode}/players/${enBossMpState.myId}`, {online:false}); }catch{}
-      // Якщо хост виходить — НЕ видаляємо кімнату миттєво (див. пояснення в
-      // mpLeaveRoom): гравці, що приєдналися за кодом, могли ще не отримати
-      // фінальний статус victory/defeat і залишились би без нагороди.
-      if(_enWasHost){
-        setTimeout(async () => {
-          try{
-            const fb2 = mpFb();
-            if(fb2) await fb2.remove(fb2.ref(fb2.db,`en_rooms/${_enRoomCodeToClose}`));
-          }catch{}
-        }, 4000);
+      if(enBossMpState.isHost){
+        try{ await fb.remove(fb.ref(fb.db,`en_rooms/${enBossMpState.roomCode}`)); }catch{}
       }
     }
     enBossMpState = null;
@@ -6364,23 +6438,11 @@ async function mpLeaveRoom(silent){
     mpUnsubAll();
     if(mpState.regenInterval) clearInterval(mpState.regenInterval);
     if(fb && mpState.roomCode && mpState.myId){
-      const _roomCodeToClose = mpState.roomCode;
-      const _wasHost = mpState.isHost;
       try {
         await mpUpdate(`rooms/${mpState.roomCode}/players/${mpState.myId}`, { online: false });
-        // Якщо хост виходить — НЕ видаляємо кімнату миттєво. Хост дізнається
-        // про victory/defeat практично одразу (локальний запис Firebase
-        // застосовується ще до підтвердження сервером), тож миттєве видалення
-        // могло "стерти" кімнату раніше, ніж гравці, що приєдналися за кодом,
-        // встигали отримати фінальний статус мережею — і залишались без
-        // нагороди. Даємо кілька секунд на синхронізацію перед видаленням.
-        if(_wasHost){
-          setTimeout(async () => {
-            try {
-              const fb2 = mpFb();
-              if(fb2) await fb2.remove(fb2.ref(fb2.db, `rooms/${_roomCodeToClose}`));
-            } catch{}
-          }, 4000);
+        // If host leaves, delete room
+        if(mpState.isHost){
+          await fb.remove(fb.ref(fb.db, `rooms/${mpState.roomCode}`));
         }
       } catch{}
     }
@@ -8901,6 +8963,308 @@ window.loginShowImportProfile = loginShowImportProfile;
 window.importProfileFromLogin = importProfileFromLogin;
 window.syncShowTab = syncShowTab;
 window.shareSyncLink = shareSyncLink;
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PIRATES GAME — 🏴‍☠️ Пірати
+// Мапа тропічного острова, 15 кроків до скрині зі скарбами,
+// 5 сердечок, кубик: непарне = Математика-БоСС, парне = English-БоСС
+// ═══════════════════════════════════════════════════════════
+
+const PIRATES_TOTAL_STEPS = 15;
+
+// Координати 15 клітинок-кроків (зигзаг по острову), viewBox 0..320 x 0..520
+const PIR_STEPS = [
+ {x:60,y:460},{x:160,y:460},{x:260,y:460},
+ {x:260,y:390},{x:160,y:390},{x:60,y:390},
+ {x:60,y:320},{x:160,y:320},{x:260,y:320},
+ {x:260,y:250},{x:160,y:250},{x:60,y:250},
+ {x:60,y:180},{x:160,y:180},{x:260,y:180}
+];
+const PIR_START = {x:160,y:500};
+
+const PIRATES_LEVEL_ICONS = ['🏝️','⛵','🦜','🗺️','⚔️','🧭','🌊','🔱','☠️','👑'];
+
+let piratesState = null; // {level, step, hearts, starsEarned, busy}
+
+// ── Пул тем English-БоСС по рівнях складності (чим вищий рівень — тим більше тем) ──
+function piratesEnThemesForLevel(level){
+  const allThemes = Object.keys(EN_WORDS);
+  const count = Math.max(1, Math.min(allThemes.length, Math.ceil(level*0.9)));
+  return allThemes.slice(0, count);
+}
+
+// ── Математичне питання (рівень = складність, як в Математика-БоСС) ──
+function piratesGenMathQuestion(level){
+  const letterMap={1:'A',2:'B',3:'C',4:'D',5:'E',6:'F'};
+  if(level<=6){
+    const q=MATH_LEVELS[letterMap[level]].gen();
+    return {text:q.q, checkFn:(val)=>parseInt(val,10)===q.a, correctText:String(q.a)};
+  }
+  const tableRanges={7:[2,4],8:[3,6],9:[5,8],10:[6,9]};
+  const range=tableRanges[level]||[2,9];
+  const table=range[0]+r(range[1]-range[0]+1);
+  const factor=r(9)+2;
+  const ans=table*factor;
+  return {text:`${table} × ${factor} = ?`, checkFn:(val)=>parseInt(val,10)===ans, correctText:String(ans)};
+}
+
+// ── Англійське питання (рівень = складність, як в English-БоСС) ──
+function piratesGenEnQuestion(level){
+  const themes = piratesEnThemesForLevel(level);
+  const theme = rnd(themes);
+  const pool = EN_WORDS[theme]||[];
+  const word = pool[r(pool.length)];
+  const normalize = s=>s.replace(/['`´''']/g,'').replace(/ґ/g,'г').trim().toLowerCase();
+  const rawVariants = word.ukVariants||[word.uk];
+  const allVariants=[];
+  rawVariants.forEach(v=>{
+    allVariants.push(v.toLowerCase());
+    v.split(/[,\/;]/).map(s=>s.trim().toLowerCase()).filter(Boolean).forEach(sub=>allVariants.push(sub));
+  });
+  const normVariants=allVariants.map(v=>normalize(v));
+  const check=(val)=>{
+    const answerVariants=(val||'').split(/[,\/;]/).map(s=>normalize(s.trim())).filter(Boolean);
+    return answerVariants.some(av=>normVariants.some(nv=>av===nv));
+  };
+  const displayUa=(word.ukVariants&&word.ukVariants.length>1)?word.ukVariants.join(' / '):word.uk;
+  return {text:`Перекласти українською: "${word.en}"`, checkFn:check, correctText:displayUa, word};
+}
+
+function openPiratesModal(){
+  document.getElementById('pirates-game').classList.add('is-open');
+  document.getElementById('main').style.display='none';
+  document.getElementById('pirates-level-select').classList.remove('hidden');
+  document.getElementById('pirates-play-area').classList.add('hidden');
+  document.getElementById('pirates-hearts').textContent='';
+  document.getElementById('pirates-badge').textContent='🏴‍☠️ Пірати';
+  renderPiratesLevelList();
+}
+
+function closePirates(){
+  piratesState=null;
+  document.getElementById('pirates-game').classList.remove('is-open');
+  document.getElementById('main').style.display='block';
+  updateUI();
+}
+
+function renderPiratesLevelList(){
+  const list=document.getElementById('pirates-level-list');
+  let html='';
+  for(let lvl=1;lvl<=10;lvl++){
+    const icon=PIRATES_LEVEL_ICONS[lvl-1];
+    html+=`<button class="pir-level-btn" onclick="startPiratesLevel(${lvl})">
+      <span>${icon} Рівень ${lvl}</span>
+      <span class="pir-level-badge">✅ +${lvl*100}⭐ за крок • 🎁 +${lvl*10}🧵+${lvl*10}🔘</span>
+    </button>`;
+  }
+  list.innerHTML=html;
+}
+
+function startPiratesLevel(level){
+  piratesState={level, step:0, hearts:5, starsEarned:0, busy:false, currentQ:null};
+  document.getElementById('pirates-level-select').classList.add('hidden');
+  document.getElementById('pirates-play-area').classList.remove('hidden');
+  document.getElementById('pirates-question-panel').classList.add('hidden');
+  document.getElementById('pirates-idle-panel').classList.remove('hidden');
+  document.getElementById('pirates-feedback').classList.remove('show');
+  document.getElementById('pirates-roll-btn').disabled=false;
+  piratesUpdateHUD();
+  renderPiratesBoard();
+}
+
+function piratesRestartSame(){
+  if(!piratesState) return;
+  startPiratesLevel(piratesState.level);
+}
+
+function piratesUpdateHUD(){
+  if(!piratesState) return;
+  document.getElementById('pirates-hearts').textContent='❤️'.repeat(piratesState.hearts)+'🖤'.repeat(5-piratesState.hearts);
+  document.getElementById('pirates-badge').textContent=`Рівень ${piratesState.level} • Крок ${piratesState.step}/${PIRATES_TOTAL_STEPS} • ⭐${piratesState.starsEarned}`;
+}
+
+function piratesTokenMarkup(x,y){
+  const info=(typeof mpMyInfo==='function')?mpMyInfo():{avatar:'🙂',photoUrl:null};
+  if(info.photoUrl){
+    return `<clipPath id="pirTokClip"><circle cx="${x}" cy="${y}" r="15"/></clipPath>
+      <circle cx="${x}" cy="${y}" r="18" fill="#fff" stroke="#ffd700" stroke-width="3"/>
+      <image href="${info.photoUrl}" x="${x-15}" y="${y-15}" width="30" height="30" clip-path="url(#pirTokClip)" preserveAspectRatio="xMidYMid slice"/>`;
+  }
+  return `<circle cx="${x}" cy="${y}" r="18" fill="#fff" stroke="#ffd700" stroke-width="3"/>
+    <text x="${x}" y="${y+7}" text-anchor="middle" font-size="20">${info.avatar||'🙂'}</text>`;
+}
+
+function renderPiratesBoard(){
+  if(!piratesState) return;
+  const step=piratesState.step;
+  const pos = step<=0 ? PIR_START : PIR_STEPS[Math.min(step,PIRATES_TOTAL_STEPS)-1];
+
+  // Path points: start -> visited steps -> (dim) remaining
+  let pathD=`M ${PIR_START.x} ${PIR_START.y} `;
+  PIR_STEPS.forEach(p=>{ pathD+=`L ${p.x} ${p.y} `; });
+
+  let stepsMarkup='';
+  PIR_STEPS.forEach((p,i)=>{
+    const stepNum=i+1;
+    const visited=stepNum<=step;
+    const isChest=stepNum===PIRATES_TOTAL_STEPS;
+    if(isChest){
+      stepsMarkup+=`<g>
+        <circle cx="${p.x}" cy="${p.y}" r="24" fill="${visited?'#ffd700':'rgba(255,215,0,.35)'}" stroke="#7a4a00" stroke-width="3"/>
+        <text x="${p.x}" y="${p.y+9}" text-anchor="middle" font-size="26">🎁</text>
+      </g>`;
+    } else {
+      stepsMarkup+=`<g>
+        <circle cx="${p.x}" cy="${p.y}" r="15" fill="${visited?'#f4d03f':'rgba(255,255,255,.55)'}" stroke="#7a4a00" stroke-width="2.5"/>
+        <text x="${p.x}" y="${p.y+5}" text-anchor="middle" font-size="13" font-weight="900" fill="#5c3a00">${stepNum}</text>
+      </g>`;
+    }
+  });
+
+  const svg=`
+    <defs>
+      <radialGradient id="pirSun" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fff6c9"/>
+        <stop offset="100%" stop-color="#ffd700"/>
+      </radialGradient>
+    </defs>
+    <circle cx="270" cy="45" r="34" fill="url(#pirSun)" opacity=".9"/>
+    <ellipse cx="160" cy="345" rx="175" ry="255" fill="#dfc27a"/>
+    <ellipse cx="160" cy="345" rx="175" ry="255" fill="none" stroke="#c9a227" stroke-width="6"/>
+    <text x="40" y="120" font-size="42">🌴</text>
+    <text x="255" y="150" font-size="38">🌴</text>
+    <text x="30" y="330" font-size="34">🌺</text>
+    <text x="275" y="410" font-size="34">🐚</text>
+    <text x="160" y="70" text-anchor="middle" font-size="30">⛰️</text>
+    <path d="${pathD}" fill="none" stroke="#7a4a00" stroke-width="5" stroke-dasharray="2 10" stroke-linecap="round" opacity=".8"/>
+    <text x="${PIR_START.x}" y="${PIR_START.y+8}" text-anchor="middle" font-size="28">⛵</text>
+    ${stepsMarkup}
+    ${piratesTokenMarkup(pos.x,pos.y)}
+  `;
+  document.getElementById('pirates-board-svg').innerHTML=svg;
+  piratesUpdateHUD();
+}
+
+function piratesRoll(){
+  if(!piratesState||piratesState.busy) return;
+  piratesState.busy=true;
+  document.getElementById('pirates-roll-btn').disabled=true;
+  const diceFace=document.getElementById('pir-dice-face');
+  const diceIcons=['🎲','⚀','⚁','⚂','⚃','⚄','⚅'];
+  let ticks=0;
+  const spin=setInterval(()=>{
+    diceFace.textContent=diceIcons[1+r(6)];
+    ticks++;
+    if(ticks>=8){
+      clearInterval(spin);
+      const dice=1+r(6);
+      diceFace.textContent=['⚀','⚁','⚂','⚃','⚄','⚅'][dice-1];
+      piratesStartQuestion(dice);
+    }
+  },80);
+}
+
+function piratesStartQuestion(dice){
+  if(!piratesState) return;
+  const isMath = dice%2===1;
+  const q = isMath ? piratesGenMathQuestion(piratesState.level) : piratesGenEnQuestion(piratesState.level);
+  piratesState.currentQ={...q, isMath};
+
+  document.getElementById('pirates-idle-panel').classList.add('hidden');
+  document.getElementById('pirates-question-panel').classList.remove('hidden');
+  const srcEl=document.getElementById('pirates-q-source');
+  srcEl.className='pir-q-source '+(isMath?'math':'en');
+  srcEl.textContent=isMath?'➕ Математика-БоСС':'🇬🇧 English-БоСС';
+  document.getElementById('pirates-question-text').textContent=q.text;
+  const inp=document.getElementById('pirates-answer');
+  inp.value='';
+  inp.type=isMath?'number':'text';
+  inp.inputMode=isMath?'numeric':'text';
+  inp.onkeypress=e=>{ if(e.key==='Enter') piratesCheckAnswer(); };
+  setTimeout(()=>inp.focus(),50);
+}
+
+function piratesCheckAnswer(){
+  if(!piratesState||!piratesState.currentQ) return;
+  const inp=document.getElementById('pirates-answer');
+  const val=inp.value.trim();
+  if(!val) return;
+  const q=piratesState.currentQ;
+  const correct=q.checkFn(val);
+  document.getElementById('pirates-question-panel').classList.add('hidden');
+  document.getElementById('pirates-idle-panel').classList.remove('hidden');
+  piratesState.currentQ=null;
+
+  if(correct){
+    const gained=piratesState.level*100;
+    piratesState.step=Math.min(PIRATES_TOTAL_STEPS,piratesState.step+1);
+    piratesState.starsEarned+=gained;
+    const user=getUser();
+    user.stars=(user.stars||0)+gained;
+    saveUser(user);
+    updateUI();
+    renderPiratesBoard();
+    piratesShowFeedback(true,`+1 крок 👣 • +${gained}⭐`);
+    if(piratesState.step>=PIRATES_TOTAL_STEPS){
+      setTimeout(()=>piratesWin(),1200);
+      return;
+    }
+    setTimeout(()=>{ document.getElementById('pirates-feedback').classList.remove('show'); piratesState.busy=false; document.getElementById('pirates-roll-btn').disabled=false; },1100);
+  } else {
+    piratesState.hearts=Math.max(0,piratesState.hearts-1);
+    piratesUpdateHUD();
+    piratesShowFeedback(false,`❌ Правильна відповідь: ${q.correctText}`);
+    if(piratesState.hearts<=0){
+      setTimeout(()=>piratesLose(),1400);
+      return;
+    }
+    setTimeout(()=>{ document.getElementById('pirates-feedback').classList.remove('show'); piratesState.busy=false; document.getElementById('pirates-roll-btn').disabled=false; },1300);
+  }
+}
+
+function piratesShowFeedback(isCorrect,detail){
+  const fb=document.getElementById('pirates-feedback');
+  fb.className='show '+(isCorrect?'correct':'wrong');
+  document.getElementById('pirates-fb-title').textContent=isCorrect?'✅ Правильно!':'❌ Неправильно';
+  document.getElementById('pirates-fb-detail').textContent=detail;
+  document.getElementById('pirates-fb-actions').style.display='none';
+}
+
+function piratesWin(){
+  const level=piratesState.level;
+  const threads=level*10, guzuky=level*10;
+  const user=getUser();
+  user.threads=(user.threads||0)+threads;
+  user.guzuky=(user.guzuky||0)+guzuky;
+  saveUser(user);
+  updateUI();
+  const fb=document.getElementById('pirates-feedback');
+  fb.className='show correct';
+  document.getElementById('pirates-fb-title').textContent='🏆 Скриню знайдено!';
+  document.getElementById('pirates-fb-detail').textContent=`Ви пройшли всі 15 кроків! Отримано: +${threads}🧵 +${guzuky}🔘 (всього ⭐${piratesState.starsEarned})`;
+  document.getElementById('pirates-fb-actions').style.display='block';
+  piratesState.busy=true;
+  document.getElementById('pirates-roll-btn').disabled=true;
+}
+
+function piratesLose(){
+  const fb=document.getElementById('pirates-feedback');
+  fb.className='show wrong';
+  document.getElementById('pirates-fb-title').textContent='☠️ Сердечка закінчились!';
+  document.getElementById('pirates-fb-detail').textContent=`Ви дійшли до кроку ${piratesState.step}/${PIRATES_TOTAL_STEPS}. Зароблено ⭐${piratesState.starsEarned} вже збережено.`;
+  document.getElementById('pirates-fb-actions').style.display='block';
+  piratesState.busy=true;
+  document.getElementById('pirates-roll-btn').disabled=true;
+}
+
+window.openPiratesModal=openPiratesModal;
+window.closePirates=closePirates;
+window.startPiratesLevel=startPiratesLevel;
+window.piratesRoll=piratesRoll;
+window.piratesCheckAnswer=piratesCheckAnswer;
+window.piratesRestartSame=piratesRestartSame;
 </script>
 
 </body>
