@@ -1312,6 +1312,12 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 .pir-q-source{font-size:.78rem;font-weight:700;padding:2px 10px;border-radius:8px}
 .pir-q-source.math{background:rgba(102,126,234,.3);color:#a9b6ff}
 .pir-q-source.en{background:rgba(0,180,216,.3);color:#8fe3ff}
+.pir-q-source.riddle{background:rgba(255,152,0,.3);color:#ffcc80}
+#pirates-riddle-mask{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:10px}
+.pir-riddle-box{width:26px;height:32px;border-bottom:3px solid #ffd700;color:#fff;font-size:1.2rem;font-weight:900;display:flex;align-items:center;justify-content:center;text-shadow:0 2px 5px rgba(0,0,0,.5)}
+.pir-en-theme-row{margin:0 0 14px;text-align:center}
+.pir-en-theme-row label{color:#fff;font-weight:700;font-size:.92rem;margin-right:8px;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+#pirates-en-theme-select{padding:8px 12px;border-radius:10px;border:2px solid #ffd700;font-weight:700;font-size:.92rem;background:#fff;color:#333;cursor:pointer}
 #pirates-question-text{text-align:center;color:#fff;font-size:1.7rem;font-weight:800;margin-bottom:10px;text-shadow:0 2px 6px rgba(0,0,0,.5)}
 .pir-answer-row{display:flex;gap:8px}
 #pirates-answer{flex:1;font-size:1.4rem;font-weight:700;padding:10px;border-radius:12px;border:3px solid #ffd700;text-align:center;min-width:0}
@@ -1335,6 +1341,13 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <!-- LEVEL SELECT -->
   <div class="pir-level-select" id="pirates-level-select">
     <h1 style="color:#fff;font-size:1.7rem;margin-bottom:12px;text-shadow:0 2px 8px rgba(0,0,0,.5)">🏴‍☠️ Пірати — оберіть рівень складності</h1>
+    <div class="pir-en-theme-row">
+      <label for="pirates-en-theme-select">🇬🇧 Тема English-БоСС:</label>
+      <select id="pirates-en-theme-select" onchange="piratesSetEnTheme(this.value)"></select>
+    </div>
+    <div style="color:#fff;font-size:.82rem;opacity:.85;margin-bottom:12px;text-shadow:0 1px 4px rgba(0,0,0,.4)">
+      🎲 1,6 — 🧩 загадка • непарні 3,5 — ➕ математика • парні 2,4 — 🇬🇧 англійська
+    </div>
     <div id="pirates-level-list"></div>
   </div>
 
@@ -1353,6 +1366,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
           <span id="pirates-q-source" class="pir-q-source math">➕ Математика</span>
         </div>
         <div id="pirates-question-text">?</div>
+        <div id="pirates-riddle-mask" class="hidden"></div>
         <div class="pir-answer-row">
           <input type="text" id="pirates-answer" autocomplete="off" placeholder="Відповідь...">
           <button class="pir-check-btn" onclick="piratesCheckAnswer()">✅</button>
@@ -8972,6 +8986,83 @@ window.shareSyncLink = shareSyncLink;
 // 5 сердечок, кубик: непарне = Математика-БоСС, парне = English-БоСС
 // ═══════════════════════════════════════════════════════════
 
+// ── Банк загадок для дітей 5-8 років (50 шт.) — відповідь одне слово без апострофів ──
+const PIRATES_RIDDLES = [
+{q:'Кругле, соковите, буває червоне, жовте чи зелене, росте на дереві.',a:'яблуко'},
+{q:'Муркоче, ловить мишей, любить молоко.',a:'кіт'},
+{q:'Гавкає, охороняє двір, вірний друг людини.',a:'собака'},
+{q:'Має довгі вуха, стрибає, любить моркву.',a:'заєць'},
+{q:'Руда, хитра, має пухнастий хвіст, живе в лісі.',a:'лисиця'},
+{q:'Сірий, виє на місяць, живе в лісі зграєю.',a:'вовк'},
+{q:'Великий, клишоногий, взимку спить у барлозі.',a:'ведмідь'},
+{q:'Маленький, колючий, згортається в клубочок.',a:'їжак'},
+{q:'Руда, стрибає по деревах, збирає горішки.',a:'білка'},
+{q:'Дає молоко, має роги, каже "му".',a:'корова'},
+{q:'Має гриву і копита, швидко бігає, іржить.',a:'кінь'},
+{q:'Рожева, хрюкає, любить калюжі.',a:'свиня'},
+{q:'Найбільший на суходолі, має хобот і великі вуха.',a:'слон'},
+{q:'Цар звірів, має пишну гриву, живе в Африці.',a:'лев'},
+{q:'Схожа на коня, вся в чорно-білу смужку.',a:'зебра'},
+{q:'Має найдовшу шию серед тварин.',a:'жирафа'},
+{q:'Птах, що не літає, живе серед криги й снігу.',a:'пінгвін'},
+{q:'Птах з розкішним різнобарвним хвостом.',a:'павич'},
+{q:'Птах з великими очима, полює вночі.',a:'сова'},
+{q:'Птах, що кує і не будує власного гнізда.',a:'зозуля'},
+{q:'Має гребінець, будить усіх уранці.',a:'півень'},
+{q:'Плаває у ставку, крякає, має дзьоб.',a:'качка'},
+{q:'Маленька, смугаста, робить мед і має жало.',a:'бджола'},
+{q:'Має яскраві крильця, літає з квітки на квітку.',a:'метелик'},
+{q:'Маленька, дуже сильна, живе у мурашнику.',a:'мурашка'},
+{q:'Має вісім ніг, плете павутину.',a:'павук'},
+{q:'Зелена, стрибає, живе біля води, квакає.',a:'жаба'},
+{q:'Плаває у воді, дихає зябрами, вкрита лускою.',a:'риба'},
+{q:'Найбільша тварина в океані.',a:'кит'},
+{q:'Повільний, носить будиночок на спині.',a:'равлик'},
+{q:'Гаряче й яскраве, світить удень на небі.',a:'сонце'},
+{q:'Світить уночі, буває повний або тонкий, як серпик.',a:'місяць'},
+{q:'Маленькі вогники на нічному небі.',a:'зорі'},
+{q:'Падає з хмар, мокрий, найчастіше восени.',a:'дощ'},
+{q:'Білий, холодний, падає взимку.',a:'сніг'},
+{q:'Різнокольорова дуга на небі після дощу.',a:'веселка'},
+{q:'Біла чи сіра, пливе високо в небі.',a:'хмара'},
+{q:'Його не видно, але можна відчути й почути.',a:'вітер'},
+{q:'Має корінь, стовбур, гілки й листя.',a:'дерево'},
+{q:'Гарна, пахуча, росте у саду, буває різного кольору.',a:'квітка'},
+{q:'Росте в лісі, має капелюшок і ніжку.',a:'гриб'},
+{q:'Помаранчевий овоч, який дуже люблять зайці.',a:'морква'},
+{q:'Овоч, від якого сльози течуть, коли ріжуть.',a:'цибуля'},
+{q:'Зелений зовні, червоний усередині, з чорними зернятками.',a:'кавун'},
+{q:'Жовтий, дуже кислий цитрусовий фрукт.',a:'лимон'},
+{q:'Солодкий, святковий, прикрашають свічками.',a:'торт'},
+{q:'Холодне, солодке, тане на сонці, їдять улітку.',a:'морозиво'},
+{q:'Ним малюють і пишуть, буває кольоровий.',a:'олівець'},
+{q:'Показує час, має стрілки або цифри.',a:'годинник'},
+{q:'Місце, куди діти ходять учитися.',a:'школа'}
+];
+
+// ── Українські назви тем English-БоСС для селектора у грі "Пірати" ──
+const PIRATES_THEME_LABELS = {
+  verbs:'🏃 Дієслова', home:'🏠 Дім', nature:'🌳 Природа', pronouns:'🙋 Займенники',
+  interrogative:'❓ Питальні слова', food:'🍎 Їжа', games:'🎮 Ігри', body:'🧍 Тіло'
+};
+let piratesEnThemeChoice='';
+try{ piratesEnThemeChoice = localStorage.getItem('piratesEnTheme')||''; }catch(e){}
+function piratesSetEnTheme(val){
+  piratesEnThemeChoice = val||'';
+  try{ localStorage.setItem('piratesEnTheme', piratesEnThemeChoice); }catch(e){}
+}
+function piratesRenderThemeSelect(){
+  const sel=document.getElementById('pirates-en-theme-select');
+  if(!sel) return;
+  let html='<option value="">🔀 Випадково (за рівнем)</option>';
+  Object.keys(EN_WORDS).forEach(t=>{
+    const label=PIRATES_THEME_LABELS[t]||t;
+    html+=`<option value="${t}">${label}</option>`;
+  });
+  sel.innerHTML=html;
+  sel.value = (piratesEnThemeChoice && EN_WORDS[piratesEnThemeChoice]) ? piratesEnThemeChoice : '';
+}
+
 const PIRATES_TOTAL_STEPS = 15;
 
 // Координати 15 клітинок-кроків (зигзаг по острову), viewBox 0..320 x 0..520
@@ -9012,8 +9103,13 @@ function piratesGenMathQuestion(level){
 
 // ── Англійське питання (рівень = складність, як в English-БоСС) ──
 function piratesGenEnQuestion(level){
-  const themes = piratesEnThemesForLevel(level);
-  const theme = rnd(themes);
+  let theme;
+  if(piratesEnThemeChoice && EN_WORDS[piratesEnThemeChoice]){
+    theme = piratesEnThemeChoice;
+  } else {
+    const themes = piratesEnThemesForLevel(level);
+    theme = rnd(themes);
+  }
   const pool = EN_WORDS[theme]||[];
   const word = pool[r(pool.length)];
   const normalize = s=>s.replace(/['`´''']/g,'').replace(/ґ/g,'г').trim().toLowerCase();
@@ -9032,6 +9128,26 @@ function piratesGenEnQuestion(level){
   return {text:`Перекласти українською: "${word.en}"`, checkFn:check, correctText:displayUa, word};
 }
 
+// ── Загадка (випадає на кубику 1 або 6) ──
+function piratesGenRiddleQuestion(){
+  const item = rnd(PIRATES_RIDDLES);
+  const normalize = s=>(s||'').replace(/['`´'']/g,'').replace(/ґ/g,'г').replace(/\s+/g,'').trim().toLowerCase();
+  const normAnswer = normalize(item.a);
+  const check = (val)=> normalize(val)===normAnswer;
+  return {text:item.q, checkFn:check, correctText:item.a, answerRaw:item.a};
+}
+
+// Генерує HTML клітинок-«пробілів» під кількість букв у відповіді загадки
+function piratesRiddleMaskHTML(word){
+  return (word||'').split('').map(()=>'<span class="pir-riddle-box"></span>').join('');
+}
+// Оновлює клітинки-«пробіли» відповідно до введеного тексту
+function piratesUpdateRiddleMask(val){
+  const boxes=document.querySelectorAll('#pirates-riddle-mask .pir-riddle-box');
+  const chars=(val||'').split('');
+  boxes.forEach((b,i)=>{ b.textContent = chars[i] ? chars[i].toUpperCase() : ''; });
+}
+
 function openPiratesModal(){
   document.getElementById('pirates-game').classList.add('is-open');
   document.getElementById('main').style.display='none';
@@ -9040,6 +9156,7 @@ function openPiratesModal(){
   document.getElementById('pirates-hearts').textContent='';
   document.getElementById('pirates-badge').textContent='🏴‍☠️ Пірати';
   renderPiratesLevelList();
+  piratesRenderThemeSelect();
 }
 
 function closePirates(){
@@ -9168,20 +9285,41 @@ function piratesRoll(){
 
 function piratesStartQuestion(dice){
   if(!piratesState) return;
-  const isMath = dice%2===1;
-  const q = isMath ? piratesGenMathQuestion(piratesState.level) : piratesGenEnQuestion(piratesState.level);
-  piratesState.currentQ={...q, isMath};
+  const isRiddle = dice===1 || dice===6;
+  let q, isMath=false;
+  if(isRiddle){
+    q = piratesGenRiddleQuestion();
+  } else {
+    isMath = dice%2===1; // 3,5 -> математика; 2,4 -> англійська
+    q = isMath ? piratesGenMathQuestion(piratesState.level) : piratesGenEnQuestion(piratesState.level);
+  }
+  piratesState.currentQ={...q, isMath, isRiddle};
 
   document.getElementById('pirates-idle-panel').classList.add('hidden');
   document.getElementById('pirates-question-panel').classList.remove('hidden');
   const srcEl=document.getElementById('pirates-q-source');
-  srcEl.className='pir-q-source '+(isMath?'math':'en');
-  srcEl.textContent=isMath?'➕ Математика-БоСС':'🇬🇧 English-БоСС';
+  srcEl.className='pir-q-source '+(isRiddle?'riddle':(isMath?'math':'en'));
+  srcEl.textContent = isRiddle ? '🧩 Загадка' : (isMath?'➕ Математика-БоСС':'🇬🇧 English-БоСС');
   document.getElementById('pirates-question-text').textContent=q.text;
+
+  const maskWrap=document.getElementById('pirates-riddle-mask');
   const inp=document.getElementById('pirates-answer');
   inp.value='';
-  inp.type=isMath?'number':'text';
-  inp.inputMode=isMath?'numeric':'text';
+  if(isRiddle){
+    maskWrap.classList.remove('hidden');
+    maskWrap.innerHTML=piratesRiddleMaskHTML(q.answerRaw);
+    inp.type='text';
+    inp.inputMode='text';
+    inp.maxLength=(q.answerRaw||'').length||20;
+    inp.oninput=()=>piratesUpdateRiddleMask(inp.value);
+  } else {
+    maskWrap.classList.add('hidden');
+    maskWrap.innerHTML='';
+    inp.removeAttribute('maxlength');
+    inp.type=isMath?'number':'text';
+    inp.inputMode=isMath?'numeric':'text';
+    inp.oninput=null;
+  }
   inp.onkeypress=e=>{ if(e.key==='Enter') piratesCheckAnswer(); };
   setTimeout(()=>inp.focus(),50);
 }
