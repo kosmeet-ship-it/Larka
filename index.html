@@ -464,6 +464,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="exportData()">💾 Експорт</button>
 <button class="btn" onclick="showSyncModal()" style="background:linear-gradient(135deg,#00b4d8,#0096c7);position:relative" title="Синхронізація між пристроями">🔄 Синхронізація<span id="sync-status-dot" style="position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#aaa;border:2px solid #fff;display:block" title="Статус синхронізації"></span></button>
 <button class="btn" onclick="showPlayerLeaderboard()" style="background:linear-gradient(135deg,#f39c12,#e67e22)" title="Рейтинг гравців">🏆 Рейтинг</button>
+<button class="btn" onclick="showGameHistory()" style="background:linear-gradient(135deg,#5b2d9e,#2c3e91)" title="Історія перемог">📜 Історія</button>
 <button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="БоСС-Математика">💀 БоСС-Математика</button>
 <button class="btn" onclick="openMath0Game()" style="background:linear-gradient(135deg,#00b894,#00cec9)" title="Математика-0">🔢 Математика-0</button>
 <button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openPiratesModal()" style="background:linear-gradient(135deg,#00838f,#006064)" title="Пірати">🏴‍☠️ Пірати</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
@@ -1308,56 +1309,10 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 .pir-roll-btn{width:100%;padding:16px;font-size:1.2rem;font-weight:900;border:none;border-radius:16px;background:linear-gradient(135deg,#ffd700,#ff8f00);color:#3a2200;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 .pir-roll-btn:disabled{opacity:.5}
 .pir-dice-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;color:#fff;font-size:1rem}
-#pir-dice-face{font-size:2.2rem;display:inline-block;transform-origin:50% 50%}
-#pir-dice-face.pir-dice-rolling{animation:pirDiceSpin .16s linear infinite}
-#pir-dice-face.pir-dice-landed{animation:pirDiceLand .5s cubic-bezier(.36,1.6,.4,1)}
-@keyframes pirDiceSpin{
-  0%{transform:rotate(0deg) scale(1)}
-  25%{transform:rotate(90deg) scale(1.15)}
-  50%{transform:rotate(180deg) scale(.95)}
-  75%{transform:rotate(270deg) scale(1.15)}
-  100%{transform:rotate(360deg) scale(1)}
-}
-@keyframes pirDiceLand{
-  0%{transform:scale(1.6) rotate(-15deg);opacity:.5}
-  50%{transform:scale(.85) rotate(8deg)}
-  75%{transform:scale(1.15) rotate(-4deg)}
-  100%{transform:scale(1) rotate(0deg)}
-}
-.pir-roll-btn.pir-rolling{animation:pirBtnShake .16s linear infinite}
-@keyframes pirBtnShake{
-  0%{transform:translateX(0)}
-  25%{transform:translateX(-3px) rotate(-1deg)}
-  75%{transform:translateX(3px) rotate(1deg)}
-  100%{transform:translateX(0)}
-}
-.pir-dice-map{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:3.6rem;z-index:6;pointer-events:none;filter:drop-shadow(0 8px 12px rgba(0,0,0,.55));transition:opacity .25s}
-.pir-dice-map.hidden{display:none;opacity:0}
-.pir-dice-map.pir-dice-jump{animation:pirDiceJumpMap .5s ease-in-out infinite}
-@keyframes pirDiceJumpMap{
-  0%{transform:translate(-50%,-50%) translateY(0) rotate(0deg) scale(1)}
-  50%{transform:translate(-50%,-50%) translateY(-54px) rotate(180deg) scale(1.18)}
-  100%{transform:translate(-50%,-50%) translateY(0) rotate(360deg) scale(1)}
-}
-.pir-dice-map.pir-dice-land{animation:pirDiceLandMap .5s cubic-bezier(.36,1.6,.4,1)}
-@keyframes pirDiceLandMap{
-  0%{transform:translate(-50%,-50%) translateY(-54px) scale(1.3);opacity:.7}
-  55%{transform:translate(-50%,-50%) translateY(6px) scale(.9)}
-  80%{transform:translate(-50%,-50%) translateY(-6px) scale(1.08)}
-  100%{transform:translate(-50%,-50%) translateY(0) scale(1)}
-}
-.pir-replay-btn{background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.4);color:#fff;font-size:1.1rem;padding:3px 10px;border-radius:10px;cursor:pointer;line-height:1.4}
-.pir-replay-btn:active{transform:scale(.92)}
+#pir-dice-face{font-size:2.2rem}
 .pir-q-source{font-size:.78rem;font-weight:700;padding:2px 10px;border-radius:8px}
 .pir-q-source.math{background:rgba(102,126,234,.3);color:#a9b6ff}
 .pir-q-source.en{background:rgba(0,180,216,.3);color:#8fe3ff}
-.pir-q-source.riddle{background:rgba(255,152,0,.3);color:#ffcc80}
-#pirates-riddle-mask{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:10px}
-.pir-riddle-box{width:26px;height:32px;border-bottom:3px solid #ffd700;color:#fff;font-size:1.2rem;font-weight:900;display:flex;align-items:center;justify-content:center;text-shadow:0 2px 5px rgba(0,0,0,.5)}
-.pir-riddle-box.pir-space-box{border-bottom:none;width:14px}
-.pir-en-theme-row{margin:0 0 14px;text-align:center}
-.pir-en-theme-row label{color:#fff;font-weight:700;font-size:.92rem;margin-right:8px;text-shadow:0 1px 4px rgba(0,0,0,.4)}
-#pirates-en-theme-select{padding:8px 12px;border-radius:10px;border:2px solid #ffd700;font-weight:700;font-size:.92rem;background:#fff;color:#333;cursor:pointer}
 #pirates-question-text{text-align:center;color:#fff;font-size:1.7rem;font-weight:800;margin-bottom:10px;text-shadow:0 2px 6px rgba(0,0,0,.5)}
 .pir-answer-row{display:flex;gap:8px}
 #pirates-answer{flex:1;font-size:1.4rem;font-weight:700;padding:10px;border-radius:12px;border:3px solid #ffd700;text-align:center;min-width:0}
@@ -1381,13 +1336,6 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <!-- LEVEL SELECT -->
   <div class="pir-level-select" id="pirates-level-select">
     <h1 style="color:#fff;font-size:1.7rem;margin-bottom:12px;text-shadow:0 2px 8px rgba(0,0,0,.5)">🏴‍☠️ Пірати — оберіть рівень складності</h1>
-    <div class="pir-en-theme-row">
-      <label for="pirates-en-theme-select">🇬🇧 Тема English-БоСС:</label>
-      <select id="pirates-en-theme-select" onchange="piratesSetEnTheme(this.value)"></select>
-    </div>
-    <div style="color:#fff;font-size:.82rem;opacity:.85;margin-bottom:12px;text-shadow:0 1px 4px rgba(0,0,0,.4)">
-      🎲 1,6 — 🧩 загадка • непарні 3,5 — ➕ математика • парні 2,4 — 🇬🇧 англійська
-    </div>
     <div id="pirates-level-list"></div>
   </div>
 
@@ -1395,7 +1343,6 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <div id="pirates-play-area" class="hidden" style="flex:1;display:flex;flex-direction:column;min-height:0">
     <div id="pirates-board-wrap">
       <svg id="pirates-board-svg" viewBox="0 0 320 520" preserveAspectRatio="xMidYMid meet"></svg>
-      <div id="pirates-dice-map" class="pir-dice-map hidden"><span id="pir-dice-map-face">🎲</span></div>
     </div>
     <div class="pir-bottom">
       <div id="pirates-idle-panel">
@@ -1405,10 +1352,8 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
         <div class="pir-dice-row">
           <span id="pir-dice-face">🎲</span>
           <span id="pirates-q-source" class="pir-q-source math">➕ Математика</span>
-          <button type="button" id="pirates-replay-btn" class="pir-replay-btn hidden" onclick="piratesReplayWord()" title="Прослухати ще раз">🔊</button>
         </div>
         <div id="pirates-question-text">?</div>
-        <div id="pirates-riddle-mask" class="hidden"></div>
         <div class="pir-answer-row">
           <input type="text" id="pirates-answer" autocomplete="off" placeholder="Відповідь...">
           <button class="pir-check-btn" onclick="piratesCheckAnswer()">✅</button>
@@ -2077,6 +2022,7 @@ async function enBossEndGame(victory){
       user.seeds+=1;
       if(!user.threads)user.threads=0; user.threads+=earnedEnThreads;
       if(!user.guzuky)user.guzuky=0; user.guzuky+=earnedEnGuzuky;
+      addGameHistoryEntry('🇬🇧 БоСС-English', enLvl, `+1🦔 +1🌱 +1000⭐ +${earnedEnThreads}🧵 +${earnedEnGuzuky}🔘`, user);
       saveUser(user);
       updateUI();
 
@@ -2106,6 +2052,7 @@ async function enBossEndGame(victory){
       user.seeds+=1;
       if(!user.threads)user.threads=0; user.threads+=earnedEnThreadsSolo;
       if(!user.guzuky)user.guzuky=0; user.guzuky+=earnedEnGuzukySolo;
+      addGameHistoryEntry('🇬🇧 БоСС-English', _capturedEnLvl, `+1🦔 +1🌱 +1000⭐ +${earnedEnThreadsSolo}🧵 +${earnedEnGuzukySolo}🔘`, user);
       saveUser(user);
       updateUI();
       document.getElementById('victory-amount').textContent=`+1🦔 +1🌱 +1000⭐ +${earnedEnThreadsSolo}🧵 +${earnedEnGuzukySolo}🔘`;
@@ -2852,11 +2799,12 @@ function getUser(){
     if(!Array.isArray(d.customWords)) d.customWords=[];
     if(!d.english||typeof d.english!=='object') d.english={};
     if(!d.games||typeof d.games!=='object') d.games={};
+    if(!Array.isArray(d.history)) d.history=[];
     return d;
   }
   const newData={stars:0,seeds:0,bees:0,threads:0,guzuky:0,tree:null,
     dog:{name:'Рекс',hearts:10,lastHeartLoss:Date.now(),poops:[],lastPoopAdd:Date.now(),puddles:[],lastPuddleAdd:Date.now()},
-    english:{},customWords:[],games:{}};
+    english:{},customWords:[],games:{},history:[]};
   return newData;
 }
 
@@ -2874,6 +2822,69 @@ function loadUsers(){
   Object.values(profiles).forEach(p=>{if(p&&p.data)result[p.name]=p.data;});
   return result;
 }
+
+// ═══ ІСТОРІЯ ПЕРЕМОГ ════════════════════════════════════════
+// Записує кожну перемогу в будь-якій грі: дата, тип гри, рівень складності, нагорода.
+// user передається, якщо вже завантажений (щоб не читати профіль двічі) —
+// інакше функція сама викличе getUser()/saveUser().
+const GAME_HISTORY_MAX = 200;
+function addGameHistoryEntry(gameType, level, reward, user){
+  const isOwn = !user;
+  const u = user || getUser();
+  if(!Array.isArray(u.history)) u.history=[];
+  u.history.unshift({
+    date: Date.now(),
+    game: gameType,
+    level: (level===undefined||level===null||level==='') ? '—' : String(level),
+    reward: reward || ''
+  });
+  if(u.history.length > GAME_HISTORY_MAX) u.history.length = GAME_HISTORY_MAX;
+  if(isOwn) saveUser(u);
+}
+
+function showGameHistory(){
+  const user = getUser();
+  const list = Array.isArray(user.history) ? user.history : [];
+  const rows = document.getElementById('game-history-rows');
+  if(!list.length){
+    rows.innerHTML = '<div style="color:#aaa;text-align:center;padding:24px">Ще немає жодної перемоги 🕹️</div>';
+  } else {
+    rows.innerHTML = list.map(h=>{
+      const d = new Date(h.date);
+      const dateStr = d.toLocaleDateString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+      return `<div style="display:flex;align-items:center;gap:10px;padding:12px;margin-bottom:8px;background:rgba(255,255,255,.06);border-radius:14px;border:1px solid rgba(255,255,255,.1)">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;color:#fff;font-size:.98rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.game}</div>
+          <div style="color:#aaa;font-size:.75rem;margin-top:2px">${dateStr}</div>
+        </div>
+        <div style="text-align:center;flex-shrink:0;padding:0 8px">
+          <div style="font-size:.7rem;color:#aaa">рівень</div>
+          <div style="font-weight:900;color:#00e5ff;font-size:1rem">${h.level}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:.7rem;color:#aaa">нагорода</div>
+          <div style="font-weight:900;color:#ffd700;font-size:1rem">${h.reward}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('game-history-modal').style.display='flex';
+}
+
+function closeGameHistoryModal(){
+  document.getElementById('game-history-modal').style.display='none';
+}
+
+function clearGameHistory(){
+  if(!confirm('Очистити всю історію перемог?')) return;
+  const user = getUser();
+  user.history = [];
+  saveUser(user);
+  showGameHistory();
+}
+window.showGameHistory = showGameHistory;
+window.closeGameHistoryModal = closeGameHistoryModal;
+window.clearGameHistory = clearGameHistory;
 
 // ═══ LOGIN UI ═══════════════════════════════════════════════
 let _pinTarget=null; // profile id for login
@@ -4106,6 +4117,7 @@ Object.entries(englishState.progress||{}).forEach(([en,gameProg])=>{
 user.stars+=total;
 if(!user.seeds)user.seeds=0;
 user.seeds+=1;
+addGameHistoryEntry('🔤 Англійська', englishState.theme||englishState.level||'—', `+${total}⭐ +1🌱`, user);
 saveUser(user);
 updateUI();
 
@@ -5037,6 +5049,7 @@ if(victory){
   user.threads+=earnedThreads;
   if(!user.guzuky)user.guzuky=0;
   user.guzuky+=earnedGuzuky;
+  addGameHistoryEntry('💀 БоСС-Математика', lvl, `+${bees}🐝 +${stars}⭐ +${earnedThreads}🧵 +${earnedGuzuky}🔘`, user);
   saveUser(user);
   updateUI();
   // Show damage leaderboard (solo — one player)
@@ -5212,6 +5225,7 @@ const bonus=mathState.reward*20;
 const total=mathState.stars+bonus;
 const user=getUser();
 user.stars+=total;
+addGameHistoryEntry('🔢 Математика', mathState.level, `+${total}⭐`, user);
 saveUser(user);
 updateUI();
 document.getElementById('victory').querySelector('h1').textContent='🏆 ПЕРЕМОГА!';
@@ -8728,7 +8742,7 @@ function math0EndGame(victory){
     setTimeout(()=>{ if(typeof _math0PeerCleanup==='function') _math0PeerCleanup(); }, 2000);
     const stars = MATH0_REWARD[lvl] || 1000;
     if(victory){
-      const user = getUser(); user.stars += stars; saveUser(user); updateUI();
+      const user = getUser(); user.stars += stars; addGameHistoryEntry('🔢 Математика-0 (Кооп)', lvl, `+${stars}⭐`, user); saveUser(user); updateUI();
       if(typeof showDmgLeaderboard==='function') showDmgLeaderboard(savedPlayers, `🎉 ПЕРЕМОГА! Математика-0 Кооп`, `+${stars}⭐ додано!`);
       setTimeout(()=>{ closeMath0(); }, 5500);
     } else {
@@ -8740,6 +8754,7 @@ function math0EndGame(victory){
     const stars = MATH0_REWARD[lvl] || 1000;
     const user = getUser();
     user.stars += stars;
+    addGameHistoryEntry('🔢 Математика-0', lvl, `+${stars}⭐`, user);
     saveUser(user);
     updateUI();
     setTimeout(()=>{
@@ -8771,6 +8786,19 @@ window.checkMath0Answer = checkMath0Answer;
   <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,.06);border-radius:12px">
     <div style="color:#aaa;font-size:.78rem;text-align:center">💡 Урон збільшується: годування пса 🦴, їжачок 🦔, одяг з пошивки 👗, зафарбовані символи ✨</div>
   </div>
+</div>
+</div>
+
+<!-- ІСТОРІЯ ПЕРЕМОГ -->
+<div id="game-history-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9700;align-items:center;justify-content:center;padding:12px">
+<div style="background:linear-gradient(160deg,#1a1a2e,#16213e,#0f3460);border-radius:22px;padding:24px 20px;max-width:460px;width:100%;box-shadow:0 12px 50px rgba(0,0,0,.6);border:2px solid #ffd700;max-height:90dvh;overflow-y:auto">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <h2 style="color:#ffd700;font-size:1.5rem;margin:0">📜 Історія перемог</h2>
+    <button onclick="closeGameHistoryModal()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:#aaa">✕</button>
+  </div>
+  <div style="color:#aaa;font-size:.82rem;text-align:center;margin-bottom:14px">Дата • тип гри • рівень складності • нагорода</div>
+  <div id="game-history-rows"></div>
+  <button onclick="clearGameHistory()" style="width:100%;margin-top:14px;padding:11px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;border-radius:12px;font-size:.9rem;font-weight:700;cursor:pointer">🗑️ Очистити історію</button>
 </div>
 </div>
 
@@ -9028,93 +9056,6 @@ window.shareSyncLink = shareSyncLink;
 // 5 сердечок, кубик: непарне = Математика-БоСС, парне = English-БоСС
 // ═══════════════════════════════════════════════════════════
 
-// ── Банк загадок для дітей 5-8 років (50 шт.) — відповідь одне слово без апострофів ──
-const PIRATES_RIDDLES = [
-{q:'Кругле, соковите, буває червоне, жовте чи зелене, росте на дереві.',a:'яблуко'},
-{q:'Муркоче, ловить мишей, любить молоко.',a:'кіт'},
-{q:'Гавкає, охороняє двір, вірний друг людини.',a:'собака'},
-{q:'Має довгі вуха, стрибає, любить моркву.',a:'заєць'},
-{q:'Руда, хитра, має пухнастий хвіст, живе в лісі.',a:'лисиця'},
-{q:'Сірий, виє на місяць, живе в лісі зграєю.',a:'вовк'},
-{q:'Великий, клишоногий, взимку спить у барлозі.',a:'ведмідь'},
-{q:'Маленький, колючий, згортається в клубочок.',a:'їжак'},
-{q:'Руда, стрибає по деревах, збирає горішки.',a:'білка'},
-{q:'Дає молоко, має роги, каже "му".',a:'корова'},
-{q:'Має гриву і копита, швидко бігає, іржить.',a:'кінь'},
-{q:'Рожева, хрюкає, любить калюжі.',a:'свиня'},
-{q:'Найбільший на суходолі, має хобот і великі вуха.',a:'слон'},
-{q:'Цар звірів, має пишну гриву, живе в Африці.',a:'лев'},
-{q:'Схожа на коня, вся в чорно-білу смужку.',a:'зебра'},
-{q:'Має найдовшу шию серед тварин.',a:'жирафа'},
-{q:'Птах, що не літає, живе серед криги й снігу.',a:'пінгвін'},
-{q:'Птах з розкішним різнобарвним хвостом.',a:'павич'},
-{q:'Птах з великими очима, полює вночі.',a:'сова'},
-{q:'Птах, що кує і не будує власного гнізда.',a:'зозуля'},
-{q:'Має гребінець, будить усіх уранці.',a:'півень'},
-{q:'Плаває у ставку, крякає, має дзьоб.',a:'качка'},
-{q:'Маленька, смугаста, робить мед і має жало.',a:'бджола'},
-{q:'Має яскраві крильця, літає з квітки на квітку.',a:'метелик'},
-{q:'Маленька, дуже сильна, живе у мурашнику.',a:'мурашка'},
-{q:'Має вісім ніг, плете павутину.',a:'павук'},
-{q:'Зелена, стрибає, живе біля води, квакає.',a:'жаба'},
-{q:'Плаває у воді, дихає зябрами, вкрита лускою.',a:'риба'},
-{q:'Найбільша тварина в океані.',a:'кит'},
-{q:'Повільний, носить будиночок на спині.',a:'равлик'},
-{q:'Гаряче й яскраве, світить удень на небі.',a:'сонце'},
-{q:'Світить уночі, буває повний або тонкий, як серпик.',a:'місяць'},
-{q:'Маленькі вогники на нічному небі.',a:'зорі'},
-{q:'Падає з хмар, мокрий, найчастіше восени.',a:'дощ'},
-{q:'Білий, холодний, падає взимку.',a:'сніг'},
-{q:'Різнокольорова дуга на небі після дощу.',a:'веселка'},
-{q:'Біла чи сіра, пливе високо в небі.',a:'хмара'},
-{q:'Його не видно, але можна відчути й почути.',a:'вітер'},
-{q:'Має корінь, стовбур, гілки й листя.',a:'дерево'},
-{q:'Гарна, пахуча, росте у саду, буває різного кольору.',a:'квітка'},
-{q:'Росте в лісі, має капелюшок і ніжку.',a:'гриб'},
-{q:'Помаранчевий овоч, який дуже люблять зайці.',a:'морква'},
-{q:'Овоч, від якого сльози течуть, коли ріжуть.',a:'цибуля'},
-{q:'Зелений зовні, червоний усередині, з чорними зернятками.',a:'кавун'},
-{q:'Жовтий, дуже кислий цитрусовий фрукт.',a:'лимон'},
-{q:'Солодкий, святковий, прикрашають свічками.',a:'торт'},
-{q:'Холодне, солодке, тане на сонці, їдять улітку.',a:'морозиво'},
-{q:'Ним малюють і пишуть, буває кольоровий.',a:'олівець'},
-{q:'Показує час, має стрілки або цифри.',a:'годинник'},
-{q:'Місце, куди діти ходять учитися.',a:'школа'}
-];
-
-// ── Пул випадкових "піратських" емодзі-картинок для клітинок карти ──
-const PIRATES_ITEM_ICONS = ['🧰','📦','🐚','🍾','🦴','☠️','⚓','🗺️','🧭','💰','💎','🪙','🗝️','🦜','🏺','🐠','🐡','🦑','🦀','🧿'];
-function piratesRandomIcon(){ return rnd(PIRATES_ITEM_ICONS); }
-// Генерує масив випадкових іконок для клітинок карти (по одній на крок)
-function piratesGenCellIcons(count){
-  const arr=[];
-  for(let i=0;i<count;i++) arr.push(piratesRandomIcon());
-  return arr;
-}
-
-// ── Українські назви тем English-БоСС для селектора у грі "Пірати" ──
-const PIRATES_THEME_LABELS = {
-  verbs:'🏃 Дієслова', home:'🏠 Дім', nature:'🌳 Природа', pronouns:'🙋 Займенники',
-  interrogative:'❓ Питальні слова', food:'🍎 Їжа', games:'🎮 Ігри', body:'🧍 Тіло'
-};
-let piratesEnThemeChoice='';
-try{ piratesEnThemeChoice = localStorage.getItem('piratesEnTheme')||''; }catch(e){}
-function piratesSetEnTheme(val){
-  piratesEnThemeChoice = val||'';
-  try{ localStorage.setItem('piratesEnTheme', piratesEnThemeChoice); }catch(e){}
-}
-function piratesRenderThemeSelect(){
-  const sel=document.getElementById('pirates-en-theme-select');
-  if(!sel) return;
-  let html='<option value="">🔀 Випадково (за рівнем)</option>';
-  Object.keys(EN_WORDS).forEach(t=>{
-    const label=PIRATES_THEME_LABELS[t]||t;
-    html+=`<option value="${t}">${label}</option>`;
-  });
-  sel.innerHTML=html;
-  sel.value = (piratesEnThemeChoice && EN_WORDS[piratesEnThemeChoice]) ? piratesEnThemeChoice : '';
-}
-
 const PIRATES_TOTAL_STEPS = 15;
 
 // Координати 15 клітинок-кроків (зигзаг по острову), viewBox 0..320 x 0..520
@@ -9139,48 +9080,26 @@ function piratesEnThemesForLevel(level){
 }
 
 // ── Математичне питання (рівень = складність, як в Математика-БоСС) ──
-// used: Set рядків уже заданих питань у цій грі — щоб не повторювались
-function piratesGenMathQuestion(level, used){
+function piratesGenMathQuestion(level){
   const letterMap={1:'A',2:'B',3:'C',4:'D',5:'E',6:'F'};
-  function gen(){
-    if(level<=6){
-      const q=MATH_LEVELS[letterMap[level]].gen();
-      return {text:q.q, checkFn:(val)=>parseInt(val,10)===q.a, correctText:String(q.a)};
-    }
-    const tableRanges={7:[2,4],8:[3,6],9:[5,8],10:[6,9]};
-    const range=tableRanges[level]||[2,9];
-    const table=range[0]+r(range[1]-range[0]+1);
-    const factor=r(9)+2;
-    const ans=table*factor;
-    return {text:`${table} × ${factor} = ?`, checkFn:(val)=>parseInt(val,10)===ans, correctText:String(ans)};
+  if(level<=6){
+    const q=MATH_LEVELS[letterMap[level]].gen();
+    return {text:q.q, checkFn:(val)=>parseInt(val,10)===q.a, correctText:String(q.a)};
   }
-  let q=gen(), attempts=0;
-  while(used && used.has(q.text) && attempts<40){ q=gen(); attempts++; }
-  if(used){
-    if(attempts>=40) used.clear(); // пул вичерпано — почати заново
-    used.add(q.text);
-  }
-  return q;
+  const tableRanges={7:[2,4],8:[3,6],9:[5,8],10:[6,9]};
+  const range=tableRanges[level]||[2,9];
+  const table=range[0]+r(range[1]-range[0]+1);
+  const factor=r(9)+2;
+  const ans=table*factor;
+  return {text:`${table} × ${factor} = ?`, checkFn:(val)=>parseInt(val,10)===ans, correctText:String(ans)};
 }
 
 // ── Англійське питання (рівень = складність, як в English-БоСС) ──
-// used: Set англ. слів (word.en), уже використаних у цій грі
-function piratesGenEnQuestion(level, used){
-  let theme;
-  if(piratesEnThemeChoice && EN_WORDS[piratesEnThemeChoice]){
-    theme = piratesEnThemeChoice;
-  } else {
-    const themes = piratesEnThemesForLevel(level);
-    theme = rnd(themes);
-  }
-  let pool = EN_WORDS[theme]||[];
-  if(used && used.size){
-    const fresh = pool.filter(w=>!used.has(w.en));
-    if(fresh.length) pool = fresh;
-    else used.clear(); // всі слова цієї теми вже були — почати цикл заново
-  }
+function piratesGenEnQuestion(level){
+  const themes = piratesEnThemesForLevel(level);
+  const theme = rnd(themes);
+  const pool = EN_WORDS[theme]||[];
   const word = pool[r(pool.length)];
-  if(used) used.add(word.en);
   const normalize = s=>s.replace(/['`´''']/g,'').replace(/ґ/g,'г').trim().toLowerCase();
   const rawVariants = word.ukVariants||[word.uk];
   const allVariants=[];
@@ -9194,38 +9113,7 @@ function piratesGenEnQuestion(level, used){
     return answerVariants.some(av=>normVariants.some(nv=>av===nv));
   };
   const displayUa=(word.ukVariants&&word.ukVariants.length>1)?word.ukVariants.join(' / '):word.uk;
-  // "Базова" форма відповіді (без ком/дужок) — для клітинок-підказки кількості букв
-  const maskBase=(word.uk||'').split(/[,\/]/)[0].replace(/\([^)]*\)/g,'').trim();
-  return {text:`Перекласти українською: "${word.en}"`, checkFn:check, correctText:displayUa, word, maskBase};
-}
-
-// ── Загадка (випадає на кубику 1 або 6) ──
-// used: Set індексів уже використаних загадок у цій грі
-function piratesGenRiddleQuestion(used){
-  let pool = PIRATES_RIDDLES.map((item,idx)=>({item,idx}));
-  if(used && used.size){
-    const fresh = pool.filter(p=>!used.has(p.idx));
-    if(fresh.length) pool = fresh;
-    else used.clear(); // всі загадки вже були — почати заново
-  }
-  const picked = rnd(pool);
-  if(used) used.add(picked.idx);
-  const item = picked.item;
-  const normalize = s=>(s||'').replace(/['`´'']/g,'').replace(/ґ/g,'г').replace(/\s+/g,'').trim().toLowerCase();
-  const normAnswer = normalize(item.a);
-  const check = (val)=> normalize(val)===normAnswer;
-  return {text:item.q, checkFn:check, correctText:item.a, answerRaw:item.a};
-}
-
-// Генерує HTML клітинок-«пробілів» під кількість букв у відповіді (загадка / переклад)
-function piratesRiddleMaskHTML(word){
-  return (word||'').split('').map(ch=>ch===' '?'<span class="pir-riddle-box pir-space-box"></span>':'<span class="pir-riddle-box"></span>').join('');
-}
-// Оновлює клітинки-«пробіли» відповідно до введеного тексту
-function piratesUpdateRiddleMask(val){
-  const boxes=document.querySelectorAll('#pirates-riddle-mask .pir-riddle-box');
-  const chars=(val||'').split('');
-  boxes.forEach((b,i)=>{ b.textContent = chars[i] ? chars[i].toUpperCase() : ''; });
+  return {text:`Перекласти українською: "${word.en}"`, checkFn:check, correctText:displayUa, word};
 }
 
 function openPiratesModal(){
@@ -9236,7 +9124,6 @@ function openPiratesModal(){
   document.getElementById('pirates-hearts').textContent='';
   document.getElementById('pirates-badge').textContent='🏴‍☠️ Пірати';
   renderPiratesLevelList();
-  piratesRenderThemeSelect();
 }
 
 function closePirates(){
@@ -9260,9 +9147,7 @@ function renderPiratesLevelList(){
 }
 
 function startPiratesLevel(level){
-  piratesState={level, step:0, hearts:5, starsEarned:0, busy:false, currentQ:null,
-    usedMath:new Set(), usedEn:new Set(), usedRiddle:new Set(),
-    cellIcons:piratesGenCellIcons(PIRATES_TOTAL_STEPS-1)};
+  piratesState={level, step:0, hearts:5, starsEarned:0, busy:false, currentQ:null};
   document.getElementById('pirates-level-select').classList.add('hidden');
   document.getElementById('pirates-play-area').classList.remove('hidden');
   document.getElementById('pirates-question-panel').classList.add('hidden');
@@ -9315,10 +9200,9 @@ function renderPiratesBoard(){
         <text x="${p.x}" y="${p.y+9}" text-anchor="middle" font-size="26">🎁</text>
       </g>`;
     } else {
-      const cellIcon=(piratesState.cellIcons&&piratesState.cellIcons[i])||'🐚';
       stepsMarkup+=`<g>
-        <circle cx="${p.x}" cy="${p.y}" r="16" fill="${visited?'#f4d03f':'rgba(255,255,255,.55)'}" stroke="#7a4a00" stroke-width="2.5"/>
-        <text x="${p.x}" y="${p.y+7}" text-anchor="middle" font-size="18">${cellIcon}</text>
+        <circle cx="${p.x}" cy="${p.y}" r="15" fill="${visited?'#f4d03f':'rgba(255,255,255,.55)'}" stroke="#7a4a00" stroke-width="2.5"/>
+        <text x="${p.x}" y="${p.y+5}" text-anchor="middle" font-size="13" font-weight="900" fill="#5c3a00">${stepNum}</text>
       </g>`;
     }
   });
@@ -9350,110 +9234,40 @@ function renderPiratesBoard(){
 function piratesRoll(){
   if(!piratesState||piratesState.busy) return;
   piratesState.busy=true;
-  const rollBtn=document.getElementById('pirates-roll-btn');
-  rollBtn.disabled=true;
-  rollBtn.classList.add('pir-rolling');
+  document.getElementById('pirates-roll-btn').disabled=true;
   const diceFace=document.getElementById('pir-dice-face');
-  diceFace.classList.remove('pir-dice-landed');
-  diceFace.classList.add('pir-dice-rolling');
-
-  // Кубик, що стрибає прямо на карті, поки не випаде число
-  const mapDice=document.getElementById('pirates-dice-map');
-  const mapDiceFace=document.getElementById('pir-dice-map-face');
-  mapDice.classList.remove('hidden','pir-dice-land');
-  mapDice.classList.add('pir-dice-jump');
-
-  const diceIcons=['⚀','⚁','⚂','⚃','⚄','⚅'];
+  const diceIcons=['🎲','⚀','⚁','⚂','⚃','⚄','⚅'];
   let ticks=0;
   const spin=setInterval(()=>{
-    const face=diceIcons[r(6)];
-    diceFace.textContent=face;
-    mapDiceFace.textContent=face;
+    diceFace.textContent=diceIcons[1+r(6)];
     ticks++;
-    if(ticks>=12){
+    if(ticks>=8){
       clearInterval(spin);
       const dice=1+r(6);
-      const finalFace=diceIcons[dice-1];
-      diceFace.classList.remove('pir-dice-rolling');
-      diceFace.textContent=finalFace;
-      diceFace.classList.add('pir-dice-landed');
-      mapDice.classList.remove('pir-dice-jump');
-      mapDiceFace.textContent=finalFace;
-      mapDice.classList.add('pir-dice-land');
-      rollBtn.classList.remove('pir-rolling');
-      setTimeout(()=>{
-        mapDice.classList.add('hidden');
-        mapDice.classList.remove('pir-dice-land');
-        piratesStartQuestion(dice);
-      },550);
+      diceFace.textContent=['⚀','⚁','⚂','⚃','⚄','⚅'][dice-1];
+      piratesStartQuestion(dice);
     }
-  },90);
+  },80);
 }
 
 function piratesStartQuestion(dice){
   if(!piratesState) return;
-  const isRiddle = dice===1 || dice===6;
-  let q, isMath=false, isEn=false;
-  if(isRiddle){
-    q = piratesGenRiddleQuestion(piratesState.usedRiddle);
-  } else {
-    isMath = dice%2===1; // 3,5 -> математика; 2,4 -> англійська
-    isEn = !isMath;
-    q = isMath ? piratesGenMathQuestion(piratesState.level, piratesState.usedMath) : piratesGenEnQuestion(piratesState.level, piratesState.usedEn);
-  }
-  piratesState.currentQ={...q, isMath, isRiddle, isEn};
+  const isMath = dice%2===1;
+  const q = isMath ? piratesGenMathQuestion(piratesState.level) : piratesGenEnQuestion(piratesState.level);
+  piratesState.currentQ={...q, isMath};
 
   document.getElementById('pirates-idle-panel').classList.add('hidden');
   document.getElementById('pirates-question-panel').classList.remove('hidden');
   const srcEl=document.getElementById('pirates-q-source');
-  srcEl.className='pir-q-source '+(isRiddle?'riddle':(isMath?'math':'en'));
-  srcEl.textContent = isRiddle ? '🧩 Загадка' : (isMath?'➕ Математика-БоСС':'🇬🇧 English-БоСС');
+  srcEl.className='pir-q-source '+(isMath?'math':'en');
+  srcEl.textContent=isMath?'➕ Математика-БоСС':'🇬🇧 English-БоСС';
   document.getElementById('pirates-question-text').textContent=q.text;
-
-  // Озвучка англійського слова + кнопка "прослухати ще раз"
-  const replayBtn=document.getElementById('pirates-replay-btn');
-  if(isEn && q.word){
-    replayBtn.classList.remove('hidden');
-    speak(q.word.en,'en-US');
-  } else {
-    replayBtn.classList.add('hidden');
-  }
-
-  const maskWrap=document.getElementById('pirates-riddle-mask');
   const inp=document.getElementById('pirates-answer');
   inp.value='';
-  if(isRiddle){
-    maskWrap.classList.remove('hidden');
-    maskWrap.innerHTML=piratesRiddleMaskHTML(q.answerRaw);
-    inp.type='text';
-    inp.inputMode='text';
-    inp.maxLength=(q.answerRaw||'').length||20;
-    inp.oninput=()=>piratesUpdateRiddleMask(inp.value);
-  } else if(isEn){
-    // Поле відповіді з кількістю букв (як у загадці), без жорсткого обмеження
-    // довжини — бо варіантів перекладу може бути декілька різної довжини.
-    maskWrap.classList.remove('hidden');
-    maskWrap.innerHTML=piratesRiddleMaskHTML(q.maskBase);
-    inp.removeAttribute('maxlength');
-    inp.type='text';
-    inp.inputMode='text';
-    inp.oninput=()=>piratesUpdateRiddleMask(inp.value);
-  } else {
-    maskWrap.classList.add('hidden');
-    maskWrap.innerHTML='';
-    inp.removeAttribute('maxlength');
-    inp.type=isMath?'number':'text';
-    inp.inputMode=isMath?'numeric':'text';
-    inp.oninput=null;
-  }
+  inp.type=isMath?'number':'text';
+  inp.inputMode=isMath?'numeric':'text';
   inp.onkeypress=e=>{ if(e.key==='Enter') piratesCheckAnswer(); };
   setTimeout(()=>inp.focus(),50);
-}
-
-function piratesReplayWord(){
-  if(piratesState && piratesState.currentQ && piratesState.currentQ.word){
-    speak(piratesState.currentQ.word.en,'en-US');
-  }
 }
 
 function piratesCheckAnswer(){
@@ -9508,6 +9322,7 @@ function piratesWin(){
   const user=getUser();
   user.threads=(user.threads||0)+threads;
   user.guzuky=(user.guzuky||0)+guzuky;
+  addGameHistoryEntry('🏴‍☠️ Пірати', level, `+${threads}🧵 +${guzuky}🔘 +${piratesState.starsEarned}⭐`, user);
   saveUser(user);
   updateUI();
   const fb=document.getElementById('pirates-feedback');
@@ -9535,7 +9350,6 @@ window.startPiratesLevel=startPiratesLevel;
 window.piratesRoll=piratesRoll;
 window.piratesCheckAnswer=piratesCheckAnswer;
 window.piratesRestartSame=piratesRestartSame;
-window.piratesReplayWord=piratesReplayWord;
 </script>
 
 </body>
