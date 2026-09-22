@@ -1301,7 +1301,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 .pir-level-btn{display:flex;justify-content:space-between;align-items:center;width:100%;padding:13px 18px;margin:6px 0;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.35);border-radius:14px;color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;transition:.2s;backdrop-filter:blur(6px);text-align:left}
 .pir-level-btn:hover{background:rgba(255,255,255,.24);transform:scale(1.02)}
 .pir-level-badge{background:#7a4a00;color:#ffd700;border-radius:8px;padding:3px 8px;font-size:.75rem;white-space:nowrap;flex-shrink:0;margin-left:8px}
-#pirates-board-wrap{flex:1;position:relative;min-height:0}
+#pirates-board-wrap{flex:1;position:relative;min-height:0;background:radial-gradient(ellipse at 50% 50%,#3cc4d6 0%,#1a8fd1 45%,#0b4f95 100%)}
 #pirates-board-svg{width:100%;height:100%;display:block}
 #pirate-token{position:absolute;width:38px;height:38px;margin-left:-19px;margin-top:-19px;border-radius:50%;background:#fff;border:3px solid #ffd700;box-shadow:0 3px 10px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden;transition:left .6s cubic-bezier(.4,1.4,.6,1),top .6s cubic-bezier(.4,1.4,.6,1);z-index:3}
 #pirate-token img{width:100%;height:100%;object-fit:cover;border-radius:50%}
@@ -1372,6 +1372,49 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   80%{transform:translate(186px,4px)}
   100%{transform:translate(208px,0)}
 }
+/* ── PIRATES v2: хвилі, вулкан, тост відповіді ── */
+#pirates-board-wrap{overflow:hidden}
+.pir-layer{position:absolute;left:0;top:0;width:100%;height:100%;display:block;overflow:visible;pointer-events:none;font-family:'Segoe UI',sans-serif;will-change:transform}
+@keyframes pirWaveShift{from{transform:translateX(0)}to{transform:translateX(-56px)}}
+.pir-wv{animation:pirWaveShift 8s linear infinite}
+.pir-wv.rev{animation-direction:reverse}
+@keyframes pirBob{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-2.5px);opacity:1}}
+.pir-crest{animation:pirBob 3.2s ease-in-out infinite}
+@keyframes pirSpark{0%,100%{opacity:0}50%{opacity:.95}}
+.pir-spark{animation:pirSpark 2.6s ease-in-out infinite}
+@keyframes pirFoam{0%{stroke-width:2;stroke-opacity:.85}100%{stroke-width:22;stroke-opacity:0}}
+.pir-foam{fill:none;stroke:#fff;animation:pirFoam 3.4s ease-out infinite}
+@keyframes pirLap{to{stroke-dashoffset:-44}}
+.pir-lap{stroke-dasharray:12 10;stroke-opacity:.85;animation:pirLap 3s linear infinite}
+@keyframes pirBoat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-2px) rotate(3deg)}}
+.pir-boat{animation:pirBoat 3s ease-in-out infinite}
+@keyframes pirLava{0%,100%{opacity:.75}50%{opacity:1}}
+.pir-lava{animation:pirLava 1.8s ease-in-out infinite}
+@keyframes pirCGlow{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+.pir-cglow{transform-box:fill-box;transform-origin:center;animation:pirCGlow 2.2s ease-in-out infinite}
+@keyframes pirBubble{0%,100%{opacity:.2;transform:translateY(1px)}50%{opacity:1;transform:translateY(-1px)}}
+.pir-bubble{animation:pirBubble 1.4s ease-in-out infinite}
+@keyframes pirSmoke{0%{transform:translate(0,0) scale(.35);opacity:0}12%{opacity:.85}60%{opacity:.5}100%{transform:translate(var(--dx,20px),-100px) scale(2.4);opacity:0}}
+.pir-smoke{transform-box:fill-box;transform-origin:center;animation:pirSmoke 8s ease-out infinite}
+@keyframes pirEmber{0%{transform:translate(0,0);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx,10px),-46px);opacity:0}}
+.pir-ember{animation:pirEmber 3s ease-out infinite}
+@keyframes pirNext{0%{transform:scale(.9);opacity:1}100%{transform:scale(1.5);opacity:0}}
+.pir-next{transform-box:fill-box;transform-origin:center;animation:pirNext 1.4s ease-out infinite}
+@media (prefers-reduced-motion:reduce){.pir-wv,.pir-crest,.pir-spark,.pir-foam,.pir-lap,.pir-boat,.pir-smoke,.pir-ember,.pir-next{animation:none}}
+
+#pirates-toast{display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);width:min(92%,440px);z-index:12;text-align:center;color:#fff;
+  background:rgba(8,26,54,.9);border:3px solid #4ade80;border-radius:16px;padding:10px 14px 12px;box-shadow:0 6px 22px rgba(0,0,0,.5);backdrop-filter:blur(6px);pointer-events:none}
+#pirates-toast.show{display:block;animation:pirToastIn .25s ease-out}
+#pirates-toast.wrong{border-color:#ff5c5c}
+@keyframes pirToastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+#pt-title{font-size:1.15rem;font-weight:900}
+#pirates-toast.correct #pt-title{color:#4ade80}
+#pirates-toast.wrong #pt-title{color:#ff8a8a}
+#pt-answer{font-size:1.55rem;font-weight:900;color:#ffd700;margin-top:4px;text-shadow:0 2px 6px rgba(0,0,0,.5);word-break:break-word}
+#pt-detail{font-size:.95rem;font-weight:700;color:#cfe8ff;margin-top:3px}
+.pt-bar{height:5px;background:rgba(255,255,255,.2);border-radius:4px;margin-top:9px;overflow:hidden}
+#pt-bar-i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ffd700,#ff8f00);border-radius:4px}
+@keyframes pirHold{from{width:100%}to{width:0}}
 </style>
 <div id="pirates-game">
   <div class="pir-top">
@@ -1396,7 +1439,11 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
   <!-- BOARD + PLAY AREA -->
   <div id="pirates-play-area" class="hidden" style="flex:1;display:flex;flex-direction:column;min-height:0">
     <div id="pirates-board-wrap">
-      <svg id="pirates-board-svg" viewBox="0 0 320 520" preserveAspectRatio="xMidYMid meet"></svg>
+      <svg id="pirates-sea-svg" class="pir-layer" viewBox="0 0 320 520" preserveAspectRatio="xMidYMid meet"></svg>
+      <svg id="pirates-board-svg" class="pir-layer" viewBox="0 0 320 520" preserveAspectRatio="xMidYMid meet"></svg>
+      <svg id="pirates-fx-svg" class="pir-layer" viewBox="0 0 320 520" preserveAspectRatio="xMidYMid meet"></svg>
+      <svg id="pirates-dyn-svg" class="pir-layer" viewBox="0 0 320 520" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="pirates-toast"><div id="pt-title"></div><div id="pt-answer"></div><div id="pt-detail"></div><div class="pt-bar"><i id="pt-bar-i"></i></div></div>
       <div id="pir-dice3d-scene">
         <div id="pir-dice-mover">
           <div id="pir-dice3d">
@@ -9125,126 +9172,842 @@ window.shareSyncLink = shareSyncLink;
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// PIRATES GAME — 🏴‍☠️ Пірати
-// Острів іншої форми щогри (пляжі/бухти/уламки/скелі/пальми/мушлі/скелети/печери),
-// шлях з 15 кроків до скрині на вулкані, 5 сердечок,
-// кубик: непарне = Математика-БоСС, парне = English-БоСС
+// PIRATES GAME — 🏴‍☠️ Пірати  (v2)
+// • Кожна нова гра = НОВА карта острова + НОВА стежка
+// • 15 питань розкидані по всьому острову, між ними прокладена стежка
+// • Реалістичний вулкан (текстура скелі, кратер, лава, дим, іскри), скриня на схилі
+// • Пляжі, лагуна, багато артефактів, хвилі в морі
+// • Кожне питання має випадковий значок (🦀🐚💀🦎🥥🍌…) + маленький номер
+// • English: можна обрати ЛЮБУ тему; після відповіді правильна відповідь тримається 3 с
+// • Кубик: непарне = Математика-БоСС, парне = English-БоСС
 // ═══════════════════════════════════════════════════════════
+(function(){
+'use strict';
 
 const PIRATES_TOTAL_STEPS = 15;
-
 const PIRATES_LEVEL_ICONS = ['🏝️','⛵','🦜','🗺️','⚔️','🧭','🌊','🔱','☠️','👑'];
+const PIR_EN_HOLD_MS = 3000;   // скільки тримаємо вірну відповідь для English
 
 const PIR_THEME_NAMES_UK = {
   verbs:'🏃 Дієслова', home:'🏠 Дім', nature:'🌿 Природа', pronouns:'🔤 Займенники',
   interrogative:'❓ Питальні слова', food:'🍎 Їжа', games:'🎮 Ігри', body:'🧍 Тіло людини'
 };
 
-let piratesState = null; // {level, step, hearts, starsEarned, busy, enTheme, island, timerInterval, timeLeft, totalTime}
-let piratesPendingLevel = null;
+// Значки для питань (випадкові, без повторів у межах однієї карти)
+const PIR_NODE_ICONS = ['💀','🐚','🦀','🦎','🥥','🍌','🦜','🐒','🐍','🐢','🍍','🦂','🐸','🦋',
+  '🌺','🍄','🦩','🥭','🦴','🐙','🍉','🐊','🦇','⭐','🐠','🍹'];
 
-// ── Пул тем English-БоСС по рівнях складності (чим вищий рівень — тим більше тем) ──
-function piratesEnThemesForLevel(level){
-  const allThemes = Object.keys(EN_WORDS);
-  const count = Math.max(1, Math.min(allThemes.length, Math.ceil(level*0.9)));
-  return allThemes.slice(0, count);
-}
+const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
+
+let piratesState = null;
+let piratesPendingLevel = null;
+let pirIslandSeq = 0;
+
+const pf = n => Math.round(n*10)/10;
+const pRand = (a,b) => a + Math.random()*(b-a);
+const pShuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
 // ── Час на відповідь: рівень 1 = 100с, кожен наступний рівень -5с ──
-function piratesTimeForLevel(level){
-  return Math.max(20, 100-(level-1)*5);
-}
+function piratesTimeForLevel(level){ return Math.max(20, 100-(level-1)*5); }
 
-// ═══════════ ГЕНЕРАЦІЯ ОСТРОВА (інший щогри) ═══════════
+// ── Теми English: тепер ДОСТУПНІ ВСІ теми на будь-якому рівні ──
+function piratesEnThemesForLevel(){ return Object.keys(EN_WORDS); }
+
+// ═══════════════════ ГЕОМЕТРІЯ ═══════════════════
+function pDist(ax,ay,bx,by){ return Math.hypot(ax-bx,ay-by); }
+function pSegDist(px,py,ax,ay,bx,by){
+  const dx=bx-ax, dy=by-ay, l2=dx*dx+dy*dy;
+  let t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0; t=Math.max(0,Math.min(1,t));
+  return Math.hypot(px-(ax+t*dx), py-(ay+t*dy));
+}
+function pSegsCross(a,b,c,d){
+  const o=(p,q,s)=>(q.x-p.x)*(s.y-p.y)-(q.y-p.y)*(s.x-p.x);
+  return (o(a,b,c)*o(a,b,d)<0) && (o(c,d,a)*o(c,d,b)<0);
+}
+function pSegSegDist(a,b,c,d){
+  if(pSegsCross(a,b,c,d)) return 0;
+  return Math.min(pSegDist(a.x,a.y,c.x,c.y,d.x,d.y), pSegDist(b.x,b.y,c.x,c.y,d.x,d.y),
+                  pSegDist(c.x,c.y,a.x,a.y,b.x,b.y), pSegDist(d.x,d.y,a.x,a.y,b.x,b.y));
+}
+function pInPoly(x,y,poly){
+  let inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+    const xi=poly[i].x, yi=poly[i].y, xj=poly[j].x, yj=poly[j].y;
+    if(((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi)) inside=!inside;
+  }
+  return inside;
+}
+function pPolyDist(x,y,poly){
+  let m=1e9;
+  for(let i=0;i<poly.length;i++){
+    const p=poly[i], q=poly[(i+1)%poly.length];
+    m=Math.min(m,pSegDist(x,y,p.x,p.y,q.x,q.y));
+  }
+  return m;
+}
+function pIdxDist(a,b,n){ const d=Math.abs(a-b); return Math.min(d,n-d); }
+
 function piratesSmoothClosedPath(pts){
   const n=pts.length;
-  let d=`M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)} `;
+  let d=`M ${pf(pts[0].x)} ${pf(pts[0].y)} `;
   for(let i=0;i<n;i++){
     const p0=pts[(i-1+n)%n], p1=pts[i], p2=pts[(i+1)%n], p3=pts[(i+2)%n];
-    const cp1x=p1.x+(p2.x-p0.x)/6, cp1y=p1.y+(p2.y-p0.y)/6;
-    const cp2x=p2.x-(p3.x-p1.x)/6, cp2y=p2.y-(p3.y-p1.y)/6;
-    d+=`C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} `;
+    d+=`C ${pf(p1.x+(p2.x-p0.x)/6)} ${pf(p1.y+(p2.y-p0.y)/6)}, ${pf(p2.x-(p3.x-p1.x)/6)} ${pf(p2.y-(p3.y-p1.y)/6)}, ${pf(p2.x)} ${pf(p2.y)} `;
   }
-  d+='Z';
-  return d;
+  return d+'Z';
+}
+function pCatmullSegs(pts){
+  const segs=[];
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[Math.max(0,i-1)], p1=pts[i], p2=pts[i+1], p3=pts[Math.min(pts.length-1,i+2)];
+    segs.push({a:p1, b:{x:p1.x+(p2.x-p0.x)/6, y:p1.y+(p2.y-p0.y)/6}, c:{x:p2.x-(p3.x-p1.x)/6, y:p2.y-(p3.y-p1.y)/6}, d:p2});
+  }
+  return segs;
+}
+function pSegPathC(s){ return `C ${pf(s.b.x)} ${pf(s.b.y)}, ${pf(s.c.x)} ${pf(s.c.y)}, ${pf(s.d.x)} ${pf(s.d.y)}`; }
+function pBez(s,t){
+  const u=1-t;
+  return { x:u*u*u*s.a.x+3*u*u*t*s.b.x+3*u*t*t*s.c.x+t*t*t*s.d.x,
+           y:u*u*u*s.a.y+3*u*u*t*s.b.y+3*u*t*t*s.c.y+t*t*t*s.d.y };
 }
 
-function piratesGenerateIsland(){
-  const cx=160, cy=330;
-  const rx=122+r(30), ry=195+r(38);
-  const N=13+r(4);
-  const outline=[];
+// ═══════════════════ КОНТУР ОСТРОВА ═══════════════════
+function pGenOutline(){
+  const N=64;
+  const harm=[];
+  for(let k=2;k<=6;k++) harm.push({k, a:(0.20/k)*(0.4+Math.random()*0.9), p:Math.random()*Math.PI*2});
+  const dents=[];
+  const nd=2+r(2);
+  for(let i=0;i<nd;i++) dents.push({c:Math.random()*Math.PI*2, w:0.22+Math.random()*0.2, d:0.10+Math.random()*0.10});
+  const angDiff=(a,b)=>{ let d=(a-b)%(Math.PI*2); if(d>Math.PI)d-=Math.PI*2; if(d<-Math.PI)d+=Math.PI*2; return d; };
+  const raw=[];
   for(let i=0;i<N;i++){
-    const ang=(i/N)*Math.PI*2;
-    const jitter=0.76+Math.random()*0.44;
-    outline.push({x:cx+Math.cos(ang)*rx*jitter, y:cy+Math.sin(ang)*ry*jitter});
+    const th=i/N*Math.PI*2;
+    let rr=1;
+    harm.forEach(h=>{ rr+=h.a*Math.cos(h.k*th+h.p); });
+    dents.forEach(d=>{ const q=angDiff(th,d.c)/d.w; rr-=d.d*Math.exp(-q*q); });
+    raw.push({x:Math.cos(th)*rr, y:Math.sin(th)*rr});
   }
+  let minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
+  raw.forEach(p=>{ minx=Math.min(minx,p.x); maxx=Math.max(maxx,p.x); miny=Math.min(miny,p.y); maxy=Math.max(maxy,p.y); });
+  const tw=238+r(34), th2=404+r(40), cx0=160, cy0=265;
+  return raw.map(p=>({
+    x:cx0+((p.x-(minx+maxx)/2)/(maxx-minx))*tw,
+    y:cy0+((p.y-(miny+maxy)/2)/(maxy-miny))*th2
+  }));
+}
+
+// ═══════════════════ СТЕЖКА: 15 точок по всьому острову ═══════════════════
+function pBuildTrail(ctx, allowFallback){
+  const {start,chest,grid}=ctx;
+  for(let attempt=0;attempt<70;attempt++){
+    const relax = attempt>40 ? 1 : 0;
+    const minD = relax?34:40, clear = relax?10:14;
+    const pts=[start];
+    const cov=new Uint8Array(grid.length);
+    const markCov=p=>{ for(let g=0;g<grid.length;g++){ if(!cov[g] && pDist(grid[g].x,grid[g].y,p.x,p.y)<34) cov[g]=1; } };
+    const recov=()=>{ cov.fill(0); pts.forEach(markCov); };
+    markCov(start);
+    let ok=true, backs=0;
+    while(pts.length<=14){
+      const i=pts.length;                       // номер вузла, який додаємо (1..14)
+      const prev=pts[i-1], pprev=i>=2?pts[i-2]:null;
+      let best=null, bs=-1e9;
+      for(let k=0;k<42;k++){
+        const ang=Math.random()*Math.PI*2;
+        const d=(i===1?40:42)+Math.random()*(i===1?20:36);
+        const cand={x:prev.x+Math.cos(ang)*d, y:prev.y+Math.sin(ang)*d};
+        if(!ctx.inLand(cand.x,cand.y) || ctx.inVolc(cand.x,cand.y,10)) continue;
+        let okc=true;
+        for(let j=0;j<i;j++){ if(pDist(cand.x,cand.y,pts[j].x,pts[j].y)<minD){ okc=false; break; } }
+        if(!okc) continue;
+        if(pprev){
+          const ax=prev.x-pprev.x, ay=prev.y-pprev.y, bx=cand.x-prev.x, by=cand.y-prev.y;
+          const cs=(ax*bx+ay*by)/(Math.hypot(ax,ay)*Math.hypot(bx,by));
+          if(cs<-0.35) continue;
+        }
+        if(ctx.inVolc((prev.x+cand.x)/2,(prev.y+cand.y)/2,4)) continue;
+        let clr=true;
+        for(let j=0;j<i-2;j++){ if(pSegSegDist(prev,cand,pts[j],pts[j+1])<clear){ clr=false; break; } }
+        if(!clr) continue;
+        // віддаємо перевагу ще не «освоєним» частинам острова (розкидає точки по всій території)
+        let unc=0;
+        for(let g=0;g<grid.length;g++){ if(!cov[g] && pDist(grid[g].x,grid[g].y,cand.x,cand.y)<62) unc++; }
+        let score = unc*3 + Math.random()*16;
+        // ближче до кінця — тягнемось до скрині на вулкані
+        const wt=Math.pow(Math.max(0,(i-8)/6),1.3)*2.1;
+        score-=wt*pDist(cand.x,cand.y,chest.x,chest.y);
+        // останній вузол мусить бути в межах досяжності скрині
+        if(i===14 && pDist(cand.x,cand.y,chest.x,chest.y)>92) continue;
+        if(score>bs){ bs=score; best=cand; }
+      }
+      if(!best){
+        // глухий кут — відступаємо на 2 вузли назад і пробуємо інший шлях
+        if(backs++>14 || pts.length<4){ ok=false; break; }
+        pts.pop(); pts.pop(); recov();
+        continue;
+      }
+      const np={x:Math.round(best.x), y:Math.round(best.y)};
+      pts.push(np); markCov(np);
+    }
+    if(!ok) continue;
+    const last=pts[14];
+    let clr=true;
+    for(let j=0;j<12;j++){ if(pSegSegDist(last,chest,pts[j],pts[j+1])<8){ clr=false; break; } }
+    if(!clr) continue;
+    return pts.concat([chest]);
+  }
+  if(!allowFallback) return null;
+  // запасний варіант: змійка від старту до скрині
+  const pts=[start];
+  const dx=chest.x-start.x, dy=chest.y-start.y, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L;
+  for(let i=1;i<=14;i++){
+    const t=i/15;
+    let off=Math.sin(i*1.7)*36;
+    let p={x:start.x+dx*t+nx*off, y:start.y+dy*t+ny*off};
+    if(!ctx.inLand(p.x,p.y)) p={x:start.x+dx*t, y:start.y+dy*t};
+    pts.push({x:Math.round(p.x), y:Math.round(p.y)});
+  }
+  return pts.concat([chest]);
+}
+
+// ═══════════════════ ГЕНЕРАЦІЯ ОСТРОВА ═══════════════════
+function piratesGenerateIsland(){
+  for(let i=0;i<10;i++){
+    const isl=pGenIslandOnce(i===9);
+    if(isl) return isl;
+  }
+}
+
+function pGenIslandOnce(lastChance){
+  const id=++pirIslandSeq;
+  const outline=pGenOutline();
+  const N=outline.length;
+  const cen={x:outline.reduce((s,p)=>s+p.x,0)/N, y:outline.reduce((s,p)=>s+p.y,0)/N};
   const outlinePath=piratesSmoothClosedPath(outline);
+  const landPoly=outline.map(p=>{
+    const dx=cen.x-p.x, dy=cen.y-p.y, l=Math.hypot(dx,dy)||1;
+    return {x:p.x+dx/l*16, y:p.y+dy/l*16};
+  });
+  const inLand=(x,y)=>pInPoly(x,y,landPoly);
+  const inward=i=>{ const p=outline[i], dx=cen.x-p.x, dy=cen.y-p.y, l=Math.hypot(dx,dy)||1; return {x:dx/l,y:dy/l}; };
 
-  // звивистий шлях з 15 кроків: від берега (старт) до вершини-вулкана (скриня)
-  const startY=500, endY=118;
-  const steps=[];
-  let prevX=cx+(Math.random()*40-20);
-  for(let i=0;i<15;i++){
-    const t=i/14;
-    const y=startY+(endY-startY)*t;
-    const ny=Math.max(-0.97,Math.min(0.97,(y-cy)/ry));
-    const widthFactor=Math.sqrt(Math.max(0.04,1-ny*ny));
-    const maxOff=rx*widthFactor*0.6;
-    const targetX=cx+(Math.random()*2-1)*maxOff;
-    let x=prevX*0.45+targetX*0.55;
-    x=Math.max(cx-maxOff,Math.min(cx+maxOff,x));
-    prevX=x;
-    steps.push({x:Math.round(x),y:Math.round(y)});
+  // ── пляжі ──
+  const beachIdx=[];
+  const nb=3+r(2);
+  for(let tries=0;beachIdx.length<nb && tries<120;tries++){
+    const i=r(N);
+    if(beachIdx.every(b=>pIdxDist(b,i,N)>=10)) beachIdx.push(i);
   }
-  const start={x:steps[0].x, y:Math.min(514, steps[0].y+30)};
+  const innerPts=outline.map((p,i)=>{
+    let f=0.80+Math.sin(i*1.7+id)*0.02;
+    beachIdx.forEach(b=>{ const d=pIdxDist(b,i,N); f-=0.21*Math.exp(-(d*d)/(2*3.6*3.6)); });
+    return {x:cen.x+(p.x-cen.x)*f, y:cen.y+(p.y-cen.y)*f};
+  });
+  const innerPath=piratesSmoothClosedPath(innerPts);
+  const meadowPath=piratesSmoothClosedPath(innerPts.map(p=>({x:cen.x+(p.x-cen.x)*0.72, y:cen.y+(p.y-cen.y)*0.72})));
 
-  function farFromSteps(px,py,minD){
-    return steps.every(s=>Math.hypot(s.x-px,s.y-py)>minD) && Math.hypot(start.x-px,start.y-py)>minD;
+  // ── старт: пляж + пірс + човен (човен має лишатись у межах поля) ──
+  const boatOK=i=>{ const p=outline[i], v=inward(i); const bx=p.x-v.x*30, by=p.y-v.y*30; return bx>20&&bx<300&&by>20&&by<500; };
+  beachIdx.sort((a,b)=>(boatOK(b)?1:0)-(boatOK(a)?1:0)||(Math.random()-0.5));
+  const sbIdx=beachIdx[0];
+  const sbP=outline[sbIdx], sbD=inward(sbIdx);
+  const start={x:Math.round(sbP.x+sbD.x*22), y:Math.round(sbP.y+sbD.y*22)};
+  const boat={x:Math.max(18,Math.min(302,sbP.x-sbD.x*30)), y:Math.max(24,Math.min(500,sbP.y-sbD.y*30))};
+  const pierEnd={x:sbP.x-sbD.x*16, y:sbP.y-sbD.y*16};
+
+  // ── вулкан ──
+  const halfW=54+r(10), H=88+r(12), ch=Math.round(halfW*0.27);
+  let volc=null, bestScore=-1;
+  let bx0=1e9,bx1=-1e9,by0=1e9,by1=-1e9;
+  outline.forEach(p=>{ bx0=Math.min(bx0,p.x); bx1=Math.max(bx1,p.x); by0=Math.min(by0,p.y); by1=Math.max(by1,p.y); });
+  for(let t=0;t<500;t++){
+    const vx=pRand(bx0+halfW,bx1-halfW), vb=pRand(by0+H+16,by1-24);
+    const probes=[[-halfW-6,8],[halfW+6,8],[0,10],[-halfW*0.5,-H-4],[halfW*0.5,-H-4],[0,-H*0.5],[-halfW-6,-H*0.3],[halfW+6,-H*0.3]];
+    let ok=true;
+    for(const [dx,dy] of probes){
+      const px=vx+dx, py=vb+dy;
+      if(!pInPoly(px,py,outline) || pPolyDist(px,py,outline)<12){ ok=false; break; }
+    }
+    if(!ok) continue;
+    const sc=pDist(vx,vb-H*0.4,start.x,start.y)*(0.6+Math.random());
+    if(sc>bestScore){ bestScore=sc; volc={x:Math.round(vx), base:Math.round(vb), halfW, H, ch}; }
   }
-  function randomIslandPoint(yBias){
-    for(let tries=0;tries<14;tries++){
-      const ang=Math.random()*Math.PI*2;
-      const rad=Math.sqrt(Math.random());
-      const px=cx+Math.cos(ang)*rx*0.82*rad;
-      const py=cy+Math.sin(ang)*ry*0.82*rad;
-      if(yBias==='top' && py>cy+10) continue;
-      if(yBias==='bottom' && py<cy-10) continue;
-      if(farFromSteps(px,py,24)) return {x:Math.round(px),y:Math.round(py)};
+  if(!volc) volc={x:Math.round(cen.x), base:Math.round(cen.y+H*0.4), halfW, H, ch};
+  const vTop=volc.base-volc.H;
+  const vEll={cx:volc.x, cy:volc.base-volc.H*0.45, a:volc.halfW+16, b:volc.H*0.55+14};
+  const inVolc=(x,y,pad)=>{ const dx=(x-vEll.cx)/(vEll.a+pad), dy=(y-vEll.cy)/(vEll.b+pad); return dx*dx+dy*dy<1; };
+  const chest={x:Math.round(volc.x+pRand(-8,8)), y:Math.round(volc.base-volc.H*0.28)};
+
+  // ── шлях (стежка) ──
+  const grid=[];
+  for(let gx=bx0;gx<=bx1;gx+=20) for(let gy=by0;gy<=by1;gy+=20) if(inLand(gx,gy) && !inVolc(gx,gy,6)) grid.push({x:gx,y:gy});
+  const pts=pBuildTrail({start,chest,inLand,inVolc,grid},lastChance);
+  if(!pts) return null;
+  const steps=pts.slice(1);
+  const segs=pCatmullSegs(pts);
+  const trailPts=[];
+  segs.forEach(s=>{ for(let k=0;k<=8;k++) trailPts.push(pBez(s,k/8)); });
+  const trailPath=`M ${pf(start.x)} ${pf(start.y)} `+segs.map(pSegPathC).join(' ');
+
+  // ── лагуна ──
+  let lake=null;
+  if(Math.random()<0.75){
+    for(let t=0;t<200 && !lake;t++){
+      const lx=pRand(bx0+50,bx1-50), ly=pRand(by0+50,by1-50);
+      const lrx=pRand(20,29), lry=pRand(12,17);
+      let ok=pInPoly(lx,ly,landPoly) && pPolyDist(lx,ly,outline)>lrx+22 && !inVolc(lx,ly,lrx+16);
+      if(!ok) continue;
+      if(trailPts.some(p=>{ const dx=(p.x-lx)/(lrx+12), dy=(p.y-ly)/(lry+12); return dx*dx+dy*dy<1; })) continue;
+      if(steps.some(p=>pDist(p.x,p.y,lx,ly)<lrx+26)) continue;
+      lake={x:lx,y:ly,rx:lrx,ry:lry};
+    }
+  }
+  const lakeHit=(x,y,pad)=>{ if(!lake) return false; const dx=(x-lake.x)/(lake.rx+pad), dy=(y-lake.y)/(lake.ry+pad); return dx*dx+dy*dy<1; };
+
+  // ── розміщення декору ──
+  const decor=[];
+  function spotOK(x,y,o){
+    o=o||{};
+    if(o.loose){ if(!pInPoly(x,y,outline)||pPolyDist(x,y,outline)<5) return false; }
+    else if(!inLand(x,y)) return false;
+    if(!o.volc && inVolc(x,y,4)) return false;
+    if(pDist(x,y,start.x,start.y)<26) return false;
+    for(const n of steps){ if(pDist(x,y,n.x,n.y)<(o.nodeR||26)) return false; }
+    for(const t of trailPts){ if(pDist(x,y,t.x,t.y)<(o.trailR||15)) return false; }
+    if(o.crown){   // крона дерева не повинна закривати питання й стежку
+      const cy=y-o.crown;
+      for(const n of steps){ if(pDist(x,cy,n.x,n.y)<27) return false; }
+      for(const t of trailPts){ if(pDist(x,cy,t.x,t.y)<15) return false; }
+    }
+    if(lakeHit(x,y,o.lakePad===undefined?6:o.lakePad)) return false;
+    for(const d of decor){ if(pDist(x,y,d.x,d.y)<(o.sep||14)) return false; }
+    return true;
+  }
+  const genAny=()=>({x:pRand(bx0,bx1), y:pRand(by0,by1)});
+  const genCoast=(a,b)=>()=>{ const i=(r(N)+N)%N, d=pRand(a,b), v=inward(i), p=outline[i]; return {x:p.x+v.x*d, y:p.y+v.y*d}; };
+  const genBeach=()=>{ const b=beachIdx[r(beachIdx.length)]; const i=(b+r(9)-4+N)%N, d=pRand(6,26), v=inward(i), p=outline[i]; return {x:p.x+v.x*d, y:p.y+v.y*d}; };
+  const genFoot=()=>({x:volc.x+pRand(-volc.halfW-20,volc.halfW+20), y:volc.base+pRand(2,16)});
+  function place(kind,gen,tries,o,extra){
+    for(let t=0;t<tries;t++){
+      const p=gen();
+      if(p && spotOK(p.x,p.y,o)){ const d=Object.assign({kind,x:p.x,y:p.y},extra||{}); decor.push(d); return d; }
     }
     return null;
   }
 
-  // декор: пляжі/бухти/уламки кораблів/скелі/пальми/мушлі/скелети/печери
-  const deco=[];
-  const specs=[
-    {icon:'🌴',n:5+r(3),yBias:null},
-    {icon:'🪨',n:4+r(3),yBias:null},
-    {icon:'🐚',n:4+r(3),yBias:'bottom'},
-    {icon:'💀',n:2+r(2),yBias:'bottom'},
-    {icon:'🕳️',n:2+r(2),yBias:'top'},
-    {icon:'⚓',n:1+r(2),yBias:'bottom'},
-    {icon:'🚢',n:1,yBias:'bottom'}
-  ];
-  specs.forEach(spec=>{
-    for(let i=0;i<spec.n;i++){
-      const p=randomIslandPoint(spec.yBias);
-      if(p) deco.push({x:p.x,y:p.y,icon:spec.icon,size:18+r(14)});
-    }
-  });
+  // пальми: частина на пляжах, частина вглибині
+  const nPalm=9+r(4);
+  for(let i=0;i<nPalm;i++){
+    const ps=pRand(0.85,1.2); place('palm', i%2?genBeach:genAny, 50, {sep:22,trailR:18,nodeR:30,crown:24*ps}, {s:ps, flip:Math.random()<0.5?-1:1, lean:pRand(-5,5)});
+  }
+  // кущі / дерева
+  const nTree=16+r(6);
+  for(let i=0;i<nTree;i++) { const ts=pRand(0.8,1.3); place('tree', genAny, 40, {sep:16,trailR:17,nodeR:28,crown:13*ts}, {s:ts, tone:r(3)}); }
+  // скелі (в т.ч. біля підніжжя вулкана)
+  const nRock=9+r(4);
+  for(let i=0;i<nRock;i++) place('rock', i%3===0?genFoot:genAny, 40, {sep:14,volc:i%3===0,trailR:13,loose:true}, {s:pRand(0.8,1.5), seed:Math.random()});
+  // пляжні штучки
+  place('umbrella', genBeach, 60, {sep:22,loose:true}, {c:['#e74c3c','#3498db','#f39c12','#9b59b6'][r(4)]});
+  place('umbrella', genBeach, 60, {sep:22,loose:true}, {c:['#e74c3c','#1abc9c','#f1c40f','#e67e22'][r(4)]});
+  place('towel', genBeach, 60, {sep:18,loose:true}, {c:['#e91e63','#03a9f4','#ffb300','#8bc34a'][r(4)], rot:r(60)-30});
+  const nStar=3+r(3);
+  for(let i=0;i<nStar;i++) place('star', genBeach, 40, {sep:12,loose:true}, {s:pRand(0.8,1.3), rot:r(72)});
+  const nDrift=1+r(2);
+  for(let i=0;i<nDrift;i++) place('drift', genBeach, 40, {sep:16,loose:true}, {rot:r(50)-25});
 
-  // пляжі/бухти вздовж берегової лінії
-  const beaches=[];
-  const beachCount=2+r(3);
-  for(let i=0;i<beachCount;i++){
-    const p=outline[r(outline.length)];
-    beaches.push({x:p.x,y:p.y});
+  // артефакти-емодзі
+  const emojiCoast=['🐚','🐚','🐚','🦀','⚓','🍾','🛶','🐚','🍹','🦀'];
+  const emojiInland=['💀','🦴','⚔️','🏴‍☠️','🛢️','📜','🔭','💰','💎','🗿','⛺','🔥','🏺','🦜','🐒','🐍','🦎','🌺','🍄','🕸️','🛡️','🗡️','🧭','🗝️','🦇','🐗'];
+  place('emoji', genBeach, 60, {sep:18,loose:true}, {e:'🚢', size:26});                // уламки корабля
+  place('emoji', genAny, 60, {sep:20}, {e:'🗿', size:26});                              // ідол
+  place('emoji', genAny, 60, {sep:22}, {e:'⛺', size:24});                              // табір
+  const camp=decor[decor.length-1];
+  if(camp && camp.e==='⛺') place('emoji', ()=>({x:camp.x+pRand(10,20)*(Math.random()<0.5?-1:1), y:camp.y+pRand(2,8)}), 20, {sep:12}, {e:'🔥', size:16});
+  place('emoji', genAny, 60, {sep:20}, {e:'💰', size:20});
+  place('emoji', genAny, 60, {sep:20}, {e:'📜', size:18});
+  place('cave', genFoot, 60, {sep:20,volc:true,loose:true}, {});
+  const nCoast=6+r(3);
+  for(let i=0;i<nCoast;i++) place('emoji', genBeach, 40, {sep:14,loose:true}, {e:emojiCoast[r(emojiCoast.length)], size:15+r(6)});
+  const nInl=9+r(4);
+  const inlShuf=pShuffle(emojiInland);
+  for(let i=0;i<nInl;i++) place('emoji', genAny, 40, {sep:16}, {e:inlShuf[i%inlShuf.length], size:16+r(7)});
+  if(lake){
+    const lakeEm=['🦆','🐊','🐸','🦩'];
+    place('emoji', ()=>({x:lake.x+pRand(-lake.rx*0.5,lake.rx*0.5), y:lake.y+pRand(-lake.ry*0.3,lake.ry*0.3)}), 10, {sep:10,lakePad:-100,loose:true,trailR:6,nodeR:12}, {e:lakeEm[r(lakeEm.length)], size:15});
   }
 
-  return {cx,cy,rx,ry,outlinePath,steps,start,deco,beaches,volcano:steps[14]};
+  // ── випадкові значки для питань ──
+  const icons=pShuffle(PIR_NODE_ICONS).slice(0,14);
+  icons.push('🎁'); // 15-те питання = скриня
+
+  const island={ id, outline, cen, outlinePath, innerPath, meadowPath, beachIdx, start, boat, pierEnd, steps, segs, trailPath,
+    volc, chest, lake, decor, icons, trailPts, inLand, sbIdx, N };
+  island.defsSvg=pDefsSVG(island);
+  island.seaSvg=pSeaSVG(island);
+  island.staticSvg=pStaticSVG(island);
+  island.topSvg=pTopSVG(island);
+  return island;
 }
 
-// ── Математичне питання (рівень = складність, як в Математика-БоСС) ──
+// ═══════════════════ SVG: DEFS ═══════════════════
+function pDefsSVG(isl){
+  const v=isl.volc;
+  return `
+  <radialGradient id="pirSea" cx="${pf(isl.cen.x)}" cy="${pf(isl.cen.y)}" r="420" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#4fd1d9"/><stop offset=".35" stop-color="#1fa5d8"/><stop offset=".7" stop-color="#1273bd"/><stop offset="1" stop-color="#0a4a8f"/>
+  </radialGradient>
+  <radialGradient id="pirSand" cx="50%" cy="45%" r="65%">
+    <stop offset="0" stop-color="#f6e6b0"/><stop offset="1" stop-color="#e2c57e"/>
+  </radialGradient>
+  <radialGradient id="pirGrass" cx="50%" cy="45%" r="65%">
+    <stop offset="0" stop-color="#7cbb4b"/><stop offset=".7" stop-color="#5a9e3e"/><stop offset="1" stop-color="#3f8236"/>
+  </radialGradient>
+  <radialGradient id="pirLake" cx="40%" cy="35%" r="70%">
+    <stop offset="0" stop-color="#8fe9f2"/><stop offset="1" stop-color="#1d8fc4"/>
+  </radialGradient>
+  <linearGradient id="pirVolcBody" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#a08b7b"/><stop offset=".38" stop-color="#78645a"/><stop offset=".72" stop-color="#4a3b35"/><stop offset="1" stop-color="#2a201d"/>
+  </linearGradient>
+  <linearGradient id="pirVolcVert" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2a1a14" stop-opacity=".30"/>
+    <stop offset=".45" stop-color="#000" stop-opacity="0"/>
+    <stop offset=".78" stop-color="#3f7a30" stop-opacity=".35"/>
+    <stop offset="1" stop-color="#3a7a2c" stop-opacity=".85"/>
+  </linearGradient>
+  <radialGradient id="pirCrater" cx="50%" cy="55%" r="60%">
+    <stop offset="0" stop-color="#fff2a8"/><stop offset=".35" stop-color="#ffb01f"/><stop offset=".75" stop-color="#e2470c"/><stop offset="1" stop-color="#7a1604"/>
+  </radialGradient>
+  <radialGradient id="pirCraterGlow" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#ff9a1f" stop-opacity=".75"/><stop offset=".5" stop-color="#ff6a00" stop-opacity=".25"/><stop offset="1" stop-color="#ff6a00" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="pirAsh" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#3a2c26" stop-opacity=".75"/><stop offset=".7" stop-color="#5a4a3f" stop-opacity=".35"/><stop offset="1" stop-color="#5a4a3f" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="pirSmokeG" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#6f6764" stop-opacity=".95"/><stop offset=".6" stop-color="#8d8684" stop-opacity=".6"/><stop offset="1" stop-color="#b3aeac" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="pirSmokeD" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#2e2826" stop-opacity=".95"/><stop offset=".6" stop-color="#4b4442" stop-opacity=".6"/><stop offset="1" stop-color="#6b6462" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="pirChestGlow" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#fff3a0" stop-opacity=".95"/><stop offset="1" stop-color="#ffd700" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="pirRock" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.07 0.11" numOctaves="4" seed="${(isl.id*7)%50+1}" result="n"/>
+    <feDiffuseLighting in="n" lighting-color="#ffffff" surfaceScale="2.4" result="l"><feDistantLight azimuth="215" elevation="58"/></feDiffuseLighting>
+    <feComposite in="l" in2="SourceGraphic" operator="in" result="lit"/>
+    <feBlend in="SourceGraphic" in2="lit" mode="multiply"/>
+  </filter>
+  <filter id="pirSoft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3"/></filter>
+  <filter id="pirGlowS" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="pirBlur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4"/></filter>
+  <filter id="pirBlur5" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>
+  <clipPath id="pirVolcClip"><path d="${pVolcSilhouette(v).d}"/></clipPath>`;
+}
+
+// ═══════════════════ SVG: МОРЕ, ХВИЛІ ═══════════════════
+function pSeaSVG(isl){
+  let s=`<rect x="-900" y="-900" width="2200" height="2400" fill="url(#pirSea)"/>`;
+  // довгі хвилясті лінії (частина ковзає, частина стоїть — так дешевше і живіше)
+  let n=0;
+  for(let y=-300;y<830;y+=26){
+    n++;
+    const yy=y+Math.random()*10, amp=3+Math.random()*3.5;
+    let d=`M -560 ${pf(yy)}`;
+    for(let k=0;k<26;k++) d+=` q 14 ${pf(-amp)} 28 0 t 28 0`;
+    const moving = n%3!==0;
+    const dur=(6+Math.random()*6).toFixed(1), del=(-Math.random()*8).toFixed(1);
+    s+=`<path class="${moving?('pir-wv'+(n%2?' rev':'')):''}" d="${d}" fill="none" stroke="#fff" stroke-opacity="${(0.2+Math.random()*0.28).toFixed(2)}" stroke-width="${(1.6+Math.random()*1.3).toFixed(1)}" stroke-linecap="round"${moving?` style="animation-duration:${dur}s;animation-delay:${del}s"`:''}/>`;
+  }
+  // невеликі гребінці хвиль
+  for(let i=0;i<70;i++){
+    const x=pRand(-400,720), y=pRand(-280,800);
+    const sc=pRand(0.8,1.5);
+    s+=`<path class="pir-crest" d="M ${pf(x)} ${pf(y)} q ${pf(5*sc)} ${pf(-6*sc)} ${pf(10*sc)} 0 q ${pf(5*sc)} ${pf(6*sc)} ${pf(10*sc)} 0" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="1.6" stroke-linecap="round" style="animation-delay:${(-Math.random()*4).toFixed(1)}s;animation-duration:${(2.6+Math.random()*2).toFixed(1)}s"/>`;
+  }
+  // блиски на воді
+  for(let i=0;i<22;i++){
+    s+=`<circle class="pir-spark" cx="${pf(pRand(-400,720))}" cy="${pf(pRand(-280,800))}" r="${pf(pRand(0.8,1.8))}" fill="#fff" style="animation-delay:${(-Math.random()*3).toFixed(1)}s;animation-duration:${(1.8+Math.random()*2).toFixed(1)}s"/>`;
+  }
+  // мілководдя навколо острова + піна прибою
+  s+=`<path d="${isl.outlinePath}" fill="none" stroke="#7ff0e6" stroke-opacity=".28" stroke-width="54" stroke-linejoin="round"/>`;
+  s+=`<path d="${isl.outlinePath}" fill="none" stroke="#a8f7ee" stroke-opacity=".38" stroke-width="34" stroke-linejoin="round"/>`;
+  s+=`<path d="${isl.outlinePath}" fill="none" stroke="#d6fff8" stroke-opacity=".45" stroke-width="18" stroke-linejoin="round"/>`;
+  s+=`<path class="pir-foam" d="${isl.outlinePath}" stroke-linejoin="round"/>`;
+  s+=`<path class="pir-foam" d="${isl.outlinePath}" stroke-linejoin="round" style="animation-delay:-1.6s"/>`;
+  return s;
+}
+
+// ═══════════════════ SVG: ВУЛКАН ═══════════════════
+function pVolcSilhouette(v){
+  // детермінований силует (для clipPath і для тіла) — кешуємо на об'єкті
+  if(v._sil) return v._sil;
+  const {x:vx, base:vb, halfW, H, ch}=v;
+  const top=vb-H, M=14, L=[], R=[];
+  for(let i=0;i<=M;i++){
+    const t=i/M, w=ch+(halfW-ch)*Math.pow(1-t,1.55), y=vb-H*t;
+    const jl=(i>0&&i<M)?(Math.random()-0.5)*6*(1-t*0.4):0;
+    const jr=(i>0&&i<M)?(Math.random()-0.5)*6*(1-t*0.4):0;
+    L.push({x:vx-w-jl,y}); R.push({x:vx+w+jr,y});
+  }
+  const rimDrop=3+Math.random()*6;
+  R[M].y+=rimDrop;
+  let d=`M ${pf(L[0].x)} ${pf(L[0].y)} `;
+  for(let i=1;i<=M;i++) d+=`L ${pf(L[i].x)} ${pf(L[i].y)} `;
+  d+=`L ${pf(vx-ch*0.45)} ${pf(top-3.5)} L ${pf(vx+ch*0.5)} ${pf(top-2)} `;
+  for(let i=M;i>=0;i--) d+=`L ${pf(R[i].x)} ${pf(R[i].y)} `;
+  d+=`Q ${pf(vx)} ${pf(vb+16)} ${pf(L[0].x)} ${pf(L[0].y)} Z`;
+  v._sil={d, L, R, top, rimDrop};
+  return v._sil;
+}
+
+function pVolcanoSVG(isl){
+  const v=isl.volc, {x:vx, base:vb, halfW, H, ch}=v;
+  const sil=pVolcSilhouette(v), top=sil.top;
+  let s='';
+
+  // тінь і випалена земля навколо підніжжя
+  s+=`<ellipse cx="${vx}" cy="${vb+6}" rx="${pf(halfW*1.5)}" ry="${pf(halfW*0.42)}" fill="url(#pirAsh)"/>`;
+  s+=`<ellipse cx="${vx+6}" cy="${vb+9}" rx="${pf(halfW*1.1)}" ry="12" fill="rgba(0,0,0,.28)" filter="url(#pirBlur2)"/>`;
+
+  // тіло гори з текстурою скелі
+  s+=`<g filter="url(#pirRock)"><path d="${sil.d}" fill="url(#pirVolcBody)" stroke="#2b1f1a" stroke-width="1.2" stroke-linejoin="round"/></g>`;
+
+  // все, що всередині силуету
+  s+=`<g clip-path="url(#pirVolcClip)">`;
+  // світлотінь + рослинність біля підніжжя
+  s+=`<path d="${sil.d}" fill="url(#pirVolcVert)"/>`;
+  // тіньова грань (права сторона) і освітлена (ліва)
+  s+=`<path d="M ${vx+ch*0.4} ${top-3} L ${vx+halfW+8} ${vb+4} L ${vx+halfW*0.15} ${vb+4} Z" fill="rgba(10,5,3,.30)"/>`;
+  s+=`<path d="M ${vx-ch*0.5} ${top-3} L ${vx-halfW-8} ${vb+4} L ${vx-halfW*0.55} ${vb+4} Z" fill="rgba(255,235,200,.14)"/>`;
+  // ерозійні жолоби
+  const gul=8+r(3);
+  for(let j=0;j<gul;j++){
+    const u=-1+2*(j+Math.random()*0.7)/gul;
+    const sx=vx+u*ch*1.05, sy=top+3;
+    const ex=vx+u*halfW*pRand(0.8,1.12), ey=vb+2;
+    const mx=(sx+ex)/2+pRand(-6,6), my=(sy+ey)/2;
+    const w=pRand(1.2,3.6);
+    s+=`<path d="M ${pf(sx)} ${pf(sy)} Q ${pf(mx)} ${pf(my)} ${pf(ex)} ${pf(ey)}" fill="none" stroke="rgba(20,10,5,.42)" stroke-width="${pf(w)}" stroke-linecap="round"/>`;
+    s+=`<path d="M ${pf(sx+2)} ${pf(sy)} Q ${pf(mx+2)} ${pf(my)} ${pf(ex+2.5)} ${pf(ey)}" fill="none" stroke="rgba(255,230,200,.16)" stroke-width="1.1" stroke-linecap="round"/>`;
+  }
+  // уламки / тріщини на схилі
+  for(let j=0;j<16;j++){
+    const t=Math.random(), w=ch+(halfW-ch)*Math.pow(1-t,1.55);
+    const px=vx+pRand(-w,w)*0.9, py=vb-H*t;
+    s+=`<path d="M ${pf(px)} ${pf(py)} l ${pf(pRand(-4,4))} ${pf(pRand(2,6))}" stroke="rgba(15,8,4,.35)" stroke-width="1" fill="none" stroke-linecap="round"/>`;
+  }
+  // потоки лави
+  const nFl=2+r(2);
+  const flows=[];
+  for(let j=0;j<nFl;j++){
+    const u=-0.7+1.4*(j+Math.random()*0.6)/nFl;
+    const sx=vx+u*ch*0.8, sy=top+5;
+    const ey=top+H*pRand(0.5,0.86);
+    const w=ch+(halfW-ch)*Math.pow(1-(vb-ey)/H,1.55);
+    const ex=vx+u*w*0.75+pRand(-5,5);
+    const c1x=sx+pRand(-8,8), c1y=sy+H*0.22, c2x=ex+pRand(-9,9), c2y=ey-H*0.2;
+    flows.push(`M ${pf(sx)} ${pf(sy)} C ${pf(c1x)} ${pf(c1y)}, ${pf(c2x)} ${pf(c2y)}, ${pf(ex)} ${pf(ey)}`);
+  }
+  flows.forEach(d=>{
+    s+=`<path d="${d}" fill="none" stroke="#ff7a00" stroke-width="9" stroke-linecap="round" opacity=".45" filter="url(#pirBlur2)" class="pir-lava"/>`;
+    s+=`<path d="${d}" fill="none" stroke="#6b1404" stroke-width="5.4" stroke-linecap="round"/>`;
+    s+=`<path d="${d}" fill="none" stroke="#e8430a" stroke-width="3.6" stroke-linecap="round"/>`;
+    s+=`<path d="${d}" fill="none" stroke="#ffb02e" stroke-width="2" stroke-linecap="round" class="pir-lava"/>`;
+    s+=`<path d="${d}" fill="none" stroke="#fff1a0" stroke-width=".9" stroke-linecap="round" class="pir-lava"/>`;
+  });
+  s+=`</g>`;
+
+  // свічення над кратером
+  s+=`<ellipse cx="${vx}" cy="${top}" rx="${pf(ch*3.2)}" ry="${pf(ch*2.4)}" fill="url(#pirCraterGlow)" class="pir-cglow"/>`;
+
+  // кратер
+  s+=`<ellipse cx="${vx}" cy="${top+1}" rx="${pf(ch*1.1)}" ry="${pf(ch*0.44)}" fill="#2a1e19" stroke="#8a7464" stroke-width="1.5"/>`;
+  s+=`<ellipse cx="${vx}" cy="${top+2}" rx="${pf(ch*0.9)}" ry="${pf(ch*0.32)}" fill="url(#pirCrater)"/>`;
+  for(let k=0;k<4;k++){
+    s+=`<circle class="pir-bubble" cx="${pf(vx+pRand(-ch*0.6,ch*0.6))}" cy="${pf(top+pRand(0.5,3.5))}" r="${pf(pRand(0.9,1.8))}" fill="#fff6b0" style="animation-delay:${(-Math.random()*2).toFixed(1)}s"/>`;
+  }
+  // передня губа кратера
+  s+=`<path d="M ${pf(vx-ch*1.05)} ${pf(top+2.5)} Q ${vx} ${pf(top+ch*0.62)} ${pf(vx+ch*1.05)} ${pf(top+2.5)}" fill="none" stroke="#6b5647" stroke-width="2.2" stroke-linecap="round"/>`;
+  s+=`<path d="M ${pf(vx-ch*0.95)} ${pf(top+1.5)} Q ${vx} ${pf(top+ch*0.5)} ${pf(vx+ch*0.6)} ${pf(top+2.5)}" fill="none" stroke="rgba(255,225,190,.35)" stroke-width="1" stroke-linecap="round"/>`;
+
+  // валуни біля підніжжя
+  for(let k=0;k<7;k++){
+    const bx=vx+pRand(-halfW-10,halfW+10), by=vb+pRand(-2,10), br=pRand(2.5,5.5);
+    s+=`<ellipse cx="${pf(bx+1)}" cy="${pf(by+br*0.6)}" rx="${pf(br*1.1)}" ry="${pf(br*0.45)}" fill="rgba(0,0,0,.28)"/>`;
+    s+=`<path d="M ${pf(bx-br)} ${pf(by+br*0.4)} L ${pf(bx-br*0.6)} ${pf(by-br*0.7)} L ${pf(bx+br*0.4)} ${pf(by-br*0.9)} L ${pf(bx+br)} ${pf(by+br*0.3)} Z" fill="#5d4f47" stroke="#2f2622" stroke-width=".8"/>`;
+    s+=`<path d="M ${pf(bx-br*0.6)} ${pf(by-br*0.7)} L ${pf(bx+br*0.4)} ${pf(by-br*0.9)} L ${pf(bx)} ${pf(by-br*0.1)} Z" fill="rgba(255,235,210,.28)"/>`;
+  }
+  return s;
+}
+
+// дим і іскри — малюються поверх усього
+function pTopSVG(isl){
+  const v=isl.volc, top=v.base-v.H, ch=v.ch;
+  let s='';
+  // берегова піна (хвилі накочуються на пляж) + човен, що гойдається
+  s+=`<path class="pir-lap" d="${isl.outlinePath}" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>`;
+  s+=`<g class="pir-boat" style="transform-box:fill-box;transform-origin:center"><text x="${pf(isl.boat.x)}" y="${pf(isl.boat.y+9)}" text-anchor="middle" font-size="28" style="font-family:${EMOJI_FONT}">⛵</text></g>`;
+  for(let i=0;i<10;i++){
+    const dark=i<4;
+    const rr=ch*(0.5+Math.random()*0.5);
+    const dx=(10+Math.random()*34).toFixed(0);
+    const dur=(7+Math.random()*3).toFixed(1);
+    s+=`<circle class="pir-smoke" cx="${pf(v.x+pRand(-4,4))}" cy="${pf(top-2)}" r="${pf(rr)}" fill="url(#${dark?'pirSmokeD':'pirSmokeG'})" style="--dx:${dx}px;animation-duration:${dur}s;animation-delay:-${(i*(dur/10)).toFixed(1)}s"/>`;
+  }
+  for(let i=0;i<9;i++){
+    s+=`<circle class="pir-ember" cx="${pf(v.x+pRand(-ch*0.8,ch*0.8))}" cy="${pf(top)}" r="${pf(pRand(0.8,1.5))}" fill="#ffb300" style="--dx:${pf(pRand(-18,22))}px;animation-duration:${(2+Math.random()*2).toFixed(1)}s;animation-delay:-${(Math.random()*3).toFixed(1)}s"/>`;
+  }
+  return s;
+}
+
+// ═══════════════════ SVG: ДЕКОР ═══════════════════
+function pPalm(d){
+  const s=d.s, fl=d.flip, lean=d.lean;
+  const tx=lean*fl, top=-24;
+  let g=`<g transform="translate(${pf(d.x)},${pf(d.y)}) scale(${pf(s*fl)},${pf(s)})">`;
+  g+=`<ellipse cx="2" cy="1.5" rx="10" ry="3" fill="rgba(0,0,0,.22)"/>`;
+  g+=`<path d="M0 0 Q ${pf(tx*0.5+3)} -12 ${pf(tx)} ${top}" stroke="#7b5226" stroke-width="3.4" fill="none" stroke-linecap="round"/>`;
+  g+=`<path d="M0 0 Q ${pf(tx*0.5+3)} -12 ${pf(tx)} ${top}" stroke="#a87a3f" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-dasharray="2 3"/>`;
+  g+=`<g transform="translate(${pf(tx)},${top})">`;
+  [-165,-130,-98,-62,-28,8,-200].forEach((a,i)=>{
+    g+=`<path transform="rotate(${a})" d="M0 0 C6 -9 17 -9 26 4 C16 -1 8 -2 0 0Z" fill="${i%2?'#2f8a3c':'#42a94b'}" stroke="#1f6a2c" stroke-width=".5"/>`;
+  });
+  g+=`<circle cx="-2" cy="2" r="2" fill="#5a3a1a"/><circle cx="2.4" cy="2.4" r="2" fill="#6b4520"/>`;
+  g+=`</g></g>`;
+  return g;
+}
+function pTree(d){
+  const cols=[['#2b7a34','#3a9142','#4fa955'],['#2f7d3b','#48a04a','#62b85a'],['#356f2c','#4d8f3a','#68a94a']][d.tone||0];
+  return `<g transform="translate(${pf(d.x)},${pf(d.y)}) scale(${pf(d.s)})">
+    <ellipse cx="1" cy="1" rx="10" ry="3" fill="rgba(0,0,0,.2)"/>
+    <rect x="-1.2" y="-6" width="2.4" height="7" fill="#6b4a25"/>
+    <circle cx="-5" cy="-8" r="7" fill="${cols[0]}"/><circle cx="5" cy="-9" r="7.5" fill="${cols[1]}"/>
+    <circle cx="0" cy="-14" r="7" fill="${cols[2]}"/><circle cx="-2" cy="-15" r="3" fill="rgba(255,255,255,.14)"/>
+  </g>`;
+}
+function pRock(d){
+  const s=d.s;
+  return `<g transform="translate(${pf(d.x)},${pf(d.y)}) scale(${pf(s)})">
+    <ellipse cx="1" cy="2" rx="9" ry="2.6" fill="rgba(0,0,0,.25)"/>
+    <path d="M-8 1 L-6 -5 L-1 -8 L5 -6 L8 0 L6 2 Z" fill="#8b857a" stroke="#4a463f" stroke-width=".8"/>
+    <path d="M-6 -5 L-1 -8 L5 -6 L0 -2 Z" fill="rgba(255,255,255,.3)"/>
+    <path d="M0 -2 L5 -6 L8 0 L6 2 L1 2 Z" fill="rgba(0,0,0,.18)"/>
+  </g>`;
+}
+function pUmbrella(d){
+  return `<g transform="translate(${pf(d.x)},${pf(d.y)})">
+    <ellipse cx="2" cy="2" rx="11" ry="3" fill="rgba(0,0,0,.18)"/>
+    <line x1="0" y1="2" x2="0" y2="-17" stroke="#6b4a2a" stroke-width="1.6"/>
+    <path d="M-13 -15 Q0 -30 13 -15 Z" fill="${d.c}"/>
+    <path d="M-4.5 -15 Q-2 -26 0 -26.5 Q2 -26 4.5 -15 Z" fill="#fff" opacity=".9"/>
+    <path d="M-13 -15 Q-9 -13 -6.5 -15 Q-3 -13 0 -15 Q3 -13 6.5 -15 Q9 -13 13 -15" fill="none" stroke="${d.c}" stroke-width="1.2"/>
+  </g>`;
+}
+function pTowel(d){
+  return `<g transform="translate(${pf(d.x)},${pf(d.y)}) rotate(${d.rot})">
+    <rect x="-9" y="-5" width="18" height="10" rx="1.5" fill="${d.c}" stroke="rgba(0,0,0,.25)" stroke-width=".7"/>
+    <rect x="-9" y="-2" width="18" height="2" fill="rgba(255,255,255,.55)"/><rect x="-9" y="2" width="18" height="1.4" fill="rgba(255,255,255,.4)"/>
+  </g>`;
+}
+function pStar(d){
+  const R=5*d.s, r0=2.2*d.s; let p='';
+  for(let i=0;i<10;i++){ const a=(i*36-90)*Math.PI/180, rr=i%2?r0:R; p+=`${pf(Math.cos(a)*rr)},${pf(Math.sin(a)*rr)} `; }
+  return `<g transform="translate(${pf(d.x)},${pf(d.y)}) rotate(${d.rot})"><polygon points="${p}" fill="#f2733a" stroke="#b8451a" stroke-width=".7"/><circle r="1" fill="#ffd0a8"/></g>`;
+}
+function pDrift(d){
+  return `<g transform="translate(${pf(d.x)},${pf(d.y)}) rotate(${d.rot})"><path d="M-11 0 Q-4 -3 2 -1 Q8 1 12 -2" stroke="#8a6a44" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M-3 -1 l2 -4 M4 0 l2 -4" stroke="#8a6a44" stroke-width="1.4" stroke-linecap="round"/></g>`;
+}
+function pCave(d){
+  return `<g transform="translate(${pf(d.x)},${pf(d.y)})">
+    <ellipse cx="0" cy="3" rx="13" ry="4" fill="rgba(0,0,0,.25)"/>
+    <path d="M-11 3 Q-10 -9 0 -10 Q10 -9 11 3 Z" fill="#6f6259" stroke="#3a312b" stroke-width="1"/>
+    <path d="M-6 3 Q-6 -4 0 -5 Q6 -4 6 3 Z" fill="#120c0a"/>
+    <path d="M-11 -2 l3 -3 M9 -3 l3 -2" stroke="#8d7f73" stroke-width="1.4"/>
+  </g>`;
+}
+function pEmoji(d){
+  return `<g transform="translate(${pf(d.x)},${pf(d.y)})">
+    <ellipse cx="0" cy="2" rx="${pf(d.size*0.42)}" ry="${pf(d.size*0.14)}" fill="rgba(0,0,0,.2)"/>
+    <text x="0" y="0" text-anchor="middle" font-size="${d.size}" style="font-family:${EMOJI_FONT}">${d.e}</text>
+  </g>`;
+}
+
+// ═══════════════════ SVG: СТАТИЧНИЙ ШАР ═══════════════════
+function pStaticSVG(isl){
+  const v=isl.volc;
+  let s='';
+
+  // острів: пісок
+  s+=`<path d="${isl.outlinePath}" fill="url(#pirSand)" stroke="#d3b36a" stroke-width="2.4" stroke-linejoin="round"/>`;
+  // вологий пісок біля води
+  s+=`<path d="${isl.outlinePath}" fill="none" stroke="#c9a55a" stroke-opacity=".35" stroke-width="7" stroke-linejoin="round"/>`;
+  // пісочні крапки
+  for(let i=0;i<90;i++){
+    const idx=r(isl.N), o=isl.outline[idx];
+    const t=pRand(0.08,0.55);
+    const px=o.x+(isl.cen.x-o.x)*t*0.35, py=o.y+(isl.cen.y-o.y)*t*0.35;
+    s+=`<circle cx="${pf(px)}" cy="${pf(py)}" r="${pf(pRand(0.5,1.1))}" fill="rgba(140,100,40,.35)"/>`;
+  }
+  // трава з м'яким краєм
+  s+=`<path d="${isl.innerPath}" fill="#86b94a" opacity=".7" filter="url(#pirSoft)" transform="translate(0,0)"/>`;
+  s+=`<path d="${isl.innerPath}" fill="url(#pirGrass)"/>`;
+  s+=`<path d="${isl.meadowPath}" fill="#93cf5a" opacity=".38" filter="url(#pirSoft)"/>`;
+  // темніші плями лісу
+  for(let i=0;i<9;i++){
+    const px=pRand(60,260), py=pRand(60,470);
+    if(!isl.inLand(px,py)) continue;
+    s+=`<ellipse cx="${pf(px)}" cy="${pf(py)}" rx="${pf(pRand(14,30))}" ry="${pf(pRand(9,20))}" fill="#2f6f2f" opacity=".22" filter="url(#pirSoft)"/>`;
+  }
+  // лагуна
+  if(isl.lake){
+    const L=isl.lake, pts=[];
+    for(let i=0;i<9;i++){ const a=i/9*Math.PI*2, k=pRand(0.85,1.15); pts.push({x:L.x+Math.cos(a)*L.rx*k, y:L.y+Math.sin(a)*L.ry*k}); }
+    const lp=piratesSmoothClosedPath(pts);
+    s+=`<path d="${lp}" fill="#e9d59a" stroke="#d5bb78" stroke-width="7" stroke-linejoin="round" opacity=".8"/>`;
+    s+=`<path d="${lp}" fill="url(#pirLake)" stroke="#2a8fbd" stroke-width="1.2"/>`;
+    s+=`<path d="M ${pf(L.x-L.rx*0.5)} ${pf(L.y-L.ry*0.2)} q 5 -3 10 0 t 10 0" stroke="#fff" stroke-opacity=".7" stroke-width="1.2" fill="none" class="pir-crest"/>`;
+    s+=`<path d="M ${pf(L.x+L.rx*0.05)} ${pf(L.y+L.ry*0.3)} q 5 -3 10 0 t 10 0" stroke="#fff" stroke-opacity=".6" stroke-width="1.2" fill="none" class="pir-crest" style="animation-delay:-1.2s"/>`;
+    for(let k=0;k<5;k++){ const a=Math.random()*Math.PI*2; const rx=L.x+Math.cos(a)*(L.rx+3), ry=L.y+Math.sin(a)*(L.ry+3);
+      s+=`<path d="M${pf(rx)} ${pf(ry)} l-1 -7 M${pf(rx)} ${pf(ry)} l1.5 -8 M${pf(rx)} ${pf(ry)} l3 -6" stroke="#4d8f2f" stroke-width="1.3" stroke-linecap="round"/>`; }
+  }
+  // вулкан
+  s+=pVolcanoSVG(isl);
+
+  // причал + човен
+  const a=isl.pierEnd, b=isl.start;
+  s+=`<line x1="${pf(b.x)}" y1="${pf(b.y)}" x2="${pf(a.x)}" y2="${pf(a.y)}" stroke="#5e3f1f" stroke-width="7" stroke-linecap="round"/>`;
+  s+=`<line x1="${pf(b.x)}" y1="${pf(b.y)}" x2="${pf(a.x)}" y2="${pf(a.y)}" stroke="#a87a44" stroke-width="4.6" stroke-linecap="round" stroke-dasharray="3 2.4"/>`;
+
+  // стежка: край, ґрунт, камінці
+  const tp=isl.trailPath;
+  s+=`<path d="${tp}" fill="none" stroke="#7a5a2a" stroke-opacity=".55" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s+=`<path d="${tp}" fill="none" stroke="#dcb873" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s+=`<path d="${tp}" fill="none" stroke="#f0d79c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>`;
+  s+=`<path d="${tp}" fill="none" stroke="#8a6a35" stroke-width="1.4" stroke-dasharray="1 8" stroke-linecap="round" opacity=".75"/>`;
+
+  // декор (сортуємо за y — «далі» малюється раніше)
+  const sorted=isl.decor.slice().sort((p,q)=>p.y-q.y);
+  sorted.forEach(d=>{
+    switch(d.kind){
+      case 'palm': s+=pPalm(d); break;
+      case 'tree': s+=pTree(d); break;
+      case 'rock': s+=pRock(d); break;
+      case 'umbrella': s+=pUmbrella(d); break;
+      case 'towel': s+=pTowel(d); break;
+      case 'star': s+=pStar(d); break;
+      case 'drift': s+=pDrift(d); break;
+      case 'cave': s+=pCave(d); break;
+      case 'emoji': s+=pEmoji(d); break;
+    }
+  });
+  return s;
+}
+
+// ═══════════════════ SVG: ДИНАМІЧНИЙ ШАР ═══════════════════
+function piratesTokenMarkup(){
+  const info=(typeof mpMyInfo==='function')?mpMyInfo():{avatar:'🙂',photoUrl:null};
+  const shadow=`<ellipse cx="0" cy="17" rx="13" ry="4" fill="rgba(0,0,0,.35)"/>`;
+  if(info.photoUrl){
+    return `${shadow}<clipPath id="pirTokClip"><circle cx="0" cy="0" r="15"/></clipPath>
+      <circle cx="0" cy="0" r="18" fill="#fff" stroke="#ffd700" stroke-width="3"/>
+      <image href="${info.photoUrl}" x="-15" y="-15" width="30" height="30" clip-path="url(#pirTokClip)" preserveAspectRatio="xMidYMid slice"/>`;
+  }
+  return `${shadow}<circle cx="0" cy="0" r="18" fill="#fff" stroke="#ffd700" stroke-width="3"/>
+    <text x="0" y="7" text-anchor="middle" font-size="20" style="font-family:${EMOJI_FONT}">${info.avatar||'🙂'}</text>`;
+}
+
+function pChestSVG(p, opened, icon){
+  const glow=`<circle cx="0" cy="-2" r="${opened?34:26}" fill="url(#pirChestGlow)" class="pir-cglow"/>`;
+  const lid = opened
+    ? `<path d="M-13 -6 L-11 -19 Q0 -25 11 -19 L13 -6 Z" fill="#9a5f2a" stroke="#4a2c14" stroke-width="1.4" transform="rotate(-8 -13 -6)"/>`
+    : `<path d="M-13 -6 Q-13 -19 0 -19 Q13 -19 13 -6 Z" fill="#a8672d" stroke="#4a2c14" stroke-width="1.4"/>
+       <path d="M-13 -6 Q-13 -19 0 -19" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.6"/>`;
+  const coins = opened ? `<ellipse cx="0" cy="-6" rx="11" ry="4" fill="#ffd54a"/><circle cx="-4" cy="-9" r="2.4" fill="#ffe680" stroke="#b8860b" stroke-width=".6"/><circle cx="3" cy="-10" r="2.4" fill="#ffe680" stroke="#b8860b" stroke-width=".6"/><circle cx="7" cy="-7" r="2" fill="#ffd54a" stroke="#b8860b" stroke-width=".6"/>` : '';
+  return `<g transform="translate(${p.x},${p.y})">
+    ${glow}
+    <ellipse cx="1" cy="9" rx="17" ry="4" fill="rgba(0,0,0,.35)"/>
+    <rect x="-13" y="-6" width="26" height="15" rx="1.5" fill="#7b4a1f" stroke="#3f2410" stroke-width="1.4"/>
+    <line x1="-13" y1="0" x2="13" y2="0" stroke="#5a3415" stroke-width="1"/>
+    ${coins}${lid}
+    <rect x="-13" y="-6" width="4" height="15" fill="#f2c230" stroke="#8a6408" stroke-width=".8"/>
+    <rect x="9" y="-6" width="4" height="15" fill="#f2c230" stroke="#8a6408" stroke-width=".8"/>
+    <rect x="-3" y="-8" width="6" height="8" rx="1" fill="#ffd54a" stroke="#8a6408" stroke-width="1"/><circle cx="0" cy="-4.5" r="1.2" fill="#5a3a00"/>
+    <circle cx="-15" cy="-19" r="8" fill="#fff8e1" stroke="#7a4a00" stroke-width="1.6"/>
+    <text x="-15" y="-15" text-anchor="middle" font-size="10" style="font-family:${EMOJI_FONT}">${icon}</text>
+    <circle cx="17" cy="-16" r="7.5" fill="#7a4a00"/>
+    <text x="17" y="-13" text-anchor="middle" font-size="9" font-weight="900" fill="#fff" style="font-family:sans-serif">15</text>
+  </g>`;
+}
+
+function piratesDynMarkup(isl, step, tokenAt){
+  let s='';
+  // пройдена частина стежки
+  if(step>0){
+    let d=`M ${pf(isl.start.x)} ${pf(isl.start.y)} `;
+    for(let i=0;i<Math.min(step,isl.segs.length);i++) d+=pSegPathC(isl.segs[i])+' ';
+    s+=`<path d="${d}" fill="none" stroke="#ffd633" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" filter="url(#pirGlowS)" stroke-dasharray="7 5"/>`;
+  }
+  // вузли-питання 1..14
+  for(let i=0;i<PIRATES_TOTAL_STEPS-1;i++){
+    const p=isl.steps[i], n=i+1, visited=n<=step, isNext=(n===step+1);
+    const icon=isl.icons[i];
+    s+=`<g transform="translate(${p.x},${p.y})">`;
+    if(isNext) s+=`<circle r="17" fill="none" stroke="#fff" stroke-width="2.4" class="pir-next"/>`;
+    s+=`<ellipse cx="1" cy="14" rx="11" ry="3" fill="rgba(0,0,0,.25)"/>
+      <circle r="15" fill="${visited?'#ffe082':'rgba(255,250,232,.95)'}" stroke="${visited?'#b8860b':'#7a4a00'}" stroke-width="2.5"/>
+      <text x="0" y="6.5" text-anchor="middle" font-size="18" opacity="${visited?.5:1}" style="font-family:${EMOJI_FONT}">${icon}</text>
+      ${visited?`<path d="M-6 1 l4 4 l8 -9" fill="none" stroke="#2e9e46" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`:''}
+      <circle cx="11" cy="-11" r="6.6" fill="${visited?'#2e7d32':'#7a4a00'}" stroke="#fff" stroke-width="1"/>
+      <text x="11" y="-8" text-anchor="middle" font-size="${n>=10?7.4:8.6}" font-weight="900" fill="#fff" style="font-family:sans-serif">${n}</text>
+    </g>`;
+  }
+  // скриня на вулкані
+  s+=pChestSVG(isl.chest, step>=PIRATES_TOTAL_STEPS, isl.icons[14]);
+  // фішка гравця
+  const tp = tokenAt===0 ? isl.start : isl.steps[Math.min(tokenAt,PIRATES_TOTAL_STEPS)-1];
+  s+=`<g id="pir-token" transform="translate(${tp.x},${tp.y})">${piratesTokenMarkup()}</g>`;
+  return s;
+}
+
+function renderPiratesBoard(animFrom){
+  if(!piratesState) return;
+  const isl=piratesState.island, step=piratesState.step;
+  const land=document.getElementById('pirates-board-svg');
+  const sea=document.getElementById('pirates-sea-svg');
+  const fx=document.getElementById('pirates-fx-svg');
+  const dyn=document.getElementById('pirates-dyn-svg');
+  // шари малюються один раз на карту: море (хвилі) / суша (статична) / ефекти (дим, піна) / динамічний (вузли, фішка)
+  if(land.dataset.islandId!==String(isl.id)){
+    land.innerHTML=`<defs>${isl.defsSvg}</defs>${isl.staticSvg}`;
+    sea.innerHTML=isl.seaSvg;
+    fx.innerHTML=isl.topSvg;
+    land.dataset.islandId=String(isl.id);
+  }
+  const from=(typeof animFrom==='number')?animFrom:step;
+  dyn.innerHTML=piratesDynMarkup(isl, step, from);
+  if(from!==step && step>from){ piratesAnimateToken(isl.segs[step-1]); }
+  piratesUpdateHUD();
+}
+
+// плавний рух фішки по стежці
+function piratesAnimateToken(seg){
+  const g=document.getElementById('pir-token');
+  if(!g||!seg) return;
+  const t0=performance.now(), dur=800;
+  function frame(now){
+    if(!g.isConnected) return;
+    const k=Math.min(1,(now-t0)/dur);
+    const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    const p=pBez(seg,e), hop=-Math.sin(Math.PI*k*3)*3*(1-k);
+    g.setAttribute('transform',`translate(${pf(p.x)},${pf(p.y+hop)})`);
+    if(k<1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+// ═══════════════════ МАТЕМАТИКА / ENGLISH ═══════════════════
 function piratesGenMathQuestion(level){
   const letterMap={1:'A',2:'B',3:'C',4:'D',5:'E',6:'F'};
   if(level<=6){
@@ -9259,32 +10022,35 @@ function piratesGenMathQuestion(level){
   return {text:`${table} × ${factor} = ?`, checkFn:(val)=>parseInt(val,10)===ans, correctText:String(ans)};
 }
 
-// ── Озвучка English (Web Speech API) ──
 function piratesSpeak(text){
   if(!('speechSynthesis' in window) || !text) return;
   try{
     window.speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
-    u.lang='en-US';
-    u.rate=0.88;
+    u.lang='en-US'; u.rate=0.88;
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
 function piratesSpeakCurrent(){
-  if(piratesState && piratesState.currentQ && piratesState.currentQ.word){
-    piratesSpeak(piratesState.currentQ.word.en);
-  }
+  if(piratesState && piratesState.currentQ && piratesState.currentQ.word) piratesSpeak(piratesState.currentQ.word.en);
 }
 
-// ── Англійське питання (рівень = складність, як в English-БоСС; тема обрана перед стартом) ──
-function piratesGenEnQuestion(level){
-  const themes = piratesEnThemesForLevel(level);
-  const chosen = piratesState && piratesState.enTheme;
-  const theme = (chosen && themes.includes(chosen)) ? chosen : rnd(themes);
-  const pool = EN_WORDS[theme]||[];
-  const word = pool[r(pool.length)];
-  const normalize = s=>s.replace(/['`´''']/g,'').replace(/ґ/g,'г').trim().toLowerCase();
-  const rawVariants = word.ukVariants||[word.uk];
+// Питання English: тема береться з вибору гравця (або будь-яка, якщо «впереміш»)
+function piratesGenEnQuestion(){
+  const themes=Object.keys(EN_WORDS);
+  const chosen=piratesState && piratesState.enTheme;
+  const theme=(chosen && EN_WORDS[chosen]) ? chosen : rnd(themes);
+  let custom=[];
+  try{ const u=getUser(); custom=(u.customWords||[]).filter(w=>w && w.theme===theme && w.en && w.uk); }catch(e){}
+  const pool=(EN_WORDS[theme]||[]).concat(custom);
+  const used=piratesState.usedEn || (piratesState.usedEn={});
+  let fresh=pool.filter(w=>!used[theme+':'+w.en]);
+  if(!fresh.length){ pool.forEach(w=>{ delete used[theme+':'+w.en]; }); fresh=pool; }
+  const word=fresh[r(fresh.length)];
+  used[theme+':'+word.en]=1;
+
+  const normalize=s=>s.replace(/['`´’ʼ']/g,'').replace(/ґ/g,'г').trim().toLowerCase();
+  const rawVariants=word.ukVariants||[word.uk];
   const allVariants=[];
   rawVariants.forEach(v=>{
     allVariants.push(v.toLowerCase());
@@ -9296,9 +10062,10 @@ function piratesGenEnQuestion(level){
     return answerVariants.some(av=>normVariants.some(nv=>av===nv));
   };
   const displayUa=(word.ukVariants&&word.ukVariants.length>1)?word.ukVariants.join(' / '):word.uk;
-  return {text:`Перекласти українською: "${word.en}"`, checkFn:check, correctText:displayUa, word};
+  return {text:`Перекласти українською: "${word.en}"`, checkFn:check, correctText:displayUa, word, theme};
 }
 
+// ═══════════════════ МЕНЮ / ВИБІР РІВНЯ І ТЕМИ ═══════════════════
 function openPiratesModal(){
   document.getElementById('pirates-game').classList.add('is-open');
   document.getElementById('main').style.display='none';
@@ -9310,10 +10077,18 @@ function openPiratesModal(){
   renderPiratesLevelList();
 }
 
-function closePirates(){
+function piratesClearTimers(){
   piratesStopTimer();
+  if(piratesState && piratesState.holdTimer){ clearTimeout(piratesState.holdTimer); piratesState.holdTimer=null; }
+}
+
+function closePirates(){
+  piratesClearTimers();
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   piratesState=null;
+  ['pirates-sea-svg','pirates-board-svg','pirates-fx-svg','pirates-dyn-svg'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.innerHTML=''; el.dataset.islandId=''; } });
+  piratesHideToast();
+  document.getElementById('pirates-feedback').classList.remove('show');
   document.getElementById('pirates-game').classList.remove('is-open');
   document.getElementById('main').style.display='block';
   updateUI();
@@ -9332,7 +10107,6 @@ function renderPiratesLevelList(){
   list.innerHTML=html;
 }
 
-// ── Крок 1: обрати рівень → показати вибір теми English перед стартом гри ──
 function startPiratesLevel(level){
   piratesPendingLevel=level;
   document.getElementById('pirates-level-select').classList.add('hidden');
@@ -9345,21 +10119,28 @@ function piratesBackToLevels(){
   document.getElementById('pirates-level-select').classList.remove('hidden');
 }
 
+// Вибір теми: усі теми English доступні на будь-якому рівні
 function renderPiratesThemeList(level){
   const list=document.getElementById('pirates-theme-list');
   const themes=piratesEnThemesForLevel(level);
-  let html=`<button class="pir-theme-btn random" onclick="piratesBeginLevel(${level},null)">🔀 Всі теми впереміш</button>`;
+  let html=`<button class="pir-theme-btn random" data-theme="" data-level="${level}"><span>🔀 Всі теми впереміш</span><span class="pir-level-badge">${themes.length} тем</span></button>`;
   themes.forEach(t=>{
     const name=PIR_THEME_NAMES_UK[t]||t;
-    html+=`<button class="pir-theme-btn" onclick="piratesBeginLevel(${level},'${t}')">${name}</button>`;
+    const cnt=(EN_WORDS[t]||[]).length;
+    html+=`<button class="pir-theme-btn" data-theme="${t}" data-level="${level}"><span>${name}</span><span class="pir-level-badge">${cnt} слів</span></button>`;
   });
   list.innerHTML=html;
+  list.querySelectorAll('.pir-theme-btn').forEach(btn=>{
+    btn.onclick=()=>piratesBeginLevel(parseInt(btn.dataset.level,10), btn.dataset.theme||null);
+  });
 }
 
-// ── Крок 2: тему обрано → генеруємо новий острів і стартуємо гру ──
+// ── тема обрана → нова карта + нова стежка → старт гри ──
 function piratesBeginLevel(level, theme){
+  piratesClearTimers();
+  piratesHideToast();
   piratesState={level, step:0, hearts:5, starsEarned:0, busy:false, currentQ:null,
-    enTheme:theme, island:piratesGenerateIsland(), timerInterval:null, timeLeft:0, totalTime:0};
+    enTheme:theme||null, island:piratesGenerateIsland(), timerInterval:null, timeLeft:0, totalTime:0, holdTimer:null, usedEn:{}};
   document.getElementById('pirates-theme-select').classList.add('hidden');
   document.getElementById('pirates-play-area').classList.remove('hidden');
   document.getElementById('pirates-question-panel').classList.add('hidden');
@@ -9372,7 +10153,7 @@ function piratesBeginLevel(level, theme){
 
 function piratesRestartSame(){
   if(!piratesState) return;
-  piratesBeginLevel(piratesState.level, piratesState.enTheme);
+  piratesBeginLevel(piratesState.level, piratesState.enTheme);   // завжди нова карта
 }
 
 function piratesUpdateHUD(){
@@ -9381,82 +10162,7 @@ function piratesUpdateHUD(){
   document.getElementById('pirates-badge').textContent=`Рівень ${piratesState.level} • Крок ${piratesState.step}/${PIRATES_TOTAL_STEPS} • ⭐${piratesState.starsEarned}`;
 }
 
-function piratesTokenMarkup(x,y){
-  const info=(typeof mpMyInfo==='function')?mpMyInfo():{avatar:'🙂',photoUrl:null};
-  if(info.photoUrl){
-    return `<clipPath id="pirTokClip"><circle cx="${x}" cy="${y}" r="15"/></clipPath>
-      <circle cx="${x}" cy="${y}" r="18" fill="#fff" stroke="#ffd700" stroke-width="3"/>
-      <image href="${info.photoUrl}" x="${x-15}" y="${y-15}" width="30" height="30" clip-path="url(#pirTokClip)" preserveAspectRatio="xMidYMid slice"/>`;
-  }
-  return `<circle cx="${x}" cy="${y}" r="18" fill="#fff" stroke="#ffd700" stroke-width="3"/>
-    <text x="${x}" y="${y+7}" text-anchor="middle" font-size="20">${info.avatar||'🙂'}</text>`;
-}
-
-function renderPiratesBoard(){
-  if(!piratesState) return;
-  const island=piratesState.island;
-  const step=piratesState.step;
-  const pos = step<=0 ? island.start : island.steps[Math.min(step,PIRATES_TOTAL_STEPS)-1];
-  const volc=island.volcano;
-
-  // Шлях: старт -> пройдені кроки -> (тьмяні) наступні
-  let pathD=`M ${island.start.x} ${island.start.y} `;
-  island.steps.forEach(p=>{ pathD+=`L ${p.x} ${p.y} `; });
-
-  // Декор острова: пляжі/бухти, пальми/скелі/мушлі/скелети/печери/уламки корабля
-  let beachMarkup='';
-  island.beaches.forEach(b=>{
-    beachMarkup+=`<ellipse cx="${b.x}" cy="${b.y}" rx="27" ry="17" fill="#f4e0a3" opacity=".55"/>`;
-  });
-  let decoMarkup='';
-  island.deco.forEach(d=>{
-    decoMarkup+=`<text x="${d.x}" y="${d.y}" text-anchor="middle" font-size="${d.size}" opacity=".92">${d.icon}</text>`;
-  });
-
-  let stepsMarkup='';
-  island.steps.forEach((p,i)=>{
-    const stepNum=i+1;
-    const visited=stepNum<=step;
-    const isChest=stepNum===PIRATES_TOTAL_STEPS;
-    if(isChest){
-      // Скриня з головною нагородою розташована на вулкані
-      stepsMarkup+=`<g>
-        <polygon points="${p.x-36},${p.y+26} ${p.x+36},${p.y+26} ${p.x+15},${p.y-46} ${p.x-15},${p.y-46}" fill="#7a4a3a" stroke="#4a2c20" stroke-width="3"/>
-        <polygon points="${p.x-9},${p.y-46} ${p.x+9},${p.y-46} ${p.x},${p.y-68}" fill="#c0392b"/>
-        <circle cx="${p.x}" cy="${p.y-70}" r="10" fill="#ff8f00" opacity=".85"/>
-        <circle cx="${p.x-6}" cy="${p.y-80}" r="9" fill="rgba(255,255,255,.5)"/>
-        <circle cx="${p.x}" cy="${p.y+26}" r="23" fill="${visited?'#ffd700':'rgba(255,215,0,.35)'}" stroke="#7a4a00" stroke-width="3"/>
-        <text x="${p.x}" y="${p.y+34}" text-anchor="middle" font-size="24">🎁</text>
-      </g>`;
-    } else {
-      stepsMarkup+=`<g>
-        <circle cx="${p.x}" cy="${p.y}" r="15" fill="${visited?'#f4d03f':'rgba(255,255,255,.55)'}" stroke="#7a4a00" stroke-width="2.5"/>
-        <text x="${p.x}" y="${p.y+5}" text-anchor="middle" font-size="13" font-weight="900" fill="#5c3a00">${stepNum}</text>
-      </g>`;
-    }
-  });
-
-  const svg=`
-    <defs>
-      <radialGradient id="pirSun" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#fff6c9"/>
-        <stop offset="100%" stop-color="#ffd700"/>
-      </radialGradient>
-    </defs>
-    <circle cx="270" cy="45" r="34" fill="url(#pirSun)" opacity=".9"/>
-    <path d="${island.outlinePath}" fill="#dfc27a" stroke="#c9a227" stroke-width="5"/>
-    ${beachMarkup}
-    ${decoMarkup}
-    <path d="${pathD}" fill="none" stroke="#7a4a00" stroke-width="5" stroke-dasharray="2 10" stroke-linecap="round" opacity=".8"/>
-    <text x="${island.start.x}" y="${island.start.y+8}" text-anchor="middle" font-size="28">⛵</text>
-    ${stepsMarkup}
-    ${piratesTokenMarkup(pos.x,pos.y)}
-  `;
-  document.getElementById('pirates-board-svg').innerHTML=svg;
-  piratesUpdateHUD();
-}
-
-// ── Об'ємний кубик, що котиться-стрибає по карті (CSS 3D) ──
+// ═══════════════════ КУБИК ═══════════════════
 function piratesRoll(){
   if(!piratesState||piratesState.busy) return;
   piratesState.busy=true;
@@ -9472,12 +10178,11 @@ function piratesRoll(){
   cube.style.transition='none';
   cube.style.transform='rotateX(0deg) rotateY(0deg)';
   scene.classList.add('rolling');
-  void mover.offsetWidth; // форсуємо reflow
+  void mover.offsetWidth;
 
   const targets={1:{x:0,y:0},2:{x:0,y:-90},3:{x:-90,y:0},4:{x:90,y:0},5:{x:0,y:90},6:{x:0,y:180}};
   const t=targets[dice];
-  const spinsX=360*(2+r(2));
-  const spinsY=360*(2+r(2));
+  const spinsX=360*(2+r(2)), spinsY=360*(2+r(2));
 
   requestAnimationFrame(()=>{
     mover.classList.add('bounce');
@@ -9485,7 +10190,9 @@ function piratesRoll(){
     cube.style.transform=`rotateX(${t.x+spinsX}deg) rotateY(${t.y+spinsY}deg)`;
   });
 
+  const st=piratesState;
   setTimeout(()=>{
+    if(piratesState!==st) return;
     scene.classList.remove('rolling');
     diceFace.textContent=['⚀','⚁','⚂','⚃','⚄','⚅'][dice-1];
     piratesStartQuestion(dice);
@@ -9495,14 +10202,14 @@ function piratesRoll(){
 function piratesStartQuestion(dice){
   if(!piratesState) return;
   const isMath = dice%2===1;
-  const q = isMath ? piratesGenMathQuestion(piratesState.level) : piratesGenEnQuestion(piratesState.level);
+  const q = isMath ? piratesGenMathQuestion(piratesState.level) : piratesGenEnQuestion();
   piratesState.currentQ={...q, isMath};
 
   document.getElementById('pirates-idle-panel').classList.add('hidden');
   document.getElementById('pirates-question-panel').classList.remove('hidden');
   const srcEl=document.getElementById('pirates-q-source');
   srcEl.className='pir-q-source '+(isMath?'math':'en');
-  srcEl.textContent=isMath?'➕ Математика-БоСС':'🇬🇧 English-БоСС';
+  srcEl.textContent=isMath?'➕ Математика-БоСС':('🇬🇧 English • '+(PIR_THEME_NAMES_UK[q.theme]||q.theme));
   document.getElementById('pirates-question-text').textContent=q.text;
 
   const speakBtn=document.getElementById('pirates-speak-btn');
@@ -9524,7 +10231,7 @@ function piratesStartQuestion(dice){
   piratesStartTimer();
 }
 
-// ── Таймер відповіді: пісочний годинник + зворотній відлік у секундах ──
+// ═══════════════════ ТАЙМЕР ═══════════════════
 function piratesStartTimer(){
   piratesStopTimer();
   const total=piratesTimeForLevel(piratesState.level);
@@ -9535,90 +10242,104 @@ function piratesStartTimer(){
     if(!piratesState) return;
     piratesState.timeLeft--;
     piratesUpdateTimerUI();
-    if(piratesState.timeLeft<=0){
-      piratesStopTimer();
-      piratesTimeUp();
-    }
+    if(piratesState.timeLeft<=0){ piratesStopTimer(); piratesTimeUp(); }
   },1000);
 }
-
 function piratesStopTimer(){
-  if(piratesState && piratesState.timerInterval){
-    clearInterval(piratesState.timerInterval);
-    piratesState.timerInterval=null;
-  }
+  if(piratesState && piratesState.timerInterval){ clearInterval(piratesState.timerInterval); piratesState.timerInterval=null; }
 }
-
 function piratesUpdateTimerUI(){
   const secEl=document.getElementById('pir-timer-sec');
   const barEl=document.getElementById('pir-timer-bar');
   const hgEl=document.getElementById('pir-hourglass');
   if(!secEl||!piratesState) return;
   secEl.textContent=piratesState.timeLeft+'с';
-  const pct=Math.max(0,(piratesState.timeLeft/piratesState.totalTime)*100);
-  barEl.style.width=pct+'%';
+  barEl.style.width=Math.max(0,(piratesState.timeLeft/piratesState.totalTime)*100)+'%';
   secEl.classList.toggle('pir-timer-low', piratesState.timeLeft<=10);
   hgEl.textContent = piratesState.timeLeft%2===0 ? '⏳':'⌛';
 }
-
 function piratesTimeUp(){
   if(!piratesState||!piratesState.currentQ) return;
-  piratesResolveAnswer(false,true);
+  piratesResolveAnswer(false,true,'');
 }
 
+// ═══════════════════ ПЕРЕВІРКА ВІДПОВІДІ ═══════════════════
 function piratesCheckAnswer(){
   if(!piratesState||!piratesState.currentQ) return;
-  const inp=document.getElementById('pirates-answer');
-  const val=inp.value.trim();
+  const val=document.getElementById('pirates-answer').value.trim();
   if(!val) return;
-  const q=piratesState.currentQ;
-  const correct=q.checkFn(val);
-  piratesResolveAnswer(correct,false);
+  piratesResolveAnswer(piratesState.currentQ.checkFn(val), false, val);
 }
 
-function piratesResolveAnswer(correct,isTimeout){
+// тост із відповіддю: для English тримається 3 секунди (з індикатором)
+function piratesShowToast(isCorrect, title, answer, detail, ms){
+  const t=document.getElementById('pirates-toast');
+  t.className='show '+(isCorrect?'correct':'wrong');
+  document.getElementById('pt-title').textContent=title;
+  const a=document.getElementById('pt-answer');
+  a.textContent=answer||''; a.style.display=answer?'block':'none';
+  const d=document.getElementById('pt-detail');
+  d.textContent=detail||''; d.style.display=detail?'block':'none';
+  const bar=document.getElementById('pt-bar-i');
+  bar.style.animation='none'; void bar.offsetWidth;
+  bar.style.animation=`pirHold ${ms}ms linear forwards`;
+}
+function piratesHideToast(){
+  const t=document.getElementById('pirates-toast');
+  if(t) t.className='';
+}
+
+function piratesAfter(ms,fn){
+  const st=piratesState;
+  if(!st) return;
+  if(st.holdTimer) clearTimeout(st.holdTimer);
+  st.holdTimer=setTimeout(()=>{ if(piratesState===st){ st.holdTimer=null; fn(); } },ms);
+}
+
+function piratesResolveAnswer(correct,isTimeout,given){
   if(!piratesState||!piratesState.currentQ) return;
   piratesStopTimer();
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   const q=piratesState.currentQ;
+  const isEn=!q.isMath;
   document.getElementById('pirates-question-panel').classList.add('hidden');
   document.getElementById('pirates-idle-panel').classList.remove('hidden');
+  document.getElementById('pirates-roll-btn').disabled=true;
   piratesState.currentQ=null;
+
+  // English: вірну відповідь тримаємо 3 секунди; математика — як раніше
+  const holdMs = isEn ? PIR_EN_HOLD_MS : (correct?1100:1300);
+  const answerLine = isEn ? `${q.word.en} — ${q.correctText}` : '';
 
   if(correct){
     const gained=piratesState.level*100;
+    const oldStep=piratesState.step;
     piratesState.step=Math.min(PIRATES_TOTAL_STEPS,piratesState.step+1);
     piratesState.starsEarned+=gained;
     const user=getUser();
     user.stars=(user.stars||0)+gained;
     saveUser(user);
     updateUI();
-    renderPiratesBoard();
-    piratesShowFeedback(true,`+1 крок 👣 • +${gained}⭐`);
+    renderPiratesBoard(oldStep);
+    piratesShowToast(true,'✅ Правильно!', answerLine, `+1 крок 👣 • +${gained}⭐`, holdMs);
     if(piratesState.step>=PIRATES_TOTAL_STEPS){
-      setTimeout(()=>piratesWin(),1200);
+      piratesAfter(isEn?holdMs:1200,()=>{ piratesHideToast(); piratesWin(); });
       return;
     }
-    setTimeout(()=>{ document.getElementById('pirates-feedback').classList.remove('show'); piratesState.busy=false; document.getElementById('pirates-roll-btn').disabled=false; },1100);
+    piratesAfter(holdMs,()=>{ piratesHideToast(); piratesState.busy=false; document.getElementById('pirates-roll-btn').disabled=false; });
   } else {
     piratesState.hearts=Math.max(0,piratesState.hearts-1);
     piratesUpdateHUD();
-    const prefix=isTimeout?'⏰ Час вийшов! ':'';
-    piratesShowFeedback(false,`${prefix}❌ Правильна відповідь: ${q.correctText}`);
+    const head=isTimeout?'⏰ Час вийшов!':'❌ Неправильно';
+    const correctLine = isEn ? answerLine : `Правильна відповідь: ${q.correctText}`;
+    const detail = (isEn && given) ? `Твоя відповідь: ${given}` : '';
+    piratesShowToast(false, head, correctLine, detail, holdMs);
     if(piratesState.hearts<=0){
-      setTimeout(()=>piratesLose(),1400);
+      piratesAfter(isEn?holdMs:1400,()=>{ piratesHideToast(); piratesLose(); });
       return;
     }
-    setTimeout(()=>{ document.getElementById('pirates-feedback').classList.remove('show'); piratesState.busy=false; document.getElementById('pirates-roll-btn').disabled=false; },1300);
+    piratesAfter(holdMs,()=>{ piratesHideToast(); piratesState.busy=false; document.getElementById('pirates-roll-btn').disabled=false; });
   }
-}
-
-function piratesShowFeedback(isCorrect,detail){
-  const fb=document.getElementById('pirates-feedback');
-  fb.className='show '+(isCorrect?'correct':'wrong');
-  document.getElementById('pirates-fb-title').textContent=isCorrect?'✅ Правильно!':'❌ Неправильно';
-  document.getElementById('pirates-fb-detail').textContent=detail;
-  document.getElementById('pirates-fb-actions').style.display='none';
 }
 
 function piratesWin(){
@@ -9660,6 +10381,7 @@ window.piratesRoll=piratesRoll;
 window.piratesCheckAnswer=piratesCheckAnswer;
 window.piratesSpeakCurrent=piratesSpeakCurrent;
 window.piratesRestartSame=piratesRestartSame;
+})();
 </script>
 
 </body>
