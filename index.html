@@ -1313,7 +1313,9 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 .pir-q-source{font-size:.78rem;font-weight:700;padding:2px 10px;border-radius:8px}
 .pir-q-source.math{background:rgba(102,126,234,.3);color:#a9b6ff}
 .pir-q-source.en{background:rgba(0,180,216,.3);color:#8fe3ff}
+.pir-q-source.riddle{background:rgba(255,193,7,.3);color:#ffe08a}
 #pirates-question-text{text-align:center;color:#fff;font-size:1.7rem;font-weight:800;margin-bottom:10px;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+#pirates-letter-hint{display:none;text-align:center;color:#ffe08a;font-size:1.15rem;font-weight:700;letter-spacing:3px;margin:-2px 0 10px;text-shadow:0 2px 6px rgba(0,0,0,.5)}
 .pir-answer-row{display:flex;gap:8px}
 #pirates-answer{flex:1;font-size:1.4rem;font-weight:700;padding:10px;border-radius:12px;border:3px solid #ffd700;text-align:center;min-width:0}
 .pir-check-btn{flex-shrink:0;padding:10px 18px;background:linear-gradient(135deg,#27ae60,#229954);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:800;cursor:pointer}
@@ -1475,6 +1477,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
           <div id="pirates-question-text">?</div>
           <button class="pir-speak-btn hidden" id="pirates-speak-btn" onclick="piratesSpeakCurrent()" title="Прослухати">🔊</button>
         </div>
+        <div id="pirates-letter-hint"></div>
         <div class="pir-answer-row">
           <input type="text" id="pirates-answer" autocomplete="off" placeholder="Відповідь...">
           <button class="pir-check-btn" onclick="piratesCheckAnswer()">✅</button>
@@ -9193,6 +9196,61 @@ const PIR_THEME_NAMES_UK = {
   interrogative:'❓ Питальні слова', food:'🍎 Їжа', games:'🎮 Ігри', body:'🧍 Тіло людини'
 };
 
+// ── База простих загадок для дітей 5-8 років (50 шт.) ──
+// Кожна відповідь — одне слово; кількість букв показується гравцю у полі відповіді.
+const PIR_RIDDLES = [
+  {q:'Руда, хитра, з пухнастим хвостом, живе в лісі.', a:'лисиця'},
+  {q:'Сірий, зубастий, виє на місяць уночі.', a:'вовк'},
+  {q:'Клишоногий, любить мед, узимку спить у барлозі.', a:'ведмідь'},
+  {q:'Довгі вуха, куций хвостик, стрибає і любить моркву.', a:'заєць'},
+  {q:'Гавкає, охороняє двір, найкращий друг людини.', a:'собака'},
+  {q:'Нявкає, ловить мишей, любить молоко.', a:'кіт'},
+  {q:'Дає молоко, каже "му-у".', a:'корова'},
+  {q:'Рожеве, каже "хрю-хрю", любить калюжі.', a:'порося'},
+  {q:'Несе яйця, каже "ко-ко-ко".', a:'курка'},
+  {q:'Плаває у ставку, каже "кря-кря".', a:'качка'},
+  {q:'Довгі вуха, живе у клітці, любить капусту.', a:'кролик'},
+  {q:'Швидко біжить, має гриву і копита.', a:'кінь'},
+  {q:'Найвища тварина з дуже довгою шиєю.', a:'жираф'},
+  {q:'Велика, сіра, має довгий хобот.', a:'слон'},
+  {q:'Смугастий, схожий на коня, чорно-білий.', a:'зебра'},
+  {q:'Гарчить, цар звірів, має пишну гриву.', a:'лев'},
+  {q:'Живе у воді, має луску і плавці.', a:'риба'},
+  {q:'Літає високо, має пір\'я та дзьоб.', a:'птах'},
+  {q:'Дзижчить, збирає мед, живе у вулику.', a:'бджола'},
+  {q:'Плете павутину, має вісім лапок.', a:'павук'},
+  {q:'Повільно повзе, носить свій будиночок на спині.', a:'равлик'},
+  {q:'Зелена, скаче, квакає у ставку.', a:'жаба'},
+  {q:'Довга, повзе без ніг, шипить.', a:'змія'},
+  {q:'Жовте й гаряче, світить удень на небі.', a:'сонце'},
+  {q:'Світить уночі, буває круглим.', a:'місяць'},
+  {q:'Дрібні краплі падають з хмар на землю.', a:'дощ'},
+  {q:'Білий, пухнастий, падає взимку.', a:'сніг'},
+  {q:'Пора року, коли все довкола вкрите снігом.', a:'зима'},
+  {q:'Пора року, коли розквітають перші квіти.', a:'весна'},
+  {q:'Спекотна пора року, коли у дітей канікули.', a:'літо'},
+  {q:'Пора року, коли жовтіє й падає листя.', a:'осінь'},
+  {q:'Зелене, високе, росте в лісі, має листя.', a:'дерево'},
+  {q:'Маленька, барвиста, приємно пахне, росте на клумбі.', a:'квітка'},
+  {q:'Кругле, червоне або зелене, солодке, росте на дереві.', a:'яблуко'},
+  {q:'Жовтий, вигнутий, дуже смачний фрукт.', a:'банан'},
+  {q:'Помаранчевий, соковитий, круглий фрукт.', a:'апельсин'},
+  {q:'Оранжевий овоч, дуже люблять зайчики.', a:'морква'},
+  {q:'Росте в землі, кругла й жовтувата, з неї смажать оладки.', a:'картопля'},
+  {q:'Червоний, круглий, м\'який, кладуть у салат.', a:'помідор'},
+  {q:'Біле, п\'ють вранці, його дають корови.', a:'молоко'},
+  {q:'Солодкий, жовтий, роблять бджоли.', a:'мед'},
+  {q:'Печуть з борошна, їдять щодня, буває чорний і білий.', a:'хліб'},
+  {q:'На ньому сидять, у нього чотири ніжки й спинка.', a:'стілець'},
+  {q:'За ним їдять, стоїть посеред кухні.', a:'стіл'},
+  {q:'На ньому сплять уночі, є подушка й ковдра.', a:'ліжко'},
+  {q:'У ній варять суп, кругла, з двома ручками.', a:'каструля'},
+  {q:'Нею їдять суп, тримають у руці.', a:'ложка'},
+  {q:'Освітлює кімнату ввечері.', a:'лампа'},
+  {q:'У ній багато сторінок, її читають.', a:'книга'},
+  {q:'Ними ми бачимо все навколо, а ввечері заплющуємо.', a:'очі'}
+];
+
 // Значки для питань (випадкові, без повторів у межах однієї карти)
 const PIR_NODE_ICONS = ['💀','🐚','🦀','🦎','🥥','🍌','🦜','🐒','🐍','🐢','🍍','🦂','🐸','🦋',
   '🌺','🍄','🦩','🥭','🦴','🐙','🍉','🐊','🦇','⭐','🐠','🍹'];
@@ -10035,6 +10093,29 @@ function piratesSpeakCurrent(){
   if(piratesState && piratesState.currentQ && piratesState.currentQ.word) piratesSpeak(piratesState.currentQ.word.en);
 }
 
+// Спільна нормалізація українського тексту для звірки відповіді
+function piratesNormalizeUk(s){
+  return (s||'').replace(/['`´’ʼ]/g,'').replace(/ґ/g,'г').replace(/\s+/g,' ').trim().toLowerCase();
+}
+
+// Українська форма слова "буква" залежно від числа
+function piratesLetterWordForm(n){
+  const n100=n%100, n10=n%10;
+  if(n100>=11&&n100<=14) return 'букв';
+  if(n10===1) return 'буква';
+  if(n10>=2&&n10<=4) return 'букви';
+  return 'букв';
+}
+
+// Маска "_ _ _ _" за кількістю букв + підказка "(N букв)"
+function piratesLetterHintText(word){
+  const clean=(word||'').trim();
+  if(!clean) return '';
+  const letters=clean.replace(/\s+/g,'').length;
+  const mask=clean.split('').map(ch=>ch===' '?'  ':'_').join(' ');
+  return `${mask}  (${letters} ${piratesLetterWordForm(letters)})`;
+}
+
 // Питання English: тема береться з вибору гравця (або будь-яка, якщо «впереміш»)
 function piratesGenEnQuestion(){
   const themes=Object.keys(EN_WORDS);
@@ -10049,7 +10130,7 @@ function piratesGenEnQuestion(){
   const word=fresh[r(fresh.length)];
   used[theme+':'+word.en]=1;
 
-  const normalize=s=>s.replace(/['`´’ʼ']/g,'').replace(/ґ/g,'г').trim().toLowerCase();
+  const normalize=piratesNormalizeUk;
   const rawVariants=word.ukVariants||[word.uk];
   const allVariants=[];
   rawVariants.forEach(v=>{
@@ -10062,7 +10143,20 @@ function piratesGenEnQuestion(){
     return answerVariants.some(av=>normVariants.some(nv=>av===nv));
   };
   const displayUa=(word.ukVariants&&word.ukVariants.length>1)?word.ukVariants.join(' / '):word.uk;
-  return {text:`Перекласти українською: "${word.en}"`, checkFn:check, correctText:displayUa, word, theme};
+  return {text:`Перекласти українською: "${word.en}"`, checkFn:check, correctText:displayUa, word, theme, letterHintWord:word.uk};
+}
+
+// Питання «Загадка»: випадає при кубику 1 або 6
+function piratesGenRiddleQuestion(){
+  const used=piratesState.usedRiddles || (piratesState.usedRiddles={});
+  let idxPool=PIR_RIDDLES.map((_,i)=>i).filter(i=>!used[i]);
+  if(!idxPool.length){ Object.keys(used).forEach(k=>delete used[k]); idxPool=PIR_RIDDLES.map((_,i)=>i); }
+  const idx=idxPool[r(idxPool.length)];
+  used[idx]=1;
+  const item=PIR_RIDDLES[idx];
+  const normAnswer=piratesNormalizeUk(item.a);
+  const check=(val)=>piratesNormalizeUk(val)===normAnswer;
+  return {text:`🧩 ${item.q}`, checkFn:check, correctText:item.a, answer:item.a, theme:'riddle', letterHintWord:item.a};
 }
 
 // ═══════════════════ МЕНЮ / ВИБІР РІВНЯ І ТЕМИ ═══════════════════
@@ -10140,7 +10234,7 @@ function piratesBeginLevel(level, theme){
   piratesClearTimers();
   piratesHideToast();
   piratesState={level, step:0, hearts:5, starsEarned:0, busy:false, currentQ:null,
-    enTheme:theme||null, island:piratesGenerateIsland(), timerInterval:null, timeLeft:0, totalTime:0, holdTimer:null, usedEn:{}};
+    enTheme:theme||null, island:piratesGenerateIsland(), timerInterval:null, timeLeft:0, totalTime:0, holdTimer:null, usedEn:{}, usedRiddles:{}};
   document.getElementById('pirates-theme-select').classList.add('hidden');
   document.getElementById('pirates-play-area').classList.remove('hidden');
   document.getElementById('pirates-question-panel').classList.add('hidden');
@@ -10199,21 +10293,33 @@ function piratesRoll(){
   },1150);
 }
 
+// Кубик: 1 або 6 = Загадка, 2 або 4 = English, 3 або 5 = Математика
+function piratesKindForDice(dice){
+  if(dice===1||dice===6) return 'riddle';
+  if(dice===2||dice===4) return 'english';
+  return 'math';
+}
+
 function piratesStartQuestion(dice){
   if(!piratesState) return;
-  const isMath = dice%2===1;
-  const q = isMath ? piratesGenMathQuestion(piratesState.level) : piratesGenEnQuestion();
-  piratesState.currentQ={...q, isMath};
+  const kind = piratesKindForDice(dice);
+  const isMath = kind==='math';
+  const q = isMath ? piratesGenMathQuestion(piratesState.level)
+          : kind==='english' ? piratesGenEnQuestion()
+          : piratesGenRiddleQuestion();
+  piratesState.currentQ={...q, isMath, kind};
 
   document.getElementById('pirates-idle-panel').classList.add('hidden');
   document.getElementById('pirates-question-panel').classList.remove('hidden');
   const srcEl=document.getElementById('pirates-q-source');
-  srcEl.className='pir-q-source '+(isMath?'math':'en');
-  srcEl.textContent=isMath?'➕ Математика-БоСС':('🇬🇧 English • '+(PIR_THEME_NAMES_UK[q.theme]||q.theme));
+  srcEl.className='pir-q-source '+kind;
+  srcEl.textContent = isMath ? '➕ Математика-БоСС'
+    : kind==='english' ? ('🇬🇧 English • '+(PIR_THEME_NAMES_UK[q.theme]||q.theme))
+    : '🧩 Загадка';
   document.getElementById('pirates-question-text').textContent=q.text;
 
   const speakBtn=document.getElementById('pirates-speak-btn');
-  if(!isMath && q.word){
+  if(kind==='english' && q.word){
     speakBtn.classList.remove('hidden');
     piratesSpeak(q.word.en);
   } else {
@@ -10221,10 +10327,23 @@ function piratesStartQuestion(dice){
     if(window.speechSynthesis) window.speechSynthesis.cancel();
   }
 
+  // Поле відповіді з кількістю букв (English та Загадка)
+  const hintEl=document.getElementById('pirates-letter-hint');
+  if(hintEl){
+    if(!isMath && q.letterHintWord){
+      hintEl.textContent=piratesLetterHintText(q.letterHintWord);
+      hintEl.style.display='block';
+    } else {
+      hintEl.textContent='';
+      hintEl.style.display='none';
+    }
+  }
+
   const inp=document.getElementById('pirates-answer');
   inp.value='';
   inp.type=isMath?'number':'text';
   inp.inputMode=isMath?'numeric':'text';
+  inp.placeholder = kind==='riddle' ? 'Впиши слово-відгадку...' : 'Відповідь...';
   inp.onkeypress=e=>{ if(e.key==='Enter') piratesCheckAnswer(); };
   setTimeout(()=>inp.focus(),50);
 
@@ -10301,15 +10420,17 @@ function piratesResolveAnswer(correct,isTimeout,given){
   piratesStopTimer();
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   const q=piratesState.currentQ;
-  const isEn=!q.isMath;
+  const isEn=!q.isMath; // English або Загадка (текстова відповідь, з утриманням тосту)
   document.getElementById('pirates-question-panel').classList.add('hidden');
   document.getElementById('pirates-idle-panel').classList.remove('hidden');
   document.getElementById('pirates-roll-btn').disabled=true;
   piratesState.currentQ=null;
 
-  // English: вірну відповідь тримаємо 3 секунди; математика — як раніше
+  // English/Загадка: вірну відповідь тримаємо 3 секунди; математика — як раніше
   const holdMs = isEn ? PIR_EN_HOLD_MS : (correct?1100:1300);
-  const answerLine = isEn ? `${q.word.en} — ${q.correctText}` : '';
+  const answerLine = q.kind==='english' ? `${q.word.en} — ${q.correctText}`
+    : q.kind==='riddle' ? `${q.correctText}`
+    : '';
 
   if(correct){
     const gained=piratesState.level*100;
