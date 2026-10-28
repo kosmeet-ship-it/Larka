@@ -467,7 +467,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700
 <button class="btn" onclick="showGameHistory()" style="background:linear-gradient(135deg,#5b2d9e,#2c3e91)" title="Історія перемог">📜 Історія</button>
 <button class="btn" onclick="openMpModal()" style="background:linear-gradient(135deg,#e74c3c,#8e44ad)" title="БоСС-Математика">💀 БоСС-Математика</button>
 <button class="btn" onclick="openMath0Game()" style="background:linear-gradient(135deg,#00b894,#00cec9)" title="Математика-0">🔢 Математика-0</button>
-<button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openPiratesModal()" style="background:linear-gradient(135deg,#00838f,#006064)" title="Пірати">🏴‍☠️ Пірати</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
+<button class="btn" onclick="openEnBossModal()" style="background:linear-gradient(135deg,#0077aa,#00b4d8)" title="БоСС-English">🇬🇧 БоСС-English</button><button class="btn" onclick="openPiratesModal()" style="background:linear-gradient(135deg,#00838f,#006064)" title="Пірати">🏴‍☠️ Пірати</button><button class="btn" onclick="openChess()" style="background:linear-gradient(135deg,#6d1f24,#2b1b1e)" title="Шахи">♟️ Шахи</button><button class="btn" onclick="openAvatarModal()" style="background:linear-gradient(135deg,#e91e8c,#9c27b0);padding:11px 14px" title="Змінити аватарку" id="header-avatar-btn">😊</button>
 <button class="btn" onclick="openGenderModal()" style="background:linear-gradient(135deg,#e91e8c,#1565c0);padding:11px 14px" title="Змінити стать" id="header-gender-btn">👧</button>
 <button class="btn" id="gift-btn" onclick="openGiftModal()" style="background:linear-gradient(135deg,#e67e22,#d35400);padding:11px 14px;position:relative" title="Подарунок">🎁<span id="gift-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#e74c3c;color:#fff;font-size:.6rem;font-weight:900;border-radius:50%;width:16px;height:16px;line-height:16px;text-align:center;pointer-events:none">!</span></button>
 <button class="btn" onclick="changePassword()" style="background:linear-gradient(135deg,#95a5a6,#7f8c8d);padding:11px 14px" title="Змінити пароль">🔑</button>
@@ -10505,5 +10505,802 @@ window.piratesRestartSame=piratesRestartSame;
 })();
 </script>
 
+
+<style>
+#chess-game{display:none;position:fixed;inset:0;background:linear-gradient(160deg,#2a1a1d 0%,#4a2a30 55%,#1c1316 100%);z-index:4200;flex-direction:column;overflow-y:auto;color:#fff;font-family:'Segoe UI',sans-serif;--cs:44px;--P:18px}
+#chess-game.is-open{display:flex}
+#chess-game .hidden{display:none!important}
+.ch-top{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:8px 3%;background:rgba(0,0,0,.4);position:sticky;top:0;z-index:20}
+.ch-back{background:rgba(255,255,255,.15);border:none;color:#fff;font-weight:700;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:.95rem}
+.ch-title{flex:1;text-align:center;font-weight:900;font-size:1.1rem}
+.ch-code{font-weight:800;color:#ffd700;letter-spacing:2px;font-size:.95rem;min-width:70px;text-align:right}
+.ch-panel{display:flex;align-items:center;justify-content:center;padding:16px;flex:1}
+.ch-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:22px;width:100%;max-width:400px;text-align:center}
+.ch-h{font-size:1.4rem;font-weight:900;margin-bottom:10px}
+.ch-btn{display:block;width:100%;padding:13px;border:none;border-radius:12px;color:#fff;font-weight:800;font-size:1rem;cursor:pointer;margin-top:10px}
+.ch-btn:disabled{opacity:.45;cursor:not-allowed}
+.ch-green{background:linear-gradient(135deg,#43a047,#2e7d32)}
+.ch-blue{background:linear-gradient(135deg,#1e88e5,#1565c0)}
+.ch-or{color:#bbb;margin:12px 0 2px;font-size:.85rem}
+#ch-join-input{width:100%;padding:12px;border-radius:10px;border:2px solid #8e6a6f;background:rgba(255,255,255,.1);color:#fff;font-size:1.4rem;text-align:center;letter-spacing:6px;text-transform:uppercase;font-weight:800}
+.ch-err{color:#ff8a80;min-height:1.2em;margin-top:8px;font-size:.9rem}
+.ch-big-code{font-size:2.6rem;font-weight:900;color:#ffd700;letter-spacing:8px;margin:6px 0}
+.ch-lp{display:flex;align-items:center;gap:10px;padding:9px 12px;margin:6px 0;background:rgba(255,255,255,.1);border-radius:10px;text-align:left}
+.ch-lp small{margin-left:auto;color:#ffd700}
+#ch-play{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 6px 18px}
+#ch-players{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.ch-pl{display:flex;align-items:center;gap:6px;padding:5px 10px;border:2px solid #fff;border-radius:12px;background:rgba(0,0,0,.35);font-size:.85rem}
+.ch-pl small{opacity:.85}
+.ch-pl.turn{background:rgba(255,215,0,.25);box-shadow:0 0 12px rgba(255,215,0,.7)}
+.ch-pl.dead{opacity:.45;text-decoration:line-through}
+.ch-dot{width:14px;height:14px;border-radius:50%;border:2px solid #fff;display:inline-block}
+#ch-status{font-weight:800;text-align:center;min-height:1.3em;font-size:.98rem}
+#ch-log{font-size:.8rem;color:#ddd;text-align:center;min-height:1.1em}
+#ch-frame{position:relative;background:#6d1f24;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.6);flex-shrink:0;user-select:none;-webkit-user-select:none}
+#ch-board{position:absolute;left:var(--P);top:var(--P);right:var(--P);bottom:var(--P);display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr)}
+#ch-lx{position:absolute;left:var(--P);right:var(--P);bottom:0;height:var(--P);display:flex}
+#ch-ly{position:absolute;top:var(--P);bottom:var(--P);left:0;width:var(--P);display:flex;flex-direction:column}
+#ch-lx span,#ch-ly span{flex:1;display:flex;align-items:center;justify-content:center;color:#f3d9c3;font-size:calc(var(--P)*.62);font-weight:600}
+.ch-cell{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.ch-cell.lt{background:#f0dcb8}.ch-cell.dk{background:#b58863}
+.ch-castle{position:absolute;inset:8%;border:2px solid;border-radius:3px;display:none}
+.ch-piece{position:relative;z-index:2;width:calc(var(--cs)*.72);height:calc(var(--cs)*.72);border-radius:50%;border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.6);align-items:center;justify-content:center;font-weight:900;display:none;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.ch-cell.sel{outline:3px solid #ffd700;outline-offset:-3px;z-index:3}
+.ch-cell.tgt::after{content:'';position:absolute;z-index:4;width:30%;height:30%;border-radius:50%;background:rgba(46,204,64,.8);box-shadow:0 0 6px #2ecc40}
+.ch-cell.tgte{box-shadow:inset 0 0 0 3px #ff1744;z-index:3}
+.ch-cell.ready .ch-piece{animation:chPulse 1.1s infinite}
+.ch-cell.done .ch-piece{opacity:.55}
+@keyframes chPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.9)}50%{box-shadow:0 0 0 7px rgba(255,215,0,0)}}
+#ch-dice-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:10}
+.ch-dwrap{position:absolute;left:0;top:0}
+.ch-dshadow{position:absolute;inset:6%;background:#000;border-radius:50%;filter:blur(4px)}
+.ch-die{position:absolute;inset:0;background:#fff;border-radius:16%;border:2px solid #bbb;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:12%;box-shadow:inset -3px -3px 6px rgba(0,0,0,.18)}
+.ch-die i{width:70%;height:70%;margin:auto;background:#222;border-radius:50%}
+.ch-die[data-v="1"] i{background:#d50000}
+#ch-quiz{width:100%;max-width:420px;background:rgba(0,0,0,.55);border:2px solid #ffd700;border-radius:14px;padding:12px;text-align:center}
+.ch-q-t{font-weight:800;margin-bottom:8px}
+.ch-q-bar{height:10px;background:rgba(255,255,255,.2);border-radius:6px;overflow:hidden}
+.ch-q-bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff5252,#ffd740,#69f0ae);transition:width .1s linear}
+.ch-q-row{display:flex;gap:8px;margin-top:10px}
+.ch-q-row input{flex:1;min-width:0;padding:10px;border-radius:10px;border:2px solid #ffd700;background:#fff;color:#000;font-size:1.3rem;text-align:center;font-weight:800}
+.ch-q-row .ch-btn{margin:0;width:auto;padding:10px 14px}
+.ch-q-hint{font-size:.72rem;color:#ccc;margin-top:6px}
+#ch-endturn{width:auto;padding:11px 26px;margin-top:4px}
+#ch-banner{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);text-align:center;font-size:1.8rem;font-weight:900;pointer-events:none}
+#ch-banner.show{display:flex;animation:chBan .4s ease-out}
+@keyframes chBan{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+#ch-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:35;background:rgba(0,0,0,.88);color:#fff;padding:10px 16px;border-radius:12px;max-width:92vw;text-align:center;font-weight:700;font-size:.9rem;display:none}
+#ch-toast.show{display:block}
+#ch-results{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:12px}
+#ch-results.show{display:flex}
+.ch-res-box{background:#2b1b1e;border:2px solid #ffd700;border-radius:18px;padding:18px;width:100%;max-width:460px;text-align:center}
+.ch-res-box table{width:100%;border-collapse:collapse;margin-top:6px}
+.ch-res-box td{padding:9px 5px;border-bottom:1px solid rgba(255,255,255,.12);text-align:left;font-size:.95rem}
+.ch-res-box td:first-child{font-size:1.4rem;text-align:center}
+.ch-rw{color:#ffd700;font-weight:800;font-size:.8rem!important}
+
+</style>
+<!-- CHESS GAME -->
+<div id="chess-game">
+  <div class="ch-top" id="ch-top">
+    <button class="ch-back" onclick="closeChess()">← Назад</button>
+    <div class="ch-title">♟️ Шахи</div>
+    <div class="ch-code" id="ch-code"></div>
+  </div>
+
+  <div id="ch-menu" class="ch-panel">
+    <div class="ch-card">
+      <div class="ch-h">♟️ Шахи</div>
+      <div style="color:#ddd;font-size:.92rem">Битва за замки! 2–4 гравці за кодом кімнати.</div>
+      <button class="ch-btn ch-green" onclick="chessCreateRoom()">🏰 Створити кімнату</button>
+      <div class="ch-or">або</div>
+      <input id="ch-join-input" maxlength="6" placeholder="КОД" autocomplete="off" onkeydown="if(event.key==='Enter')chessJoinRoom()">
+      <button class="ch-btn ch-blue" onclick="chessJoinRoom()">🔗 Приєднатись за кодом</button>
+      <div class="ch-err" id="ch-menu-err"></div>
+    </div>
+  </div>
+
+  <div id="ch-lobby" class="ch-panel hidden">
+    <div class="ch-card">
+      <div style="color:#bbb;font-size:.8rem">КОД КІМНАТИ</div>
+      <div class="ch-big-code" id="ch-lobby-code">-----</div>
+      <button class="ch-btn" style="background:#ffd700;color:#000;margin-top:0" onclick="chessCopyCode()">📋 Скопіювати код</button>
+      <div style="color:#bbb;font-size:.85rem;margin:14px 0 4px">Гравці в кімнаті:</div>
+      <div id="ch-lobby-list"></div>
+      <div id="ch-lobby-msg" style="color:#ddd;font-size:.9rem;margin-top:8px"></div>
+      <button class="ch-btn ch-green hidden" id="ch-start-btn" onclick="chessStartGame()">▶️ Почати гру</button>
+    </div>
+  </div>
+
+  <div id="ch-play" class="hidden">
+    <div id="ch-players"></div>
+    <div id="ch-status"></div>
+    <div id="ch-frame">
+      <div id="ch-board"></div>
+      <div id="ch-lx"></div>
+      <div id="ch-ly"></div>
+      <div id="ch-dice-layer"></div>
+    </div>
+    <div id="ch-log"></div>
+    <div id="ch-quiz" class="hidden"></div>
+    <button class="ch-btn ch-green hidden" id="ch-endturn" onclick="chessEndTurn()">✅ Завершити хід</button>
+  </div>
+
+  <div id="ch-banner"></div>
+  <div id="ch-toast"></div>
+  <div id="ch-results"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════ КОНСТАНТИ ═══════════════════ */
+const COLORS=[
+  {name:'Червоний',c:'#e53935',d:'#8e1414',t:'#fff'},
+  {name:'Синій',   c:'#1e88e5',d:'#0b3d91',t:'#fff'},
+  {name:'Зелений', c:'#43a047',d:'#1b5e20',t:'#fff'},
+  {name:'Жовтий',  c:'#fdd835',d:'#a67c00',t:'#222'}
+];
+const CASTLES=['a8','h8','a1','h1','c6','f6','c3','f3'];   // 4 кути + 4 вільні замки
+const CORNERS=['a8','h8','a1','h1'];
+const FILES='abcdefgh';
+const QUIZ_MS=10000;
+const DICE_MS=1900;
+const BANNER_MS=2300;
+
+/* ═══════════════════ ЧИСТА ЛОГІКА ═══════════════════ */
+const rnd=n=>Math.floor(Math.random()*n);
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);const t=a[i];a[i]=a[j];a[j]=t;}return a;}
+const clone=o=>JSON.parse(JSON.stringify(o));
+function cellXY(id){return {x:FILES.indexOf(id[0]),y:8-parseInt(id[1],10)};}
+function xyCell(x,y){return FILES[x]+(8-y);}
+function neighbors(id){
+  const {x,y}=cellXY(id),r=[];
+  for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
+    if(!dx&&!dy)continue;
+    const nx=x+dx,ny=y+dy;
+    if(nx>=0&&nx<8&&ny>=0&&ny<8)r.push(xyCell(nx,ny));
+  }
+  return r;
+}
+function normGame(g){
+  g.order=g.order||[];g.eliminated=g.eliminated||[];g.spawnQueue=g.spawnQueue||[];
+  g.pieces=g.pieces||{};g.moved=g.moved||{};g.castles=g.castles||{};
+  g.colors=g.colors||{};g.names=g.names||{};g.ev=g.ev||{n:0,txt:''};
+  return g;
+}
+function aliveIds(g){return g.order.filter(id=>g.eliminated.indexOf(id)<0);}
+
+function buildGame(list){            // list: [{id,name}]
+  const n=list.length;
+  const order=shuffle(list.map(p=>p.id));          // випадкова черговість
+  const colIdx=shuffle([0,1,2,3]).slice(0,n);      // випадкові кольори
+  let corners;
+  if(n===2) corners=shuffle(Math.random()<0.5?['a8','h1']:['h8','a1']); // по діагоналі
+  else corners=shuffle(CORNERS).slice(0,n);
+  const g={order,colors:{},names:{},castles:{},pieces:{},moved:{},eliminated:[],
+           turn:0,turnNo:1,phase:'banner',spawnQueue:[],ev:{n:0,txt:''}};
+  CASTLES.forEach(c=>g.castles[c]='');             // '' = вільний (сірий) замок
+  order.forEach((id,i)=>{
+    const p=list.find(x=>x.id===id);
+    g.colors[id]=colIdx[i];g.names[id]=p.name;
+    g.castles[corners[i]]=id;
+    g.pieces[corners[i]]={o:id,l:10};              // стартова фішка рівня 10
+  });
+  return g;
+}
+
+function eliminate(g,id){
+  if(g.eliminated.indexOf(id)>=0)return;
+  g.eliminated.push(id);
+  Object.keys(g.pieces).forEach(c=>{if(g.pieces[c].o===id){delete g.pieces[c];delete g.moved[c];}});
+  CASTLES.forEach(c=>{if(g.castles[c]===id)g.castles[c]='';});
+}
+function rewardSets(place,n){return n-place+1;}
+function computeResults(g){
+  const n=g.order.length,res=[];
+  if(g.winner)res.push({id:g.winner,name:g.names[g.winner],place:1,sets:rewardSets(1,n)});
+  for(let i=g.eliminated.length-1;i>=0;i--){
+    const id=g.eliminated[i],place=n-i;
+    res.push({id,name:g.names[id],place,sets:rewardSets(place,n)});
+  }
+  return res;
+}
+function rewardFor(g,id){
+  if(g.phase!=='over'&&g.eliminated.indexOf(id)<0)return null;
+  const n=g.order.length;
+  if(g.winner===id&&g.phase==='over')return {place:1,sets:rewardSets(1,n)};
+  const i=g.eliminated.indexOf(id);
+  if(i<0)return null;
+  const place=n-i;
+  return {place,sets:rewardSets(place,n)};
+}
+function finish(g,winner){g.phase='over';g.winner=winner||'';g.results=computeResults(g);}
+function checkElims(g){
+  g.order.forEach(id=>{
+    if(g.eliminated.indexOf(id)>=0)return;
+    if(!CASTLES.some(c=>g.castles[c]===id))eliminate(g,id);   // втратив усі замки
+  });
+  const al=aliveIds(g);
+  if(al.length<=1&&g.phase!=='over')finish(g,al[0]);
+}
+function processLeavers(g,leavers){
+  Object.keys(leavers||{}).forEach(id=>{if(g.order.indexOf(id)>=0)eliminate(g,id);});
+  checkElims(g);
+}
+function nextTurn(g){
+  let i=g.turn,guard=0;
+  do{i=(i+1)%g.order.length;guard++;}while(g.eliminated.indexOf(g.order[i])>=0&&guard<10);
+  g.turn=i;g.turnNo++;g.phase='banner';g.moved={};g.spawnQueue=[];delete g.dice;
+}
+function applyMove(g,from,to,me){
+  const p=g.pieces[from];
+  if(!p||p.o!==me)return null;
+  delete g.pieces[from];delete g.moved[from];
+  const t=g.pieces[to],isC=(to in g.castles),nm=g.names[me]||'';
+  let txt='';
+  if(!t){
+    g.pieces[to]={o:me,l:p.l};g.moved[to]=true;
+    if(isC&&g.castles[to]!==me){g.castles[to]=me;txt=`🏰 ${nm} захопив замок ${to}`;}
+  }else if(t.o===me){
+    g.pieces[to]={o:me,l:t.l+p.l};g.moved[to]=true;
+    txt=`🔗 ${nm}: фішки об'єднано → рівень ${t.l+p.l}`;
+  }else{
+    const a=p.l,d=t.l,dn=g.names[t.o]||'';
+    if(a>d){
+      g.pieces[to]={o:me,l:a-d};g.moved[to]=true;
+      if(isC)g.castles[to]=me;
+      txt=`⚔️ ${nm} (${a}) переміг ${dn} (${d}) → рівень ${a-d}${isC?' • замок захоплено':''}`;
+    }else if(d>a){
+      t.l=d-a;
+      txt=`🛡️ ${dn} (${d}) відбив атаку ${nm} (${a}) → рівень ${d-a}`;
+    }else{
+      delete g.pieces[to];delete g.moved[to];
+      txt=`💥 ${nm} (${a}) і ${dn} (${d}) знищили одне одного`;
+    }
+  }
+  g.ev={n:((g.ev&&g.ev.n)||0)+1,txt};
+  checkElims(g);
+  return txt;
+}
+function myPieces(g,id){return Object.keys(g.pieces).filter(c=>g.pieces[c].o===id);}
+
+/* ═══════════════════ ТЕСТОВИЙ ЕКСПОРТ (node) ═══════════════════ */
+if(typeof module!=='undefined'&&module.exports){
+  module.exports={buildGame,applyMove,nextTurn,processLeavers,eliminate,checkElims,neighbors,normGame,
+    aliveIds,computeResults,rewardFor,rewardSets,myPieces,CASTLES,clone,xyCell,cellXY};
+  return;
+}
+
+/* ═══════════════════ УТИЛІТИ UI ═══════════════════ */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const F=()=>window._fb;
+const R=p=>F().ref(F().db,p);
+const dbSet=(p,v)=>F().set(R(p),v);
+const dbUpdate=(p,v)=>F().update(R(p),v);
+const dbGet=p=>F().get(R(p));
+const dbRemove=p=>F().remove(R(p));
+function genCode(){
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';
+  for(let i=0;i<5;i++)c+=ch[rnd(ch.length)];
+  return c;
+}
+function myInfo(){
+  try{ if(typeof mpMyInfo==='function')return mpMyInfo(); }catch(e){}
+  return {name:'Гравець',avatar:'👤'};
+}
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function colOf(g,id){return COLORS[g.colors[id]]||COLORS[0];}
+function nameHtml(g,id){const c=colOf(g,id);return `<span style="color:${c.c};font-weight:900;text-shadow:0 1px 3px rgba(0,0,0,.6)">${esc(g.names[id]||'?')}</span>`;}
+function rewardText(k){return `+${1000*k}⭐ +${k}🌱 +${k}🐝 +${10*k}🔘 +${10*k}🧵`;}
+
+let CS=null;   // стан сесії
+
+function later(fn,ms){const id=setTimeout(fn,ms);CS&&CS.timers.push(id);return id;}
+function toast(txt,ms){
+  const t=$('ch-toast');if(!t)return;
+  t.innerHTML=txt;t.classList.add('show');
+  clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),ms||3200);
+}
+function section(name){
+  ['menu','lobby','play'].forEach(s=>$('ch-'+s).classList.toggle('hidden',s!==name));
+}
+
+/* ═══════════════════ ВХІД / ВИХІД ═══════════════════ */
+function newSession(){
+  return {code:'',myId:'',myName:'',isHost:false,room:null,g:null,ref:null,cb:null,timers:[],
+    sel:null,quiz:null,animSeed:null,animRaf:0,driveKey:'',shownTurn:0,evN:-1,
+    rewarded:false,leaving:false,finished:false,resultsShown:false,boardBuilt:false,leavers:{},S:400,P:18,cs:44};
+}
+function openChess(){
+  $('chess-game').classList.add('is-open');
+  $('main').style.display='none';
+  CS=newSession();
+  $('ch-menu-err').textContent='';
+  $('ch-code').textContent='';
+  $('ch-results').classList.remove('show');
+  section('menu');
+}
+function cleanup(){
+  if(!CS)return;
+  CS.timers.forEach(clearTimeout);
+  if(CS.quizTimer)clearInterval(CS.quizTimer);
+  if(CS.animRaf)cancelAnimationFrame(CS.animRaf);
+  if(CS.ref&&CS.cb){try{F().off(CS.ref,CS.cb);}catch(e){}}
+  CS=null;
+  $('ch-dice-layer').innerHTML='';
+  $('ch-quiz').classList.add('hidden');$('ch-quiz').innerHTML='';
+  $('ch-banner').classList.remove('show');
+  $('ch-results').classList.remove('show');
+  $('chess-game').classList.remove('is-open');
+  $('main').style.display='block';
+  if(typeof updateUI==='function')updateUI();
+}
+async function closeChess(){
+  if(!CS){cleanup();return;}
+  const g=CS.g,room=CS.room;
+  try{
+    if(room&&room.status==='waiting'){
+      if(CS.isHost)await dbRemove('chess_rooms/'+CS.code);
+      else await dbRemove(`chess_rooms/${CS.code}/players/${CS.myId}`);
+    }else if(g&&g.phase!=='over'&&g.eliminated.indexOf(CS.myId)<0){
+      if(!confirm('Вийти з гри? Ви програєте та не отримаєте нагороду.')) return;
+      CS.leaving=true;CS.rewarded=true;
+      const user=getUser();
+      addGameHistoryEntry('♟️ Шахи',`вихід/${g.order.length}`,'—',user);saveUser(user);
+      if(g.order[g.turn]===CS.myId){
+        const ng=clone(g);
+        eliminate(ng,CS.myId);checkElims(ng);
+        if(ng.phase!=='over')nextTurn(ng);
+        await write(ng);
+      }else{
+        await dbSet(`chess_rooms/${CS.code}/leavers/${CS.myId}`,true);
+      }
+    }
+  }catch(e){console.warn('chess leave',e);}
+  cleanup();
+}
+
+/* ═══════════════════ КІМНАТИ ═══════════════════ */
+function listen(){
+  CS.ref=R('chess_rooms/'+CS.code);
+  CS.cb=snap=>onRoom(snap.exists()?snap.val():null);
+  F().onValue(CS.ref,CS.cb);
+  $('ch-code').textContent='🔑 '+CS.code;
+}
+async function createRoom(){
+  if(!window._fbReady||!F()){alert('❌ Firebase не підключено. Гра за кодом потребує інтернету.');return;}
+  const info=myInfo(),code=genCode(),myId='p_'+Date.now()+'_'+rnd(10000);
+  try{
+    await dbSet('chess_rooms/'+code,{host:myId,status:'waiting',createdAt:Date.now(),
+      players:{[myId]:{name:info.name,avatar:info.avatar||'👤',joinedAt:Date.now()}}});
+  }catch(e){alert('❌ Помилка з\'єднання: '+(e.message||e));return;}
+  Object.assign(CS,{code,myId,myName:info.name,isHost:true});
+  listen();
+}
+async function joinRoom(){
+  if(!window._fbReady||!F()){alert('❌ Firebase не підключено.');return;}
+  const err=$('ch-menu-err');err.textContent='';
+  const code=($('ch-join-input').value||'').trim().toUpperCase();
+  if(code.length<4){err.textContent='❌ Введіть правильний код';return;}
+  let snap;
+  try{snap=await dbGet('chess_rooms/'+code);}catch(e){err.textContent='❌ Помилка з\'єднання';return;}
+  if(!snap.exists()){err.textContent='❌ Кімнату не знайдено';return;}
+  const room=snap.val();
+  if(room.status!=='waiting'){err.textContent='❌ Гра вже почалась';return;}
+  if(Object.keys(room.players||{}).length>=4){err.textContent='❌ Кімната заповнена (максимум 4 гравці)';return;}
+  const info=myInfo(),myId='p_'+Date.now()+'_'+rnd(10000);
+  try{
+    await dbSet(`chess_rooms/${code}/players/${myId}`,{name:info.name,avatar:info.avatar||'👤',joinedAt:Date.now()});
+  }catch(e){err.textContent='❌ '+(e.message||e);return;}
+  Object.assign(CS,{code,myId,myName:info.name,isHost:false});
+  listen();
+}
+function sortedPlayers(room){
+  return Object.keys(room.players||{}).map(id=>({id,name:room.players[id].name,avatar:room.players[id].avatar,t:room.players[id].joinedAt||0}))
+    .sort((a,b)=>a.t-b.t);
+}
+function renderLobby(room){
+  const pl=sortedPlayers(room);
+  $('ch-lobby-code').textContent=CS.code;
+  $('ch-lobby-list').innerHTML=pl.map((p,i)=>`<div class="ch-lp"><span>${esc(p.avatar&&p.avatar.length<8?p.avatar:'👤')}</span><b>${esc(p.name)}</b>${p.id===room.host?'<small>👑 господар</small>':''}</div>`).join('');
+  const btn=$('ch-start-btn'),msg=$('ch-lobby-msg');
+  if(CS.isHost){
+    btn.classList.remove('hidden');
+    btn.disabled=pl.length<2;
+    msg.textContent=pl.length<2?'Очікуємо гравців (потрібно 2–4)…':`Гравців: ${pl.length}/4 — можна починати!`;
+  }else{
+    btn.classList.add('hidden');
+    msg.textContent='Очікуємо, поки господар почне гру…';
+  }
+}
+async function startGame(){
+  if(!CS||!CS.isHost)return;
+  const snap=await dbGet('chess_rooms/'+CS.code);
+  if(!snap.exists())return;
+  const room=snap.val(),pl=sortedPlayers(room);
+  if(pl.length<2||pl.length>4){toast('Потрібно 2–4 гравці');return;}
+  const g=buildGame(pl.map(p=>({id:p.id,name:p.name})));
+  await dbUpdate('chess_rooms/'+CS.code,{status:'playing',game:clone(g)});
+}
+function copyCode(){
+  try{navigator.clipboard.writeText(CS.code);toast('📋 Код скопійовано');}catch(e){toast('Код: '+CS.code);}
+}
+
+/* ═══════════════════ ГОЛОВНИЙ ОБРОБНИК СТАНУ ═══════════════════ */
+function onRoom(room){
+  if(!CS)return;
+  if(!room){
+    if(!CS.finished)alert('Кімнату закрито господарем');
+    cleanup();return;
+  }
+  CS.room=room;CS.leavers=room.leavers||{};
+  if(room.status==='waiting'){section('lobby');renderLobby(room);return;}
+  if(!room.game)return;
+  const g=normGame(room.game);
+  CS.g=g;
+  if(!CS.boardBuilt){buildBoardDom();CS.boardBuilt=true;}
+  section('play');
+  layout();
+  renderAll(g);
+  handleEvents(g);
+  drive(g);
+}
+
+function isMyTurn(g){return g.phase!=='over'&&g.order[g.turn]===CS.myId&&g.eliminated.indexOf(CS.myId)<0;}
+function isMyMove(g){return isMyTurn(g)&&g.phase==='move';}
+
+/* ═══════════════════ ЗАПИС СТАНУ ═══════════════════ */
+function write(g){
+  const upd={game:clone(g)};
+  if(g.phase==='over')upd.status='finished';
+  return dbUpdate('chess_rooms/'+CS.code,upd).catch(e=>toast('❌ '+(e.message||e)));
+}
+
+/* ═══════════════════ ВЕДЕННЯ ХОДУ (активний гравець) ═══════════════════ */
+function drive(g){
+  if(!isMyTurn(g))return;
+  const key=g.turnNo+':'+g.phase+':'+(g.dice?g.dice.seed:'');
+  if(CS.driveKey===key)return;
+  CS.driveKey=key;
+  if(g.phase==='banner'){
+    const tn=g.turnNo;
+    later(()=>{
+      const cur=CS&&CS.g;
+      if(!cur||cur.turnNo!==tn||cur.phase!=='banner')return;
+      startSpawns(clone(cur));
+    },BANNER_MS);
+  }else if(g.phase==='dice'){
+    const seed=g.dice.seed;
+    later(()=>startQuiz(seed),DICE_MS+150);
+  }
+}
+function startSpawns(g){
+  processLeavers(g,CS.leavers);
+  if(g.phase==='over'){write(g);return;}
+  g.spawnQueue=CASTLES.filter(c=>g.castles[c]===CS.myId);
+  nextDice(g);
+}
+function nextDice(g){
+  if(!g.spawnQueue.length){
+    g.phase='move';g.moved={};delete g.dice;
+  }else{
+    g.phase='dice';
+    g.dice={seed:1+rnd(1e9),d1:1+rnd(6),d2:1+rnd(6),castle:g.spawnQueue[0]};
+  }
+  write(g);
+}
+
+/* ─── вікторина з кубиками ─── */
+function startQuiz(seed){
+  const g=CS&&CS.g;
+  if(!g||g.phase!=='dice'||!g.dice||g.dice.seed!==seed||!isMyTurn(g))return;
+  CS.quiz={seed,sum:g.dice.d1+g.dice.d2,t0:Date.now(),done:false};
+  const q=$('ch-quiz');
+  q.classList.remove('hidden');
+  q.innerHTML=`<div class="ch-q-t">🎲 Скільки очок на двох кубиках? <small>(замок ${esc(g.dice.castle)})</small></div>
+    <div class="ch-q-bar"><i id="ch-q-fill"></i></div>
+    <div class="ch-q-row"><input id="ch-q-in" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Сума" autocomplete="off">
+    <button class="ch-btn ch-green" onclick="chessSubmitAnswer()">✓ Відповісти</button></div>
+    <div class="ch-q-hint">Рівень фішки = сума + секунди, що лишились. Хибно або без відповіді — рівень 1.</div>`;
+  const inp=$('ch-q-in');
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')submitAnswer();});
+  setTimeout(()=>{try{inp.focus();}catch(e){}},50);
+  CS.quizTimer=setInterval(()=>{
+    if(!CS||!CS.quiz)return;
+    const left=QUIZ_MS-(Date.now()-CS.quiz.t0);
+    const f=$('ch-q-fill');
+    if(f){f.style.width=Math.max(0,left/QUIZ_MS*100)+'%';}
+    const s=$('ch-q-sec');
+    if(left<=0)finishQuiz(null);
+  },100);
+}
+function submitAnswer(){
+  if(!CS||!CS.quiz||CS.quiz.done)return;
+  const v=$('ch-q-in').value;
+  finishQuiz(v===''?null:parseInt(v,10));
+}
+function finishQuiz(ans){
+  const qz=CS&&CS.quiz;
+  if(!qz||qz.done)return;
+  qz.done=true;
+  clearInterval(CS.quizTimer);
+  const left=Math.max(0,Math.ceil((QUIZ_MS-(Date.now()-qz.t0))/1000));
+  const ok=ans!==null&&!isNaN(ans)&&ans===qz.sum;
+  const level=ok?qz.sum+left:1;
+  const q=$('ch-quiz');q.classList.add('hidden');q.innerHTML='';
+  CS.quiz=null;
+  const g=clone(CS.g),nm=g.names[CS.myId],c=g.dice.castle;
+  if(g.castles[c]===CS.myId){
+    const ex=g.pieces[c];
+    if(ex&&ex.o===CS.myId)g.pieces[c]={o:CS.myId,l:ex.l+level};
+    else if(!ex)g.pieces[c]={o:CS.myId,l:level};
+  }
+  g.spawnQueue.shift();
+  g.ev={n:((g.ev&&g.ev.n)||0)+1,
+    txt:ok?`✅ ${nm}: ${qz.sum} + ${left}с → нова фішка рівня ${level}`
+          :`❌ ${nm}: ${ans===null?'час вийшов':'хибно'} (було ${qz.sum}) → фішка рівня 1`};
+  nextDice(g);
+}
+
+/* ─── ходи фішками ─── */
+function onCell(id){
+  const g=CS&&CS.g;
+  if(!g||!isMyMove(g))return;
+  const p=g.pieces[id];
+  if(p&&p.o===CS.myId&&!g.moved[id]){CS.sel=(CS.sel===id)?null:id;renderAll(g);return;}
+  if(CS.sel&&neighbors(CS.sel).indexOf(id)>=0)doMove(CS.sel,id);
+}
+function doMove(from,to){
+  const g=clone(CS.g);
+  CS.sel=null;
+  const txt=applyMove(g,from,to,CS.myId);
+  if(txt===null)return;
+  write(g);
+  if(g.phase==='over')return;
+  const left=myPieces(g,CS.myId).filter(c=>!g.moved[c]);
+  if(!left.length){
+    const tn=g.turnNo;
+    later(()=>{const cur=CS&&CS.g;if(cur&&cur.turnNo===tn&&cur.phase==='move'&&isMyTurn(cur))finishTurn();},800);
+  }
+}
+function finishTurn(){
+  const g=CS&&CS.g;
+  if(!g||!isMyMove(g))return;
+  const ng=clone(g);
+  CS.sel=null;
+  processLeavers(ng,CS.leavers);
+  if(ng.phase!=='over')nextTurn(ng);
+  write(ng);
+}
+
+/* ═══════════════════ ВІДОБРАЖЕННЯ ═══════════════════ */
+function buildBoardDom(){
+  const b=$('ch-board');b.innerHTML='';
+  for(let y=0;y<8;y++)for(let x=0;x<8;x++){
+    const id=xyCell(x,y);
+    const d=document.createElement('div');
+    d.className='ch-cell '+(((x+y)%2===0)?'lt':'dk');
+    d.dataset.id=id;
+    d.innerHTML='<div class="ch-castle"></div><div class="ch-piece"></div>';
+    d.onclick=()=>onCell(id);
+    b.appendChild(d);
+  }
+  $('ch-lx').innerHTML=FILES.split('').map(c=>`<span>${c}</span>`).join('');
+  $('ch-ly').innerHTML=[8,7,6,5,4,3,2,1].map(c=>`<span>${c}</span>`).join('');
+}
+function layout(){
+  const S=Math.max(240,Math.min(window.innerWidth-12,window.innerHeight-250,740));
+  const P=Math.round(S*0.045);
+  CS.S=S;CS.P=P;CS.cs=(S-2*P)/8;
+  const fr=$('ch-frame');
+  fr.style.width=fr.style.height=S+'px';
+  $('chess-game').style.setProperty('--cs',CS.cs+'px');
+  $('chess-game').style.setProperty('--P',P+'px');
+}
+function renderAll(g){
+  renderPlayers(g);renderBoardState(g);renderInfo(g);
+}
+function renderPlayers(g){
+  $('ch-players').innerHTML=g.order.map(id=>{
+    const c=colOf(g,id),dead=g.eliminated.indexOf(id)>=0;
+    const turn=g.phase!=='over'&&g.order[g.turn]===id&&!dead;
+    const cn=CASTLES.filter(k=>g.castles[k]===id).length;
+    const pc=myPieces(g,id).length;
+    return `<div class="ch-pl${turn?' turn':''}${dead?' dead':''}" style="border-color:${c.c}">
+      <span class="ch-dot" style="background:${c.c}"></span>
+      <b>${esc(g.names[id])}${id===CS.myId?' (ви)':''}</b>
+      <small>${dead?'☠️ вибув':`🏰${cn} ♟${pc}`}</small></div>`;
+  }).join('');
+}
+function renderBoardState(g){
+  const mv=isMyMove(g);
+  const tg=(mv&&CS.sel)?neighbors(CS.sel):[];
+  document.querySelectorAll('#ch-board .ch-cell').forEach(el=>{
+    const id=el.dataset.id,cs=el.firstChild,pe=el.lastChild;
+    if(id in g.castles){
+      const o=g.castles[id];
+      cs.style.display='block';
+      if(o){const c=colOf(g,o);cs.style.background=c.c;cs.style.borderColor=c.d;}
+      else{cs.style.background='#9e9e9e';cs.style.borderColor='#5f5f5f';}
+    }else cs.style.display='none';
+    const p=g.pieces[id];
+    if(p){
+      const c=colOf(g,p.o);
+      pe.style.display='flex';
+      pe.style.background=`radial-gradient(circle at 35% 30%,#fff8 0,${c.c} 45%,${c.d} 100%)`;
+      pe.style.color=c.t;
+      pe.textContent=p.l;
+      const fk=p.l>=100?0.24:(p.l>=10?0.31:0.38);
+      pe.style.fontSize=`calc(var(--cs)*${fk})`;
+    }else pe.style.display='none';
+    const own=p&&p.o===CS.myId;
+    el.classList.toggle('sel',CS.sel===id);
+    el.classList.toggle('tgt',tg.indexOf(id)>=0&&!(p&&p.o!==CS.myId));
+    el.classList.toggle('tgte',tg.indexOf(id)>=0&&!!p&&p.o!==CS.myId);
+    el.classList.toggle('ready',!!(mv&&own&&!g.moved[id]));
+    el.classList.toggle('done',!!(p&&own&&g.moved[id]&&g.phase==='move'));
+  });
+}
+function renderInfo(g){
+  const st=$('ch-status'),eb=$('ch-endturn');
+  const me=CS.myId,dead=g.eliminated.indexOf(me)>=0;
+  const cur=g.order[g.turn];
+  let t='';
+  if(g.phase==='over')t=`🏆 Гру завершено! Переможець: ${nameHtml(g,g.winner)}`;
+  else if(dead)t=`☠️ Ви вибули. Спостерігаєте. Ходить ${nameHtml(g,cur)}`;
+  else if(g.phase==='banner')t=`Ходить гравець ${nameHtml(g,cur)}`;
+  else if(g.phase==='dice')t=cur===me?'🎲 Порахуйте кубики!':`🎲 ${nameHtml(g,cur)} рахує кубики…`;
+  else if(g.phase==='move')t=cur===me?'👆 Обери свою фішку, потім клітинку поруч (кожна фішка ходить 1 раз)':`Ходить ${nameHtml(g,cur)}…`;
+  st.innerHTML=t;
+  eb.classList.toggle('hidden',!isMyMove(g));
+  const ev=g.ev&&g.ev.txt;
+  $('ch-log').textContent=ev||'';
+}
+
+/* ─── банер, події, нагороди ─── */
+function handleEvents(g){
+  if(g.phase!=='over'&&g.turnNo!==CS.shownTurn){
+    CS.shownTurn=g.turnNo;
+    const cur=g.order[g.turn],b=$('ch-banner');
+    b.innerHTML=`<div>Ходить гравець<br><span style="font-size:1.25em">${nameHtml(g,cur)}</span></div>`;
+    b.classList.add('show');
+    later(()=>b.classList.remove('show'),BANNER_MS-100);
+  }
+  if(g.ev&&g.ev.n!==CS.evN){
+    if(CS.evN!==-1&&g.ev.txt)toast(esc(g.ev.txt),3400);
+    CS.evN=g.ev.n;
+  }
+  // кубики
+  if(g.phase==='dice'&&g.dice){
+    if(CS.animSeed!==g.dice.seed){CS.animSeed=g.dice.seed;animateDice(g.dice);}
+  }else if(CS.animSeed!==null){
+    CS.animSeed=null;stopAnim();$('ch-dice-layer').innerHTML='';
+  }
+  // нагороди
+  if(!CS.rewarded){
+    const rw=rewardFor(g,CS.myId);
+    if(rw){CS.rewarded=true;giveReward(rw,g.order.length);}
+  }
+  if(g.phase==='over'&&!CS.resultsShown){CS.finished=true;CS.resultsShown=true;showResults(g);}
+}
+function giveReward(rw,n){
+  const k=rw.sets,user=getUser();
+  user.stars=(user.stars||0)+1000*k;
+  user.seeds=(user.seeds||0)+k;
+  user.bees=(user.bees||0)+k;
+  user.guzuky=(user.guzuky||0)+10*k;
+  user.threads=(user.threads||0)+10*k;
+  addGameHistoryEntry('♟️ Шахи',`${rw.place}/${n}`,rewardText(k),user);
+  saveUser(user);
+  if(typeof updateUI==='function')updateUI();
+  if(rw.place>1)toast(`☠️ Ви втратили всі замки (${rw.place}/${n} місце)<br>${rewardText(k)}`,5000);
+}
+function showResults(g){
+  const res=g.results||computeResults(g);
+  const medal=['🥇','🥈','🥉','4️⃣'];
+  const box=$('ch-results');
+  box.innerHTML=`<div class="ch-res-box">
+    <div class="ch-h">🏆 Результати гри</div>
+    <table>${res.map(r=>`<tr><td>${medal[r.place-1]||r.place}</td>
+      <td>${nameHtml(g,r.id)}${r.id===CS.myId?' <small>(ви)</small>':''}</td>
+      <td class="ch-rw">${rewardText(r.sets)}</td></tr>`).join('')}</table>
+    <button class="ch-btn ch-blue" id="ch-res-close" disabled>⏳ 3</button></div>`;
+  box.classList.add('show');
+  let s=3;
+  const iv=setInterval(()=>{
+    s--;
+    const b=$('ch-res-close');
+    if(!b){clearInterval(iv);return;}
+    if(s<=0){clearInterval(iv);b.disabled=false;b.textContent='Закрити';b.onclick=closeChess;}
+    else b.textContent='⏳ '+s;
+  },1000);
+  CS.timers.push(iv);
+}
+
+/* ═══════════════════ АНІМАЦІЯ КУБИКІВ ═══════════════════ */
+const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function setFace(die,v){
+  const ps=die.querySelectorAll('i');
+  for(let i=0;i<9;i++)ps[i].style.visibility=PIPS[v].indexOf(i)>=0?'visible':'hidden';
+  die.dataset.v=v;
+}
+function stopAnim(){if(CS&&CS.animRaf){cancelAnimationFrame(CS.animRaf);CS.animRaf=0;}}
+function animateDice(dice){
+  stopAnim();
+  const layer=$('ch-dice-layer');layer.innerHTML='';
+  const r=mulberry(dice.seed),S=CS.S,P=CS.P,sz=CS.cs*0.8;
+  const lo=P,hi=S-P-sz,k=S/400;
+  const G=0.0031*k,REST=0.64;
+  const finals=[
+    {x:S*0.28+(r()-.5)*S*0.05,y:S*0.40+(r()-.5)*S*0.08,rot:(r()-.5)*24},
+    {x:S*0.56+(r()-.5)*S*0.05,y:S*0.47+(r()-.5)*S*0.08,rot:(r()-.5)*24}];
+  const vals=[dice.d1,dice.d2];
+  const ds=vals.map((v,i)=>{
+    const wrap=document.createElement('div');wrap.className='ch-dwrap';
+    wrap.style.width=wrap.style.height=sz+'px';
+    const sh=document.createElement('div');sh.className='ch-dshadow';
+    const die=document.createElement('div');die.className='ch-die';
+    die.innerHTML='<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>';
+    wrap.appendChild(sh);wrap.appendChild(die);layer.appendChild(wrap);
+    setFace(die,1+Math.floor(r()*6));
+    return {wrap,sh,die,x:lo+r()*(hi-lo)*0.5+(i?(hi-lo)*0.3:0),y:lo+r()*(hi-lo)*0.2,
+      vx:(0.17+r()*0.2)*k*(r()<.5?-1:1),vy:(0.2+r()*0.2)*k,
+      z:S*(0.5+r()*0.15),vz:0,rot:r()*360,vr:(0.4+r()*0.5)*(r()<.5?-1:1),
+      settled:false,rot0:null,fx:finals[i].x,fy:finals[i].y,fr:finals[i].rot,v:v,lx:0,ly:0};
+  });
+  let last=performance.now(),t=0;
+  function frame(now){
+    if(!CS||CS.animSeed!==dice.seed)return;
+    const dt=Math.min(32,now-last);last=now;t+=dt;
+    const blend=Math.max(0,Math.min(1,(t-(DICE_MS-380))/380));
+    ds.forEach(d=>{
+      if(t<DICE_MS-380){
+        d.x+=d.vx*dt;d.y+=d.vy*dt;
+        if(d.x<lo){d.x=lo;d.vx=Math.abs(d.vx);}
+        if(d.x>hi){d.x=hi;d.vx=-Math.abs(d.vx);}
+        if(d.y<lo){d.y=lo;d.vy=Math.abs(d.vy);}
+        if(d.y>hi){d.y=hi;d.vy=-Math.abs(d.vy);}
+        d.vz-=G*dt;d.z+=d.vz*dt;
+        if(d.z<=0){
+          d.z=0;
+          if(Math.abs(d.vz)>0.06*k){
+            d.vz=-d.vz*REST;d.vx*=0.82;d.vy*=0.82;d.vr*=0.8;
+            setFace(d.die,1+Math.floor(Math.random()*6));
+          }else d.vz=0;
+        }
+        d.rot+=d.vr*dt;
+      }else{
+        if(d.rot0===null){d.rot0=((d.rot%360)+540)%360-180;d.sx=d.x;d.sy=d.y;d.z=0;d.vz=0;setFace(d.die,d.v);}
+        const e=1-Math.pow(1-blend,3);
+        d.x=d.sx+(d.fx-d.sx)*e;d.y=d.sy+(d.fy-d.sy)*e;d.rot=d.rot0*(1-e)+d.fr*e;
+      }
+      d.wrap.style.transform=`translate(${d.x}px,${d.y}px)`;
+      d.die.style.transform=`translateY(${-d.z}px) rotate(${d.rot}deg)`;
+      const sc=Math.max(.5,1-d.z/(S*0.9));
+      d.sh.style.transform=`translateY(${sz*0.08}px) scale(${sc})`;
+      d.sh.style.opacity=(0.42*sc).toFixed(2);
+    });
+    if(t<DICE_MS+60)CS.animRaf=requestAnimationFrame(frame);
+    else CS.animRaf=0;
+  }
+  CS.animRaf=requestAnimationFrame(frame);
+}
+
+/* ═══════════════════ ЕКСПОРТ ═══════════════════ */
+window.openChess=openChess;
+window.closeChess=closeChess;
+window.chessCreateRoom=createRoom;
+window.chessJoinRoom=joinRoom;
+window.chessStartGame=startGame;
+window.chessCopyCode=copyCode;
+window.chessSubmitAnswer=submitAnswer;
+window.chessEndTurn=finishTurn;
+window.addEventListener('resize',()=>{if(CS&&CS.boardBuilt&&CS.g){layout();}});
+})();
+
+</script>
 </body>
 </html>
