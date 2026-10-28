@@ -10658,7 +10658,7 @@ const FILES='abcdefgh';
 const diffOf=g=>Math.max(1,Math.min(5,((g&&g.diff)|0)||1));
 const diceCount=g=>1+diffOf(g);                    // рівень 1 = 2 кубики, +1 за кожен рівень
 const quizMs=g=>(10+5*(diffOf(g)-1))*1000;         // 10 с, +5 с за кожен рівень
-const BASES=['rooms/chess_','en_rooms/chess_','chess_rooms/'];  // шляхи в Firebase (перший дозволений правилами)
+const BASES=['rooms/chess_','en_rooms/chess_','cloud_profiles/_chess_','chess_rooms/'];  // шляхи в Firebase (перший дозволений правилами)
 const DICE_MS=1900;
 const BANNER_MS=2300;
 
@@ -10885,7 +10885,7 @@ function listen(){
 }
 function rulesMsg(e){
   const c=(e&&(e.code||e.message))||'';
-  if(/PERMISSION/i.test(c))return '❌ Firebase забороняє запис.\nУ Firebase Console → Realtime Database → Rules додайте:\n"rooms": {".read":"auth != null",".write":"auth != null"}\nі натисніть Publish.';
+  if(/PERMISSION/i.test(c))return '❌ Firebase забороняє запис.\nУ Firebase Console → Realtime Database → Rules додайте:\n"rooms": {".read":"auth != null",".write":"auth != null"},\n"en_rooms": {".read":"auth != null",".write":"auth != null"}\nі натисніть Publish.';
   return '❌ Помилка з\'єднання: '+c;
 }
 async function createRoom(){
