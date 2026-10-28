@@ -10571,6 +10571,12 @@ window.piratesRestartSame=piratesRestartSame;
 @keyframes chBan{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
 #ch-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:35;background:rgba(0,0,0,.88);color:#fff;padding:10px 16px;border-radius:12px;max-width:92vw;text-align:center;font-weight:700;font-size:.9rem;display:none}
 #ch-toast.show{display:block}
+.ch-dpick{display:flex;gap:6px;justify-content:center;margin:4px 0}
+.ch-dbtn{width:44px;height:44px;border-radius:12px;border:2px solid #8e6a6f;background:rgba(255,255,255,.1);color:#fff;font-weight:900;font-size:1.15rem;cursor:pointer}
+.ch-dbtn.on{background:#ffd700;color:#000;border-color:#fff}
+.ch-dbtn:disabled{cursor:default}
+#ch-diff-info{font-size:.82rem;color:#ffd700;margin-top:6px;line-height:1.5}
+#ch-diff{font-size:.78rem;color:#ffd700;text-align:center}
 #ch-results{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:12px}
 #ch-results.show{display:flex}
 .ch-res-box{background:#2b1b1e;border:2px solid #ffd700;border-radius:18px;padding:18px;width:100%;max-width:460px;text-align:center}
@@ -10607,12 +10613,16 @@ window.piratesRestartSame=piratesRestartSame;
       <button class="ch-btn" style="background:#ffd700;color:#000;margin-top:0" onclick="chessCopyCode()">📋 Скопіювати код</button>
       <div style="color:#bbb;font-size:.85rem;margin:14px 0 4px">Гравці в кімнаті:</div>
       <div id="ch-lobby-list"></div>
+      <div style="color:#bbb;font-size:.85rem;margin:14px 0 4px">Рівень складності:</div>
+      <div class="ch-dpick" id="ch-diff-pick"></div>
+      <div id="ch-diff-info"></div>
       <div id="ch-lobby-msg" style="color:#ddd;font-size:.9rem;margin-top:8px"></div>
       <button class="ch-btn ch-green hidden" id="ch-start-btn" onclick="chessStartGame()">▶️ Почати гру</button>
     </div>
   </div>
 
   <div id="ch-play" class="hidden">
+    <div id="ch-diff"></div>
     <div id="ch-players"></div>
     <div id="ch-status"></div>
     <div id="ch-frame">
@@ -10645,7 +10655,10 @@ const COLORS=[
 const CASTLES=['a8','h8','a1','h1','c6','f6','c3','f3'];   // 4 кути + 4 вільні замки
 const CORNERS=['a8','h8','a1','h1'];
 const FILES='abcdefgh';
-const QUIZ_MS=10000;
+const diffOf=g=>Math.max(1,Math.min(5,((g&&g.diff)|0)||1));
+const diceCount=g=>1+diffOf(g);                    // рівень 1 = 2 кубики, +1 за кожен рівень
+const quizMs=g=>(10+5*(diffOf(g)-1))*1000;         // 10 с, +5 с за кожен рівень
+const BASES=['rooms/chess_','en_rooms/chess_','chess_rooms/'];  // шляхи в Firebase (перший дозволений правилами)
 const DICE_MS=1900;
 const BANNER_MS=2300;
 
@@ -10667,12 +10680,12 @@ function neighbors(id){
 function normGame(g){
   g.order=g.order||[];g.eliminated=g.eliminated||[];g.spawnQueue=g.spawnQueue||[];
   g.pieces=g.pieces||{};g.moved=g.moved||{};g.castles=g.castles||{};
-  g.colors=g.colors||{};g.names=g.names||{};g.ev=g.ev||{n:0,txt:''};
+  g.diff=diffOf(g);g.colors=g.colors||{};g.names=g.names||{};g.ev=g.ev||{n:0,txt:''};
   return g;
 }
 function aliveIds(g){return g.order.filter(id=>g.eliminated.indexOf(id)<0);}
 
-function buildGame(list){            // list: [{id,name}]
+function buildGame(list,diff){            // list: [{id,name}]
   const n=list.length;
   const order=shuffle(list.map(p=>p.id));          // випадкова черговість
   const colIdx=shuffle([0,1,2,3]).slice(0,n);      // випадкові кольори
@@ -10680,7 +10693,7 @@ function buildGame(list){            // list: [{id,name}]
   if(n===2) corners=shuffle(Math.random()<0.5?['a8','h1']:['h8','a1']); // по діагоналі
   else corners=shuffle(CORNERS).slice(0,n);
   const g={order,colors:{},names:{},castles:{},pieces:{},moved:{},eliminated:[],
-           turn:0,turnNo:1,phase:'banner',spawnQueue:[],ev:{n:0,txt:''}};
+           diff:Math.max(1,Math.min(5,(diff|0)||1)),turn:0,turnNo:1,phase:'banner',spawnQueue:[],ev:{n:0,txt:''}};
   CASTLES.forEach(c=>g.castles[c]='');             // '' = вільний (сірий) замок
   order.forEach((id,i)=>{
     const p=list.find(x=>x.id===id);
@@ -10697,24 +10710,24 @@ function eliminate(g,id){
   Object.keys(g.pieces).forEach(c=>{if(g.pieces[c].o===id){delete g.pieces[c];delete g.moved[c];}});
   CASTLES.forEach(c=>{if(g.castles[c]===id)g.castles[c]='';});
 }
-function rewardSets(place,n){return n-place+1;}
+function rewardSets(place,n,diff){return (n-place+1)*(diff||1);}   // нагорода = (рівень 1) × складність
 function computeResults(g){
   const n=g.order.length,res=[];
-  if(g.winner)res.push({id:g.winner,name:g.names[g.winner],place:1,sets:rewardSets(1,n)});
+  if(g.winner)res.push({id:g.winner,name:g.names[g.winner],place:1,sets:rewardSets(1,n,g.diff)});
   for(let i=g.eliminated.length-1;i>=0;i--){
     const id=g.eliminated[i],place=n-i;
-    res.push({id,name:g.names[id],place,sets:rewardSets(place,n)});
+    res.push({id,name:g.names[id],place,sets:rewardSets(place,n,g.diff)});
   }
   return res;
 }
 function rewardFor(g,id){
   if(g.phase!=='over'&&g.eliminated.indexOf(id)<0)return null;
   const n=g.order.length;
-  if(g.winner===id&&g.phase==='over')return {place:1,sets:rewardSets(1,n)};
+  if(g.winner===id&&g.phase==='over')return {place:1,sets:rewardSets(1,n,g.diff)};
   const i=g.eliminated.indexOf(id);
   if(i<0)return null;
   const place=n-i;
-  return {place,sets:rewardSets(place,n)};
+  return {place,sets:rewardSets(place,n,g.diff)};
 }
 function finish(g,winner){g.phase='over';g.winner=winner||'';g.results=computeResults(g);}
 function checkElims(g){
@@ -10769,7 +10782,7 @@ function myPieces(g,id){return Object.keys(g.pieces).filter(c=>g.pieces[c].o===i
 /* ═══════════════════ ТЕСТОВИЙ ЕКСПОРТ (node) ═══════════════════ */
 if(typeof module!=='undefined'&&module.exports){
   module.exports={buildGame,applyMove,nextTurn,processLeavers,eliminate,checkElims,neighbors,normGame,
-    aliveIds,computeResults,rewardFor,rewardSets,myPieces,CASTLES,clone,xyCell,cellXY};
+    aliveIds,computeResults,rewardFor,rewardSets,myPieces,CASTLES,diceCount,quizMs,clone,xyCell,cellXY};
   return;
 }
 
@@ -10810,7 +10823,7 @@ function section(name){
 
 /* ═══════════════════ ВХІД / ВИХІД ═══════════════════ */
 function newSession(){
-  return {code:'',myId:'',myName:'',isHost:false,room:null,g:null,ref:null,cb:null,timers:[],
+  return {base:'',code:'',myId:'',myName:'',isHost:false,room:null,g:null,ref:null,cb:null,timers:[],
     sel:null,quiz:null,animSeed:null,animRaf:0,driveKey:'',shownTurn:0,evN:-1,
     rewarded:false,leaving:false,finished:false,resultsShown:false,boardBuilt:false,leavers:{},S:400,P:18,cs:44};
 }
@@ -10843,8 +10856,8 @@ async function closeChess(){
   const g=CS.g,room=CS.room;
   try{
     if(room&&room.status==='waiting'){
-      if(CS.isHost)await dbRemove('chess_rooms/'+CS.code);
-      else await dbRemove(`chess_rooms/${CS.code}/players/${CS.myId}`);
+      if(CS.isHost)await dbRemove(CS.base+CS.code);
+      else await dbRemove(`${CS.base}${CS.code}/players/${CS.myId}`);
     }else if(g&&g.phase!=='over'&&g.eliminated.indexOf(CS.myId)<0){
       if(!confirm('Вийти з гри? Ви програєте та не отримаєте нагороду.')) return;
       CS.leaving=true;CS.rewarded=true;
@@ -10856,7 +10869,7 @@ async function closeChess(){
         if(ng.phase!=='over')nextTurn(ng);
         await write(ng);
       }else{
-        await dbSet(`chess_rooms/${CS.code}/leavers/${CS.myId}`,true);
+        await dbSet(`${CS.base}${CS.code}/leavers/${CS.myId}`,true);
       }
     }
   }catch(e){console.warn('chess leave',e);}
@@ -10865,19 +10878,29 @@ async function closeChess(){
 
 /* ═══════════════════ КІМНАТИ ═══════════════════ */
 function listen(){
-  CS.ref=R('chess_rooms/'+CS.code);
+  CS.ref=R(CS.base+CS.code);
   CS.cb=snap=>onRoom(snap.exists()?snap.val():null);
   F().onValue(CS.ref,CS.cb);
   $('ch-code').textContent='🔑 '+CS.code;
 }
+function rulesMsg(e){
+  const c=(e&&(e.code||e.message))||'';
+  if(/PERMISSION/i.test(c))return '❌ Firebase забороняє запис.\nУ Firebase Console → Realtime Database → Rules додайте:\n"rooms": {".read":"auth != null",".write":"auth != null"}\nі натисніть Publish.';
+  return '❌ Помилка з\'єднання: '+c;
+}
 async function createRoom(){
   if(!window._fbReady||!F()){alert('❌ Firebase не підключено. Гра за кодом потребує інтернету.');return;}
   const info=myInfo(),code=genCode(),myId='p_'+Date.now()+'_'+rnd(10000);
-  try{
-    await dbSet('chess_rooms/'+code,{host:myId,status:'waiting',createdAt:Date.now(),
-      players:{[myId]:{name:info.name,avatar:info.avatar||'👤',joinedAt:Date.now()}}});
-  }catch(e){alert('❌ Помилка з\'єднання: '+(e.message||e));return;}
-  Object.assign(CS,{code,myId,myName:info.name,isHost:true});
+  let base=null,lastErr=null;
+  for(const b of BASES){
+    try{
+      await dbSet(b+code,{host:myId,status:'waiting',difficulty:1,createdAt:Date.now(),
+        players:{[myId]:{name:info.name,avatar:info.avatar||'👤',joinedAt:Date.now()}}});
+      base=b;break;
+    }catch(e){lastErr=e;}
+  }
+  if(!base){alert(rulesMsg(lastErr));return;}
+  Object.assign(CS,{base,code,myId,myName:info.name,isHost:true});
   listen();
 }
 async function joinRoom(){
@@ -10885,27 +10908,38 @@ async function joinRoom(){
   const err=$('ch-menu-err');err.textContent='';
   const code=($('ch-join-input').value||'').trim().toUpperCase();
   if(code.length<4){err.textContent='❌ Введіть правильний код';return;}
-  let snap;
-  try{snap=await dbGet('chess_rooms/'+code);}catch(e){err.textContent='❌ Помилка з\'єднання';return;}
-  if(!snap.exists()){err.textContent='❌ Кімнату не знайдено';return;}
+  let snap=null,base=null,errs=0;
+  for(const b of BASES){
+    try{const x=await dbGet(b+code);if(x.exists()){snap=x;base=b;break;}}catch(e){errs++;}
+  }
+  if(!snap){err.textContent=errs===BASES.length?'❌ Помилка з\'єднання (перевірте правила Firebase)':'❌ Кімнату не знайдено';return;}
   const room=snap.val();
   if(room.status!=='waiting'){err.textContent='❌ Гра вже почалась';return;}
   if(Object.keys(room.players||{}).length>=4){err.textContent='❌ Кімната заповнена (максимум 4 гравці)';return;}
   const info=myInfo(),myId='p_'+Date.now()+'_'+rnd(10000);
   try{
-    await dbSet(`chess_rooms/${code}/players/${myId}`,{name:info.name,avatar:info.avatar||'👤',joinedAt:Date.now()});
+    await dbSet(`${base}${code}/players/${myId}`,{name:info.name,avatar:info.avatar||'👤',joinedAt:Date.now()});
   }catch(e){err.textContent='❌ '+(e.message||e);return;}
-  Object.assign(CS,{code,myId,myName:info.name,isHost:false});
+  Object.assign(CS,{base,code,myId,myName:info.name,isHost:false});
   listen();
 }
 function sortedPlayers(room){
   return Object.keys(room.players||{}).map(id=>({id,name:room.players[id].name,avatar:room.players[id].avatar,t:room.players[id].joinedAt||0}))
     .sort((a,b)=>a.t-b.t);
 }
+const dnTxt=n=>n+(n<5?' кубики':' кубиків');
+function diffInfoTxt(d){return `🎲 ${dnTxt(1+d)} • ⏱ ${10+5*(d-1)} с на відповідь • 🎁 нагорода ×${d}`;}
+function setDiff(n){
+  if(!CS||!CS.isHost||!CS.room||CS.room.status!=='waiting')return;
+  dbUpdate(CS.base+CS.code,{difficulty:n}).catch(e=>toast('❌ '+(e.message||e)));
+}
 function renderLobby(room){
   const pl=sortedPlayers(room);
   $('ch-lobby-code').textContent=CS.code;
   $('ch-lobby-list').innerHTML=pl.map((p,i)=>`<div class="ch-lp"><span>${esc(p.avatar&&p.avatar.length<8?p.avatar:'👤')}</span><b>${esc(p.name)}</b>${p.id===room.host?'<small>👑 господар</small>':''}</div>`).join('');
+  const dv=Math.max(1,Math.min(5,(room.difficulty|0)||1));
+  $('ch-diff-pick').innerHTML=[1,2,3,4,5].map(n=>`<button class="ch-dbtn${n===dv?' on':''}" ${CS.isHost?`onclick="chessSetDiff(${n})"`:'disabled'}>${n}</button>`).join('');
+  $('ch-diff-info').textContent=diffInfoTxt(dv);
   const btn=$('ch-start-btn'),msg=$('ch-lobby-msg');
   if(CS.isHost){
     btn.classList.remove('hidden');
@@ -10918,12 +10952,12 @@ function renderLobby(room){
 }
 async function startGame(){
   if(!CS||!CS.isHost)return;
-  const snap=await dbGet('chess_rooms/'+CS.code);
+  const snap=await dbGet(CS.base+CS.code);
   if(!snap.exists())return;
   const room=snap.val(),pl=sortedPlayers(room);
   if(pl.length<2||pl.length>4){toast('Потрібно 2–4 гравці');return;}
-  const g=buildGame(pl.map(p=>({id:p.id,name:p.name})));
-  await dbUpdate('chess_rooms/'+CS.code,{status:'playing',game:clone(g)});
+  const g=buildGame(pl.map(p=>({id:p.id,name:p.name})),room.difficulty);
+  await dbUpdate(CS.base+CS.code,{status:'playing',game:clone(g)});
 }
 function copyCode(){
   try{navigator.clipboard.writeText(CS.code);toast('📋 Код скопійовано');}catch(e){toast('Код: '+CS.code);}
@@ -10956,7 +10990,7 @@ function isMyMove(g){return isMyTurn(g)&&g.phase==='move';}
 function write(g){
   const upd={game:clone(g)};
   if(g.phase==='over')upd.status='finished';
-  return dbUpdate('chess_rooms/'+CS.code,upd).catch(e=>toast('❌ '+(e.message||e)));
+  return dbUpdate(CS.base+CS.code,upd).catch(e=>toast('❌ '+(e.message||e)));
 }
 
 /* ═══════════════════ ВЕДЕННЯ ХОДУ (активний гравець) ═══════════════════ */
@@ -10988,7 +11022,8 @@ function nextDice(g){
     g.phase='move';g.moved={};delete g.dice;
   }else{
     g.phase='dice';
-    g.dice={seed:1+rnd(1e9),d1:1+rnd(6),d2:1+rnd(6),castle:g.spawnQueue[0]};
+    const vals=[];for(let i=0;i<diceCount(g);i++)vals.push(1+rnd(6));
+    g.dice={seed:1+rnd(1e9),vals,d1:vals[0],d2:vals[1],castle:g.spawnQueue[0]};
   }
   write(g);
 }
@@ -10997,22 +11032,23 @@ function nextDice(g){
 function startQuiz(seed){
   const g=CS&&CS.g;
   if(!g||g.phase!=='dice'||!g.dice||g.dice.seed!==seed||!isMyTurn(g))return;
-  CS.quiz={seed,sum:g.dice.d1+g.dice.d2,t0:Date.now(),done:false};
+  const dv=g.dice.vals||[g.dice.d1,g.dice.d2];
+  CS.quiz={seed,sum:dv.reduce((a,b)=>a+b,0),ms:quizMs(g),t0:Date.now(),done:false};
   const q=$('ch-quiz');
   q.classList.remove('hidden');
-  q.innerHTML=`<div class="ch-q-t">🎲 Скільки очок на двох кубиках? <small>(замок ${esc(g.dice.castle)})</small></div>
+  q.innerHTML=`<div class="ch-q-t">🎲 Скільки очок на ${dv.length} кубиках? <small>(замок ${esc(g.dice.castle)})</small></div>
     <div class="ch-q-bar"><i id="ch-q-fill"></i></div>
     <div class="ch-q-row"><input id="ch-q-in" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Сума" autocomplete="off">
     <button class="ch-btn ch-green" onclick="chessSubmitAnswer()">✓ Відповісти</button></div>
-    <div class="ch-q-hint">Рівень фішки = сума + секунди, що лишились. Хибно або без відповіді — рівень 1.</div>`;
+    <div class="ch-q-hint">Рівень фішки = сума + секунди, що лишились. Хибно або без відповіді — рівень 1. Складність ${diffOf(g)}: ⏱ ${CS.quiz.ms/1000} с.</div>`;
   const inp=$('ch-q-in');
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')submitAnswer();});
   setTimeout(()=>{try{inp.focus();}catch(e){}},50);
   CS.quizTimer=setInterval(()=>{
     if(!CS||!CS.quiz)return;
-    const left=QUIZ_MS-(Date.now()-CS.quiz.t0);
+    const left=CS.quiz.ms-(Date.now()-CS.quiz.t0);
     const f=$('ch-q-fill');
-    if(f){f.style.width=Math.max(0,left/QUIZ_MS*100)+'%';}
+    if(f){f.style.width=Math.max(0,left/CS.quiz.ms*100)+'%';}
     const s=$('ch-q-sec');
     if(left<=0)finishQuiz(null);
   },100);
@@ -11027,7 +11063,7 @@ function finishQuiz(ans){
   if(!qz||qz.done)return;
   qz.done=true;
   clearInterval(CS.quizTimer);
-  const left=Math.max(0,Math.ceil((QUIZ_MS-(Date.now()-qz.t0))/1000));
+  const left=Math.max(0,Math.ceil((qz.ms-(Date.now()-qz.t0))/1000));
   const ok=ans!==null&&!isNaN(ans)&&ans===qz.sum;
   const level=ok?qz.sum+left:1;
   const q=$('ch-quiz');q.classList.add('hidden');q.innerHTML='';
@@ -11146,6 +11182,7 @@ function renderBoardState(g){
 }
 function renderInfo(g){
   const st=$('ch-status'),eb=$('ch-endturn');
+  $('ch-diff').textContent='⭐ Складність '+diffOf(g)+' • '+diffInfoTxt(diffOf(g));
   const me=CS.myId,dead=g.eliminated.indexOf(me)>=0;
   const cur=g.order[g.turn];
   let t='';
@@ -11204,6 +11241,7 @@ function showResults(g){
   const box=$('ch-results');
   box.innerHTML=`<div class="ch-res-box">
     <div class="ch-h">🏆 Результати гри</div>
+    <div style="color:#ffd700;font-size:.85rem">Складність ${diffOf(g)} • нагорода ×${diffOf(g)}</div>
     <table>${res.map(r=>`<tr><td>${medal[r.place-1]||r.place}</td>
       <td>${nameHtml(g,r.id)}${r.id===CS.myId?' <small>(ви)</small>':''}</td>
       <td class="ch-rw">${rewardText(r.sets)}</td></tr>`).join('')}</table>
@@ -11234,10 +11272,14 @@ function animateDice(dice){
   const r=mulberry(dice.seed),S=CS.S,P=CS.P,sz=CS.cs*0.8;
   const lo=P,hi=S-P-sz,k=S/400;
   const G=0.0031*k,REST=0.64;
-  const finals=[
-    {x:S*0.28+(r()-.5)*S*0.05,y:S*0.40+(r()-.5)*S*0.08,rot:(r()-.5)*24},
-    {x:S*0.56+(r()-.5)*S*0.05,y:S*0.47+(r()-.5)*S*0.08,rot:(r()-.5)*24}];
-  const vals=[dice.d1,dice.d2];
+  const vals=dice.vals||[dice.d1,dice.d2];
+  const N=vals.length,cols=N<=2?2:3,rows=Math.ceil(N/cols),step=sz*1.35;
+  const finals=vals.map((_,i)=>{
+    const cI=i%cols,rI=Math.floor(i/cols),inRow=Math.min(cols,N-rI*cols);
+    const x0=S/2-(inRow*step-(step-sz))/2+cI*step;
+    const y0=S*0.42-(rows*step-(step-sz))/2+rI*step;
+    return {x:x0+(r()-.5)*sz*0.12,y:y0+(r()-.5)*sz*0.12,rot:(r()-.5)*24};
+  });
   const ds=vals.map((v,i)=>{
     const wrap=document.createElement('div');wrap.className='ch-dwrap';
     wrap.style.width=wrap.style.height=sz+'px';
@@ -11246,7 +11288,7 @@ function animateDice(dice){
     die.innerHTML='<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>';
     wrap.appendChild(sh);wrap.appendChild(die);layer.appendChild(wrap);
     setFace(die,1+Math.floor(r()*6));
-    return {wrap,sh,die,x:lo+r()*(hi-lo)*0.5+(i?(hi-lo)*0.3:0),y:lo+r()*(hi-lo)*0.2,
+    return {wrap,sh,die,x:lo+r()*(hi-lo)*0.5+(i%2?(hi-lo)*0.3:0),y:lo+r()*(hi-lo)*0.2,
       vx:(0.17+r()*0.2)*k*(r()<.5?-1:1),vy:(0.2+r()*0.2)*k,
       z:S*(0.5+r()*0.15),vz:0,rot:r()*360,vr:(0.4+r()*0.5)*(r()<.5?-1:1),
       settled:false,rot0:null,fx:finals[i].x,fy:finals[i].y,fr:finals[i].rot,v:v,lx:0,ly:0};
@@ -11296,6 +11338,7 @@ window.chessCreateRoom=createRoom;
 window.chessJoinRoom=joinRoom;
 window.chessStartGame=startGame;
 window.chessCopyCode=copyCode;
+window.chessSetDiff=setDiff;
 window.chessSubmitAnswer=submitAnswer;
 window.chessEndTurn=finishTurn;
 window.addEventListener('resize',()=>{if(CS&&CS.boardBuilt&&CS.g){layout();}});
