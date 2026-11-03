@@ -10548,7 +10548,11 @@ window.piratesRestartSame=piratesRestartSame;
 .ch-cell.sel{outline:3px solid #ffd700;outline-offset:-3px;z-index:3}
 .ch-cell.tgt::after{content:'';position:absolute;z-index:4;width:30%;height:30%;border-radius:50%;background:rgba(46,204,64,.8);box-shadow:0 0 6px #2ecc40}
 .ch-cell.tgte{box-shadow:inset 0 0 0 3px #ff1744;z-index:3}
-.ch-cell.ready .ch-piece{animation:chPulse 1.1s infinite}
+.ch-cell.act-p,.ch-cell.act-c{z-index:2}
+.ch-cell.act-p .ch-piece{border-color:#fff;filter:brightness(1.3) saturate(1.35);animation:chGlow 1s ease-in-out infinite}
+.ch-cell.act-c .ch-castle{filter:brightness(1.35) saturate(1.3);animation:chGlowC 1s ease-in-out infinite}
+@keyframes chGlow{0%,100%{box-shadow:0 0 0 3px var(--gc),0 0 10px 3px var(--gc)}50%{box-shadow:0 0 0 4px #fff,0 0 22px 9px var(--gc)}}
+@keyframes chGlowC{0%,100%{box-shadow:0 0 0 2px #fff,0 0 10px 3px var(--gc)}50%{box-shadow:0 0 0 3px var(--gc),0 0 20px 8px var(--gc)}}
 .ch-cell.done .ch-piece{opacity:.55}
 @keyframes chPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.9)}50%{box-shadow:0 0 0 7px rgba(255,215,0,0)}}
 #ch-dice-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:10}
@@ -10571,7 +10575,7 @@ window.piratesRestartSame=piratesRestartSame;
 @keyframes chBan{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
 #ch-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:35;background:rgba(0,0,0,.88);color:#fff;padding:10px 16px;border-radius:12px;max-width:92vw;text-align:center;font-weight:700;font-size:.9rem;display:none}
 #ch-toast.show{display:block}
-.ch-dpick{display:flex;gap:6px;justify-content:center;margin:4px 0}
+.ch-dpick{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0}
 .ch-dbtn{width:44px;height:44px;border-radius:12px;border:2px solid #8e6a6f;background:rgba(255,255,255,.1);color:#fff;font-weight:900;font-size:1.15rem;cursor:pointer}
 .ch-dbtn.on{background:#ffd700;color:#000;border-color:#fff}
 .ch-dbtn:disabled{cursor:default}
@@ -10655,9 +10659,11 @@ const COLORS=[
 const CASTLES=['a8','h8','a1','h1','c6','f6','c3','f3'];   // 4 кути + 4 вільні замки
 const CORNERS=['a8','h8','a1','h1'];
 const FILES='abcdefgh';
-const diffOf=g=>Math.max(1,Math.min(5,((g&&g.diff)|0)||1));
-const diceCount=g=>1+diffOf(g);                    // рівень 1 = 2 кубики, +1 за кожен рівень
-const quizMs=g=>(10+5*(diffOf(g)-1))*1000;         // 10 с, +5 с за кожен рівень
+const normDiff=d=>{d=d|0;return d===10?10:Math.max(1,Math.min(5,d||1));};   // дозволені: 1–5 та 10
+const diffOf=g=>normDiff(g&&g.diff);
+const isMul=g=>diffOf(g)===10;                     // рівень 10: 2 кубики, множення, 15 с
+const diceCount=g=>isMul(g)?2:1+diffOf(g);                    // рівень 1 = 2 кубики, +1 за кожен рівень
+const quizMs=g=>isMul(g)?15000:(10+5*(diffOf(g)-1))*1000;         // 10 с, +5 с за кожен рівень
 const BASES=['rooms/chess_','en_rooms/chess_','cloud_profiles/_chess_','chess_rooms/'];  // шляхи в Firebase (перший дозволений правилами)
 const DICE_MS=1900;
 const BANNER_MS=2300;
@@ -10693,7 +10699,7 @@ function buildGame(list,diff){            // list: [{id,name}]
   if(n===2) corners=shuffle(Math.random()<0.5?['a8','h1']:['h8','a1']); // по діагоналі
   else corners=shuffle(CORNERS).slice(0,n);
   const g={order,colors:{},names:{},castles:{},pieces:{},moved:{},eliminated:[],
-           diff:Math.max(1,Math.min(5,(diff|0)||1)),turn:0,turnNo:1,phase:'banner',spawnQueue:[],ev:{n:0,txt:''}};
+           diff:normDiff(diff),turn:0,turnNo:1,phase:'banner',spawnQueue:[],ev:{n:0,txt:''}};
   CASTLES.forEach(c=>g.castles[c]='');             // '' = вільний (сірий) замок
   order.forEach((id,i)=>{
     const p=list.find(x=>x.id===id);
@@ -10711,6 +10717,12 @@ function eliminate(g,id){
   CASTLES.forEach(c=>{if(g.castles[c]===id)g.castles[c]='';});
 }
 function rewardSets(place,n,diff){return (n-place+1)*(diff||1);}   // нагорода = (рівень 1) × складність
+// Складність 10: останнє місце = 5000⭐ 1🌱 1🐝 10🔘 10🧵, кожне наступне вибуле місце = попереднє + (2000⭐ 2🌱 2🐝 20🔘 20🧵)
+function rewardAmt(place,n,diff){
+  if(diff===10){const r=Math.max(0,n-place);return {stars:5000+2000*r,seeds:1+2*r,bees:1+2*r,guz:10+20*r,thr:10+20*r};}
+  const k=rewardSets(place,n,diff);
+  return {stars:1000*k,seeds:k,bees:k,guz:10*k,thr:10*k};
+}
 function computeResults(g){
   const n=g.order.length,res=[];
   if(g.winner)res.push({id:g.winner,name:g.names[g.winner],place:1,sets:rewardSets(1,n,g.diff)});
@@ -10782,7 +10794,7 @@ function myPieces(g,id){return Object.keys(g.pieces).filter(c=>g.pieces[c].o===i
 /* ═══════════════════ ТЕСТОВИЙ ЕКСПОРТ (node) ═══════════════════ */
 if(typeof module!=='undefined'&&module.exports){
   module.exports={buildGame,applyMove,nextTurn,processLeavers,eliminate,checkElims,neighbors,normGame,
-    aliveIds,computeResults,rewardFor,rewardSets,myPieces,CASTLES,diceCount,quizMs,clone,xyCell,cellXY};
+    aliveIds,computeResults,rewardFor,rewardSets,rewardAmt,normDiff,myPieces,CASTLES,diceCount,quizMs,clone,xyCell,cellXY};
   return;
 }
 
@@ -10807,7 +10819,8 @@ function myInfo(){
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function colOf(g,id){return COLORS[g.colors[id]]||COLORS[0];}
 function nameHtml(g,id){const c=colOf(g,id);return `<span style="color:${c.c};font-weight:900;text-shadow:0 1px 3px rgba(0,0,0,.6)">${esc(g.names[id]||'?')}</span>`;}
-function rewardText(k){return `+${1000*k}⭐ +${k}🌱 +${k}🐝 +${10*k}🔘 +${10*k}🧵`;}
+function rewardText(a){return `+${a.stars}⭐ +${a.seeds}🌱 +${a.bees}🐝 +${a.guz}🔘 +${a.thr}🧵`;}
+function rewardNote(d){return d===10?'множення • нагорода зростає з кожним місцем':`нагорода ×${d}`;}
 
 let CS=null;   // стан сесії
 
@@ -10928,17 +10941,21 @@ function sortedPlayers(room){
     .sort((a,b)=>a.t-b.t);
 }
 const dnTxt=n=>n+(n<5?' кубики':' кубиків');
-function diffInfoTxt(d){return `🎲 ${dnTxt(1+d)} • ⏱ ${10+5*(d-1)} с на відповідь • 🎁 нагорода ×${d}`;}
+function diffInfoTxt(d){
+  if(d===10)return '🎲 2 кубики • ✖️ добуток • ⏱ 15 с • 🎁 останнє місце: 5000⭐ 1🌱 1🐝 10🔘 10🧵; кожне наступне: +2000⭐ +2🌱 +2🐝 +20🔘 +20🧵';
+  return `🎲 ${dnTxt(1+d)} • ⏱ ${10+5*(d-1)} с на відповідь • 🎁 нагорода ×${d}`;
+}
 function setDiff(n){
   if(!CS||!CS.isHost||!CS.room||CS.room.status!=='waiting')return;
+  if(n!==10&&!(n>=1&&n<=5))return;
   dbUpdate(CS.base+CS.code,{difficulty:n}).catch(e=>toast('❌ '+(e.message||e)));
 }
 function renderLobby(room){
   const pl=sortedPlayers(room);
   $('ch-lobby-code').textContent=CS.code;
   $('ch-lobby-list').innerHTML=pl.map((p,i)=>`<div class="ch-lp"><span>${esc(p.avatar&&p.avatar.length<8?p.avatar:'👤')}</span><b>${esc(p.name)}</b>${p.id===room.host?'<small>👑 господар</small>':''}</div>`).join('');
-  const dv=Math.max(1,Math.min(5,(room.difficulty|0)||1));
-  $('ch-diff-pick').innerHTML=[1,2,3,4,5].map(n=>`<button class="ch-dbtn${n===dv?' on':''}" ${CS.isHost?`onclick="chessSetDiff(${n})"`:'disabled'}>${n}</button>`).join('');
+  const dv=normDiff(room.difficulty);
+  $('ch-diff-pick').innerHTML=[1,2,3,4,5,10].map(n=>`<button class="ch-dbtn${n===dv?' on':''}" ${CS.isHost?`onclick="chessSetDiff(${n})"`:'disabled'}>${n}</button>`).join('');
   $('ch-diff-info').textContent=diffInfoTxt(dv);
   const btn=$('ch-start-btn'),msg=$('ch-lobby-msg');
   if(CS.isHost){
@@ -11033,14 +11050,15 @@ function startQuiz(seed){
   const g=CS&&CS.g;
   if(!g||g.phase!=='dice'||!g.dice||g.dice.seed!==seed||!isMyTurn(g))return;
   const dv=g.dice.vals||[g.dice.d1,g.dice.d2];
-  CS.quiz={seed,sum:dv.reduce((a,b)=>a+b,0),ms:quizMs(g),t0:Date.now(),done:false};
+  const mul=isMul(g),ans=mul?dv.reduce((a,b)=>a*b,1):dv.reduce((a,b)=>a+b,0);
+  CS.quiz={seed,sum:ans,expr:mul?dv.join('×')+'='+ans:String(ans),ms:quizMs(g),t0:Date.now(),done:false};
   const q=$('ch-quiz');
   q.classList.remove('hidden');
-  q.innerHTML=`<div class="ch-q-t">🎲 Скільки очок на ${dv.length} кубиках? <small>(замок ${esc(g.dice.castle)})</small></div>
+  q.innerHTML=`<div class="ch-q-t">${mul?'🎲 Чому дорівнює добуток кубиків (×)?':`🎲 Скільки очок на ${dv.length} кубиках?`} <small>(замок ${esc(g.dice.castle)})</small> <span id="ch-q-sec" style="color:#ffd700"></span></div>
     <div class="ch-q-bar"><i id="ch-q-fill"></i></div>
-    <div class="ch-q-row"><input id="ch-q-in" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Сума" autocomplete="off">
+    <div class="ch-q-row"><input id="ch-q-in" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="${mul?'Добуток':'Сума'}" autocomplete="off">
     <button class="ch-btn ch-green" onclick="chessSubmitAnswer()">✓ Відповісти</button></div>
-    <div class="ch-q-hint">Рівень фішки = сума + секунди, що лишились. Хибно або без відповіді — рівень 1. Складність ${diffOf(g)}: ⏱ ${CS.quiz.ms/1000} с.</div>`;
+    <div class="ch-q-hint">Рівень фішки = ${mul?'добуток':'сума'} + секунди, що лишились. Хибно або без відповіді — рівень 1. Складність ${diffOf(g)}: ⏱ ${CS.quiz.ms/1000} с.</div>`;
   const inp=$('ch-q-in');
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')submitAnswer();});
   setTimeout(()=>{try{inp.focus();}catch(e){}},50);
@@ -11050,6 +11068,7 @@ function startQuiz(seed){
     const f=$('ch-q-fill');
     if(f){f.style.width=Math.max(0,left/CS.quiz.ms*100)+'%';}
     const s=$('ch-q-sec');
+    if(s)s.textContent='⏱ '+Math.max(0,Math.ceil(left/1000))+' с';
     if(left<=0)finishQuiz(null);
   },100);
 }
@@ -11076,7 +11095,7 @@ function finishQuiz(ans){
   }
   g.spawnQueue.shift();
   g.ev={n:((g.ev&&g.ev.n)||0)+1,
-    txt:ok?`✅ ${nm}: ${qz.sum} + ${left}с → нова фішка рівня ${level}`
+    txt:ok?`✅ ${nm}: ${qz.expr} + ${left}с → нова фішка рівня ${level}`
           :`❌ ${nm}: ${ans===null?'час вийшов':'хибно'} (було ${qz.sum}) → фішка рівня 1`};
   nextDice(g);
 }
@@ -11144,16 +11163,19 @@ function renderPlayers(g){
     const c=colOf(g,id),dead=g.eliminated.indexOf(id)>=0;
     const turn=g.phase!=='over'&&g.order[g.turn]===id&&!dead;
     const cn=CASTLES.filter(k=>g.castles[k]===id).length;
-    const pc=myPieces(g,id).length;
+    const mp=myPieces(g,id),pc=mp.length,str=mp.reduce((t,c)=>t+(g.pieces[c].l||0),0);
     return `<div class="ch-pl${turn?' turn':''}${dead?' dead':''}" style="border-color:${c.c}">
       <span class="ch-dot" style="background:${c.c}"></span>
       <b>${esc(g.names[id])}${id===CS.myId?' (ви)':''}</b>
-      <small>${dead?'☠️ вибув':`🏰${cn} ♟${pc}`}</small></div>`;
+      <small>${dead?'☠️ вибув':`🏰 ${cn} • ♟ ${pc} • 💪 ${str}`}</small></div>`;
   }).join('');
 }
 function renderBoardState(g){
   const mv=isMyMove(g);
   const tg=(mv&&CS.sel)?neighbors(CS.sel):[];
+  const curId=g.phase==='over'?null:g.order[g.turn];
+  const actOn=!!curId&&g.eliminated.indexOf(curId)<0;
+  const actCol=actOn?colOf(g,curId).c:'transparent';
   document.querySelectorAll('#ch-board .ch-cell').forEach(el=>{
     const id=el.dataset.id,cs=el.firstChild,pe=el.lastChild;
     if(id in g.castles){
@@ -11176,13 +11198,25 @@ function renderBoardState(g){
     el.classList.toggle('sel',CS.sel===id);
     el.classList.toggle('tgt',tg.indexOf(id)>=0&&!(p&&p.o!==CS.myId));
     el.classList.toggle('tgte',tg.indexOf(id)>=0&&!!p&&p.o!==CS.myId);
-    el.classList.toggle('ready',!!(mv&&own&&!g.moved[id]));
+    // яскрава підсвітка активних фішок і замків поточного гравця — доки вони не зробили хід
+    let actP=false,actC=false;
+    if(actOn){
+      actP=!!(p&&p.o===curId&&!g.moved[id]&&(g.phase==='banner'||g.phase==='dice'||g.phase==='move'));
+      if((id in g.castles)&&g.castles[id]===curId){
+        if(g.phase==='banner')actC=true;
+        else if(g.phase==='dice')actC=g.spawnQueue.indexOf(id)>=0;
+        else if(g.phase==='move')actC=actP;
+      }
+    }
+    el.style.setProperty('--gc',actCol);
+    el.classList.toggle('act-p',actP);
+    el.classList.toggle('act-c',actC);
     el.classList.toggle('done',!!(p&&own&&g.moved[id]&&g.phase==='move'));
   });
 }
 function renderInfo(g){
   const st=$('ch-status'),eb=$('ch-endturn');
-  $('ch-diff').textContent='⭐ Складність '+diffOf(g)+' • '+diffInfoTxt(diffOf(g));
+  $('ch-diff').textContent='⭐ Складність '+diffOf(g)+' • '+(isMul(g)?'🎲 2 кубики ✖️ добуток • ⏱ 15 с':diffInfoTxt(diffOf(g)));
   const me=CS.myId,dead=g.eliminated.indexOf(me)>=0;
   const cur=g.order[g.turn];
   let t='';
@@ -11219,21 +11253,21 @@ function handleEvents(g){
   // нагороди
   if(!CS.rewarded){
     const rw=rewardFor(g,CS.myId);
-    if(rw){CS.rewarded=true;giveReward(rw,g.order.length);}
+    if(rw){CS.rewarded=true;giveReward(rw,g.order.length,diffOf(g));}
   }
   if(g.phase==='over'&&!CS.resultsShown){CS.finished=true;CS.resultsShown=true;showResults(g);}
 }
-function giveReward(rw,n){
-  const k=rw.sets,user=getUser();
-  user.stars=(user.stars||0)+1000*k;
-  user.seeds=(user.seeds||0)+k;
-  user.bees=(user.bees||0)+k;
-  user.guzuky=(user.guzuky||0)+10*k;
-  user.threads=(user.threads||0)+10*k;
-  addGameHistoryEntry('♟️ Шахи',`${rw.place}/${n}`,rewardText(k),user);
+function giveReward(rw,n,d){
+  const a=rewardAmt(rw.place,n,d),user=getUser();
+  user.stars=(user.stars||0)+a.stars;
+  user.seeds=(user.seeds||0)+a.seeds;
+  user.bees=(user.bees||0)+a.bees;
+  user.guzuky=(user.guzuky||0)+a.guz;
+  user.threads=(user.threads||0)+a.thr;
+  addGameHistoryEntry('♟️ Шахи',`${rw.place}/${n}`,rewardText(a),user);
   saveUser(user);
   if(typeof updateUI==='function')updateUI();
-  if(rw.place>1)toast(`☠️ Ви втратили всі замки (${rw.place}/${n} місце)<br>${rewardText(k)}`,5000);
+  if(rw.place>1)toast(`☠️ Ви втратили всі замки (${rw.place}/${n} місце)<br>${rewardText(a)}`,5000);
 }
 function showResults(g){
   const res=g.results||computeResults(g);
@@ -11241,10 +11275,10 @@ function showResults(g){
   const box=$('ch-results');
   box.innerHTML=`<div class="ch-res-box">
     <div class="ch-h">🏆 Результати гри</div>
-    <div style="color:#ffd700;font-size:.85rem">Складність ${diffOf(g)} • нагорода ×${diffOf(g)}</div>
+    <div style="color:#ffd700;font-size:.85rem">Складність ${diffOf(g)} • ${rewardNote(diffOf(g))}</div>
     <table>${res.map(r=>`<tr><td>${medal[r.place-1]||r.place}</td>
       <td>${nameHtml(g,r.id)}${r.id===CS.myId?' <small>(ви)</small>':''}</td>
-      <td class="ch-rw">${rewardText(r.sets)}</td></tr>`).join('')}</table>
+      <td class="ch-rw">${rewardText(rewardAmt(r.place,g.order.length,diffOf(g)))}</td></tr>`).join('')}</table>
     <button class="ch-btn ch-blue" id="ch-res-close" disabled>⏳ 3</button></div>`;
   box.classList.add('show');
   let s=3;
@@ -11345,5 +11379,81 @@ window.addEventListener('resize',()=>{if(CS&&CS.boardBuilt&&CS.g){layout();}});
 })();
 
 </script>
+
+<!-- SEASONS: зміна пори року (осінь-зима-весна-літо) + ледь помітна рамка — головний екран і всі ігри -->
+<style>
+#season-layer{position:fixed;inset:0;pointer-events:none;z-index:99990;overflow:hidden;
+  --sf-c:rgba(210,105,30,.40);--sf-g:rgba(210,105,30,.20);
+  --st:linear-gradient(180deg,rgba(255,140,0,.10),rgba(150,60,0,.10))}
+#season-layer[data-season="winter"]{--sf-c:rgba(150,205,245,.50);--sf-g:rgba(190,225,255,.26);
+  --st:linear-gradient(180deg,rgba(200,230,255,.14),rgba(120,170,230,.10))}
+#season-layer[data-season="spring"]{--sf-c:rgba(110,200,110,.45);--sf-g:rgba(255,170,200,.22);
+  --st:linear-gradient(180deg,rgba(255,190,210,.10),rgba(140,230,140,.10))}
+#season-layer[data-season="summer"]{--sf-c:rgba(255,205,60,.50);--sf-g:rgba(255,225,110,.24);
+  --st:linear-gradient(180deg,rgba(255,235,120,.12),rgba(255,170,60,.08))}
+#season-tint{position:absolute;inset:0;background:var(--st)}
+#season-frame{position:absolute;inset:0;box-shadow:inset 0 0 0 3px var(--sf-c),inset 0 0 26px 6px var(--sf-g)}
+.season-p{position:absolute;top:-8vh;line-height:1;opacity:.45;will-change:transform;
+  animation:seasonFall linear infinite}
+.season-p.up{top:auto;bottom:-8vh;animation-name:seasonRise}
+@keyframes seasonFall{0%{transform:translate3d(0,-8vh,0) rotate(0)}
+  50%{transform:translate3d(var(--sw),55vh,0) rotate(180deg)}
+  100%{transform:translate3d(calc(var(--sw)*-.4),112vh,0) rotate(360deg)}}
+@keyframes seasonRise{0%{transform:translate3d(0,0,0) scale(.8);opacity:0}
+  20%{opacity:.5}
+  50%{transform:translate3d(var(--sw),-55vh,0) scale(1)}
+  100%{transform:translate3d(calc(var(--sw)*-.4),-112vh,0) scale(.9);opacity:0}}
+@media (prefers-reduced-motion:reduce){.season-p{display:none}}
+</style>
+<div id="season-layer" aria-hidden="true"><div id="season-tint"></div><div id="season-frame"></div></div>
+<script>
+(function(){
+'use strict';
+var SEASONS={
+  autumn:{name:'Осінь',icons:['🍂','🍁','🍂','🍃'],up:false},
+  winter:{name:'Зима', icons:['❄️','❅','❆','❄️'],up:false},
+  spring:{name:'Весна',icons:['🌸','🌷','🌿','🌸'],up:false},
+  summer:{name:'Літо', icons:['✨','🦋','☀️','✨'],up:true}
+};
+// календар: груд–лют зима, бер–кві–тра весна, чер–лип–сер літо, вер–жов–лис осінь
+function seasonByDate(d){
+  var m=d.getMonth()+1;
+  if(m===12||m<=2)return 'winter';
+  if(m<=5)return 'spring';
+  if(m<=8)return 'summer';
+  return 'autumn';
+}
+function currentSeason(){
+  try{var q=new URLSearchParams(location.search).get('season');if(q&&SEASONS[q])return q;}catch(e){}
+  return seasonByDate(new Date());
+}
+var layer=document.getElementById('season-layer'),shown='';
+function build(sn){
+  var cfg=SEASONS[sn];
+  layer.setAttribute('data-season',sn);
+  document.documentElement.setAttribute('data-season',sn);
+  Array.prototype.slice.call(layer.querySelectorAll('.season-p')).forEach(function(n){n.remove();});
+  var small=Math.min(window.innerWidth,window.innerHeight)<520;
+  var N=small?9:15;
+  for(var i=0;i<N;i++){
+    var el=document.createElement('span');
+    el.className='season-p'+(cfg.up?' up':'');
+    el.textContent=cfg.icons[i%cfg.icons.length];
+    el.style.left=(Math.random()*96)+'%';
+    el.style.fontSize=(14+Math.random()*14)+'px';
+    el.style.setProperty('--sw',((Math.random()*80-40))+'px');
+    el.style.animationDuration=(14+Math.random()*16)+'s';
+    el.style.animationDelay=(-Math.random()*28)+'s';
+    layer.appendChild(el);
+  }
+  shown=sn;
+}
+function tick(){var sn=currentSeason();if(sn!==shown)build(sn);}
+tick();
+setInterval(tick,30*60*1000);
+window.getCurrentSeason=function(){return {key:shown,name:SEASONS[shown].name};};
+})();
+</script>
+
 </body>
 </html>
