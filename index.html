@@ -123,6 +123,15 @@ html{height:100%}
 body{font-family:'Segoe UI',sans-serif;background:linear-gradient(160deg,#FFD700 0%,#FFD700 50%,#005BBB 50%,#005BBB 100%);min-height:100%;min-height:100dvh;overflow-x:hidden}
 .hidden{display:none!important}
 
+/* ═══ СЕЗОННА РАМКА ═══ */
+#season-frame{position:fixed;inset:0;z-index:9990;pointer-events:none;overflow:hidden;transition:opacity .6s}
+#season-frame .sf-tint{position:absolute;inset:0}
+#season-frame .sf-glow{position:absolute;inset:0}
+#season-frame .sf-i{position:absolute;line-height:1;user-select:none;will-change:transform}
+@keyframes sfFlutter{0%,100%{transform:translate(0,0) rotate(var(--r,0deg))}50%{transform:translate(4px,-5px) rotate(calc(var(--r,0deg) + 14deg))}}
+#season-frame .sf-fly{animation:sfFlutter 5s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){#season-frame .sf-fly{animation:none}}
+
 
 
 /* Login Screen */
@@ -2951,7 +2960,41 @@ function loadUsers(){
 // Записує кожну перемогу в будь-якій грі: дата, тип гри, рівень складності, нагорода.
 // user передається, якщо вже завантажений (щоб не читати профіль двічі) —
 // інакше функція сама викличе getUser()/saveUser().
-const GAME_HISTORY_MAX = 200;
+const EN_THEME_NAMES={verbs:'Дієслова',home:'Дім',nature:'Природа',pronouns:'Займенники',interrogative:'Питальні',food:'Їжа',games:'Ігри',body:'Тіло'};
+// Приводить назву гри та рівень до єдиного читабельного вигляду
+// (працює і для нових записів, і для старих, збережених раніше).
+function _histNormalize(h){
+  let game=String(h.game||'Гра').trim();
+  let lvl=(h.level===undefined||h.level===null||h.level==='')?'':String(h.level).trim();
+  let caption='складність', text=lvl||'—';
+  if(/Математика-0/.test(game)){
+    if(/^\d+$/.test(lvl)) text='Рівень '+lvl;
+  } else if(/БоСС/.test(game)){
+    if(/^\d+$/.test(lvl)) text='Рівень '+lvl;
+  } else if(/Пірати/.test(game)){
+    if(/^\d+$/.test(lvl)) text='Рівень '+lvl;
+  } else if(/Математика/.test(game)){
+    if(/^[A-Fa-f]$/.test(lvl)) text='Рівень '+lvl.toUpperCase();
+    else if(/^\d+$/.test(lvl)) text='Рівень '+lvl;
+  } else if(/Англійська/.test(game)){
+    caption='теми';
+    text=lvl.split(',').map(s=>s.trim()).filter(Boolean).map(s=>EN_THEME_NAMES[s]||s).join(', ')||'—';
+  } else if(/Шахи/.test(game)){
+    let m;
+    if((m=lvl.match(/^вихід\/(\d+)$/))) text='Вихід з гри ('+m[1]+' гравців)';
+    else if((m=lvl.match(/^(\d+)\/(\d+)$/))) text=m[1]+' місце з '+m[2];
+  }
+  return {game,caption,text};
+}
+function _histEsc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+// Дата й час завершення — за годинником і часовим поясом пристрою
+function _histDateStr(ts){
+  const d=new Date(ts);
+  if(isNaN(d.getTime())) return '—';
+  const p=n=>String(n).padStart(2,'0');
+  return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+' – '+p(d.getHours())+':'+p(d.getMinutes());
+}
+// Зберігаються ВСІ перемоги (без обмеження кількості).
 function addGameHistoryEntry(gameType, level, reward, user){
   const isOwn = !user;
   const u = user || getUser();
@@ -2962,7 +3005,6 @@ function addGameHistoryEntry(gameType, level, reward, user){
     level: (level===undefined||level===null||level==='') ? '—' : String(level),
     reward: reward || ''
   });
-  if(u.history.length > GAME_HISTORY_MAX) u.history.length = GAME_HISTORY_MAX;
   if(isOwn) saveUser(u);
 }
 
@@ -2973,21 +3015,20 @@ function showGameHistory(){
   if(!list.length){
     rows.innerHTML = '<div style="color:#aaa;text-align:center;padding:24px">Ще немає жодної перемоги 🕹️</div>';
   } else {
-    rows.innerHTML = list.map(h=>{
-      const d = new Date(h.date);
-      const dateStr = d.toLocaleDateString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+    rows.innerHTML = '<div style="color:#aaa;font-size:.8rem;text-align:center;margin-bottom:10px">Усього записів: '+list.length+'</div>' + list.map(h=>{
+      const n=_histNormalize(h);
       return `<div style="display:flex;align-items:center;gap:10px;padding:12px;margin-bottom:8px;background:rgba(255,255,255,.06);border-radius:14px;border:1px solid rgba(255,255,255,.1)">
         <div style="flex:1;min-width:0">
-          <div style="font-weight:800;color:#fff;font-size:.98rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.game}</div>
-          <div style="color:#aaa;font-size:.75rem;margin-top:2px">${dateStr}</div>
+          <div style="font-weight:800;color:#fff;font-size:.98rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_histEsc(n.game)}</div>
+          <div style="color:#aaa;font-size:.75rem;margin-top:2px">${_histDateStr(h.date)}</div>
         </div>
-        <div style="text-align:center;flex-shrink:0;padding:0 8px">
-          <div style="font-size:.7rem;color:#aaa">рівень</div>
-          <div style="font-weight:900;color:#00e5ff;font-size:1rem">${h.level}</div>
+        <div style="text-align:center;flex-shrink:0;padding:0 8px;max-width:38%">
+          <div style="font-size:.7rem;color:#aaa">${n.caption}</div>
+          <div style="font-weight:900;color:#00e5ff;font-size:.92rem;line-height:1.25">${_histEsc(n.text)}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:.7rem;color:#aaa">нагорода</div>
-          <div style="font-weight:900;color:#ffd700;font-size:1rem">${h.reward}</div>
+          <div style="font-weight:900;color:#ffd700;font-size:.92rem">${_histEsc(h.reward||'—')}</div>
         </div>
       </div>`;
     }).join('');
@@ -2998,17 +3039,8 @@ function showGameHistory(){
 function closeGameHistoryModal(){
   document.getElementById('game-history-modal').style.display='none';
 }
-
-function clearGameHistory(){
-  if(!confirm('Очистити всю історію перемог?')) return;
-  const user = getUser();
-  user.history = [];
-  saveUser(user);
-  showGameHistory();
-}
 window.showGameHistory = showGameHistory;
 window.closeGameHistoryModal = closeGameHistoryModal;
-window.clearGameHistory = clearGameHistory;
 
 // ═══ LOGIN UI ═══════════════════════════════════════════════
 let _pinTarget=null; // profile id for login
@@ -4241,7 +4273,7 @@ Object.entries(englishState.progress||{}).forEach(([en,gameProg])=>{
 user.stars+=total;
 if(!user.seeds)user.seeds=0;
 user.seeds+=1;
-addGameHistoryEntry('🔤 Англійська', englishState.theme||englishState.level||'—', `+${total}⭐ +1🌱`, user);
+addGameHistoryEntry('🔤 Англійська', (englishState.themes&&englishState.themes.length?englishState.themes.join(','):(englishState.theme||'—')), `+${total}⭐ +1🌱`, user);
 saveUser(user);
 updateUI();
 
@@ -8920,9 +8952,8 @@ window.checkMath0Answer = checkMath0Answer;
     <h2 style="color:#ffd700;font-size:1.5rem;margin:0">📜 Історія перемог</h2>
     <button onclick="closeGameHistoryModal()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:#aaa">✕</button>
   </div>
-  <div style="color:#aaa;font-size:.82rem;text-align:center;margin-bottom:14px">Дата • тип гри • рівень складності • нагорода</div>
+  <div style="color:#aaa;font-size:.82rem;text-align:center;margin-bottom:14px">Дата й час • тип гри • рівень складності • нагорода</div>
   <div id="game-history-rows"></div>
-  <button onclick="clearGameHistory()" style="width:100%;margin-top:14px;padding:11px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;border-radius:12px;font-size:.9rem;font-weight:700;cursor:pointer">🗑️ Очистити історію</button>
 </div>
 </div>
 
@@ -10862,7 +10893,7 @@ async function closeChess(){
       if(!confirm('Вийти з гри? Ви програєте та не отримаєте нагороду.')) return;
       CS.leaving=true;CS.rewarded=true;
       const user=getUser();
-      addGameHistoryEntry('♟️ Шахи',`вихід/${g.order.length}`,'—',user);saveUser(user);
+      addGameHistoryEntry('♟️ Шахи',`Складність ${diffOf(g)} • вихід з гри`,'—',user);saveUser(user);
       if(g.order[g.turn]===CS.myId){
         const ng=clone(g);
         eliminate(ng,CS.myId);checkElims(ng);
@@ -11230,7 +11261,7 @@ function giveReward(rw,n){
   user.bees=(user.bees||0)+k;
   user.guzuky=(user.guzuky||0)+10*k;
   user.threads=(user.threads||0)+10*k;
-  addGameHistoryEntry('♟️ Шахи',`${rw.place}/${n}`,rewardText(k),user);
+  addGameHistoryEntry('♟️ Шахи',`Складність ${diffOf(CS&&CS.g)} • ${rw.place} місце з ${n}`,rewardText(k),user);
   saveUser(user);
   if(typeof updateUI==='function')updateUI();
   if(rw.place>1)toast(`☠️ Ви втратили всі замки (${rw.place}/${n} місце)<br>${rewardText(k)}`,5000);
@@ -11344,6 +11375,57 @@ window.chessEndTurn=finishTurn;
 window.addEventListener('resize',()=>{if(CS&&CS.boardBuilt&&CS.g){layout();}});
 })();
 
+</script>
+
+<div id="season-frame" aria-hidden="true"></div>
+<script>
+// ═══ ПОРИ РОКУ: осінь – зима – весна – літо (за календарем пристрою) ═══
+(function(){
+  const SEASONS={
+    autumn:{tint:'rgba(214,120,30,.07)',glow:'rgba(214,110,30,.30)',op:.42,items:['🍂','🍁','🍂','🍃','🍁'],fly:false},
+    winter:{tint:'rgba(150,200,255,.06)',glow:'rgba(190,225,255,.40)',op:.45,items:['❄️','❅','❄️','❆','❄️'],fly:false},
+    spring:{tint:'rgba(120,200,110,.06)',glow:'rgba(110,200,100,.30)',op:.42,items:['🌱','🌸','🌿','🌼','🌷'],fly:false},
+    summer:{tint:'rgba(255,220,90,.05)',glow:'rgba(90,180,80,.28)',op:.42,items:['🌿','🍃','🦋','🌿','🦋'],fly:true}
+  };
+  function currentSeason(d){
+    const m=(d||new Date()).getMonth(); // 0 = січень (локальний час пристрою)
+    if(m===11||m<=1) return 'winter';
+    if(m<=4) return 'spring';
+    if(m<=7) return 'summer';
+    return 'autumn';
+  }
+  let lastKey='';
+  function build(){
+    const box=document.getElementById('season-frame'); if(!box) return;
+    const s=currentSeason(), cfg=SEASONS[s];
+    const W=window.innerWidth, H=window.innerHeight;
+    const key=s+'|'+W+'|'+H; if(key===lastKey) return; lastKey=key;
+    document.documentElement.setAttribute('data-season',s);
+    const size=Math.max(16,Math.min(26,Math.round(Math.min(W,H)/22)));
+    const step=Math.round(size*1.55), band=size+4;
+    let seed=s.length*977+W+H; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+    let h='<div class="sf-tint" style="background:'+cfg.tint+'"></div>'+
+          '<div class="sf-glow" style="box-shadow:inset 0 0 '+(band*2)+'px '+Math.round(band*.4)+'px '+cfg.glow+'"></div>';
+    function add(x,y,big){
+      const it=cfg.items[Math.floor(rnd()*cfg.items.length)];
+      const r=Math.round(rnd()*80-40), sz=Math.round(size*(big?1.35:(.8+rnd()*.4)));
+      const fly=cfg.fly&&it==='🦋'?' sf-fly':'';
+      h+='<span class="sf-i'+fly+'" style="left:'+Math.round(x)+'px;top:'+Math.round(y)+'px;font-size:'+sz+'px;opacity:'+cfg.op+';--r:'+r+'deg;transform:rotate('+r+'deg)'+(fly?';animation-delay:-'+(rnd()*5).toFixed(1)+'s':'')+'">'+it+'</span>';
+    }
+    const nx=Math.ceil(W/step), ny=Math.ceil(H/step);
+    for(let i=1;i<nx-1;i++){ add(i*step+rnd()*6,2+rnd()*5); add(i*step+rnd()*6,H-band-rnd()*5); }
+    for(let j=1;j<ny-1;j++){ add(2+rnd()*5,j*step+rnd()*6); add(W-band-rnd()*5,j*step+rnd()*6); }
+    add(2,2,true); add(W-band-4,2,true); add(2,H-band-4,true); add(W-band-4,H-band-4,true);
+    box.innerHTML=h;
+  }
+  function init(){ build(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  window.addEventListener('resize',build);
+  window.addEventListener('orientationchange',()=>setTimeout(build,200));
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) build(); });
+  setInterval(build,3600000); // якщо додаток відкритий на межі сезонів
+  window.getCurrentSeason=currentSeason;
+})();
 </script>
 </body>
 </html>
